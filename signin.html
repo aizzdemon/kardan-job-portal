@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - KARDAN</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+            authDomain: "kar-kardan.firebaseapp.com",
+            projectId: "kar-kardan",
+            storageBucket: "kar-kardan.appspot.com",
+            messagingSenderId: "554147696994",
+            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+            measurementId: "G-RRC3X485KQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        window.onload = function () {
+            // Email Sign-In
+            document.getElementById("signin-form").addEventListener("submit", async function(event) {
+                event.preventDefault();
+                
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    alert("Sign-in successful! ✅ Redirecting...");
+                    window.location.href = "dashboard.html";
+                } catch (error) {
+                    console.error("Sign-in Error:", error);
+                    alert("Sign-in Failed: " + error.message);
+                }
+            });
+
+            // Google Sign-In
+            document.getElementById("googleSignInBtn").addEventListener("click", async function () {
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    alert(`Welcome, ${result.user.displayName}! ✅ Redirecting...`);
+                    window.location.href = "dashboard.html";
+                } catch (error) {
+                    console.error("Google Sign-In Error:", error);
+                    alert("Google Sign-in failed. Try again.");
+                }
+            });
+        };
+    </script>
+</head>
+<body>
+    <div class="logo-box">KARDAN</div>
+    <div class="container">
+        <h2 class="signin-title">Sign In</h2>
+        <form id="signin-form">
+            <input type="email" id="email" name="email" placeholder="Email ID" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <button type="submit">Sign In</button>
+        </form>
+        <button id="googleSignInBtn">Sign In with Google</button>
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+    </div>
+</body>
+</html>
