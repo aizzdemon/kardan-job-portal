@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Apply for jobs on KARDAN. Submit your application now!">
+    <title>Apply for Job - KARDAN Job Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .apply-container {
+            width: 50%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .apply-form input, .apply-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .apply-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+        }
+        .apply-button:hover {
+            background-color: #218838;
+        }
+        @media (max-width: 768px) {
+            .apply-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-box">KARDAN</div>
+        <h1>Apply for Job</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="nav-button">Home</a></li>
+                <li><a href="job-listings.html" class="nav-button">Job Listings</a></li>
+                <li><a href="dashboard.html" class="nav-button">Dashboard</a></li>
+                <li><a href="logout.html" class="join-button">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <section class="apply-container">
+        <h2>Job Application Form</h2>
+        <form class="apply-form">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+            
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+            
+            <label for="resume">Upload Resume</label>
+            <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+            
+            <label for="cover-letter">Cover Letter</label>
+            <textarea id="cover-letter" name="cover-letter" rows="5" required></textarea>
+            
+            <button type="submit" class="apply-button">Submit Application</button>
+        </form>
+    </section>
+    <footer>
+        <p>&copy; 2025 KARDAN Job Portal. All rights reserved.</p>
+        <nav>
+            <ul>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </footer>
+</body>
+</html>

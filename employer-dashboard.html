@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Employers' job posting and management dashboard on KARDAN.">
+    <title>Employer Dashboard - KARDAN Job Portal</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-container h2 {
+            text-align: center;
+        }
+        .job-form input, .job-form textarea, .job-form select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .post-job-button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+        }
+        .post-job-button:hover {
+            background-color: #0056b3;
+        }
+        .job-listings article {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        @media (max-width: 768px) {
+            .dashboard-container {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-box">KARDAN</div>
+        <h1>Employer Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="nav-button">Home</a></li>
+                <li><a href="job-listings.html" class="nav-button">Job Listings</a></li>
+                <li><a href="logout.html" class="join-button">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <section class="dashboard-container">
+        <h2>Post a New Job</h2>
+        <form class="job-form">
+            <label for="title">Job Title</label>
+            <input type="text" id="title" name="title" required>
+            
+            <label for="company">Company Name</label>
+            <input type="text" id="company" name="company" required>
+            
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" required>
+            
+            <label for="description">Job Description</label>
+            <textarea id="description" name="description" rows="5" required></textarea>
+            
+            <label for="category">Job Category</label>
+            <select id="category" name="category">
+                <option value="tech">Technology</option>
+                <option value="marketing">Marketing</option>
+                <option value="finance">Finance</option>
+                <option value="design">Design</option>
+            </select>
+            
+            <button type="submit" class="post-job-button">Post Job</button>
+        </form>
+        <h2>Manage Your Jobs</h2>
+        <div class="job-listings">
+            <article>
+                <h3>Software Engineer</h3>
+                <p>Company: Tech Corp</p>
+                <p>Location: New York, NY</p>
+                <button class="post-job-button">Edit</button>
+                <button class="post-job-button" style="background-color: #dc3545;">Delete</button>
+            </article>
+            <article>
+                <h3>Marketing Specialist</h3>
+                <p>Company: Brand Solutions</p>
+                <p>Location: Los Angeles, CA</p>
+                <button class="post-job-button">Edit</button>
+                <button class="post-job-button" style="background-color: #dc3545;">Delete</button>
+            </article>
+        </div>
+    </section>
+    <footer>
+        <p>&copy; 2025 KARDAN Job Portal. All rights reserved.</p>
+        <nav>
+            <ul>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </footer>
+</body>
+</html>

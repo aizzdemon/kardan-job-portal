@@ -1,0 +1,65 @@
+/* General Page Styling */
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #f0f0f0, #e6e6e6);
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Logo Box */
+.logo-box {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: #ff5733;
+    color: white;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+/* Container Box */
+.container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Sign-Up Title */
+.signup-title {
+    background-color: #ff5733;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: inline-block;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Input Fields & Buttons */
+input, select, button {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Button Styling */
+button {
+    background-color: #ff5733;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #e04e2a;
+}
