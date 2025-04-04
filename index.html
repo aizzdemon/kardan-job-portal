@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Find your dream job with KARDAN - the professional job portal for job seekers and recruiters.">
+    <title>KARDAN - Job Portal</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { getApps, initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+            authDomain: "kar-kardan.firebaseapp.com",
+            projectId: "kar-kardan",
+            storageBucket: "kar-kardan.appspot.com",
+            messagingSenderId: "554147696994",
+            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+            measurementId: "G-RRC3X485KQ"
+        };
+
+        if (!getApps().length) {
+            const app = initializeApp(firebaseConfig);
+            console.log("Firebase initialized successfully");
+        }
+    </script>
+
+    <style>
+        .logo-box {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #ff5733;
+            color: white;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #f0f0f0, #e6e6e6);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        nav ul {
+            list-style: none;
+            padding: 0;
+            text-align: center;
+        }
+        nav ul li {
+            display: inline;
+            margin: 0 10px;
+        }
+        .nav-button, .join-button {
+            border-radius: 5px;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            padding: 10px 15px;
+        }
+        .nav-button {
+            background-color: #d3d3d3;
+            border: 1px solid #bbb;
+            color: #000;
+        }
+        .join-button {
+            background-color: #357ABD;
+            border: 1px solid #357ABD;
+            color: white;
+        }
+        .nav-button:hover, .join-button:hover {
+            background-color: #c0c0c0;
+        }
+        #search {
+            background-color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 10px;
+            width: 50%;
+            margin: 20px auto;
+        }
+        #search input {
+            padding: 10px;
+            margin: 5px;
+            width: 40%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        #search button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        @media (max-width: 768px) {
+            #search {
+                width: 90%;
+            }
+            #search input {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-box">KARDAN</div>
+        <h1>Be the Part of Professionalism</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="nav-button">Home</a></li>
+                <li><a href="jobs.html" class="nav-button">Jobs</a></li>
+                <li><a href="books.html" class="nav-button">Buy Books</a></li>
+                <li><a href="hangouts.html" class="nav-button">Places to Hangout</a></li>
+                <li><a href="companies.html" class="nav-button">Companies</a></li>
+                <li><a href="login.html" class="nav-button">Login</a></li>  <!-- ✅ Make sure this matches your actual login page -->
+                <li><a href="signup.html" class="join-button">Join Now</a></li>
+            </ul>
+        </nav>
+    </header>
+    <section id="search">
+        <h2>Search for Jobs</h2>
+        <form id="jobSearchForm">
+            <input type="text" placeholder="Job title, keywords, or company">
+            <input type="text" placeholder="Location">
+            <button type="submit">Search</button>
+        </form>
+    </section>
+    <footer>
+        <p>&copy; 2025 Job Portal. All rights reserved.</p>
+        <nav>
+            <ul>
+                <li><a href="about.html">About</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </footer>
+    <script>
+        document.getElementById("jobSearchForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const jobTitle = document.querySelector("#jobSearchForm input:nth-child(1)").value;
+            const location = document.querySelector("#jobSearchForm input:nth-child(2)").value;
+            
+            if (jobTitle || location) {
+                window.location.href = `jobs.html?title=${encodeURIComponent(jobTitle)}&location=${encodeURIComponent(location)}`;
+            } else {
+                alert("Please enter a job title or location.");
+            }
+        });
+    </script>
+</body>
+</html>
