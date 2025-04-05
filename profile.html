@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    .logo-box {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #ff5733;
+      color: white;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+    }
+    nav ul li {
+      display: inline;
+      margin: 0 10px;
+    }
+    .nav-button {
+      background-color: #d3d3d3;
+      border: 1px solid #bbb;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #000;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .nav-button i {
+      margin-right: 5px;
+    }
+    .nav-button:hover {
+      background-color: #c0c0c0;
+    }
+    .join-button {
+      background-color: #357ABD;
+      border: 1px solid #357ABD;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+      text-decoration: none;
+      color: white;
+      display: inline-block;
+    }
+    .join-button:hover {
+      background-color: #2b6ea8;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Header and Nav (same as homepage) -->
+  <header>
+    <div class="logo-box">KARDAN</div>
+    <h1 class="text-3xl font-bold text-center mt-6">Your Profile</h1>
+    <nav class="mt-4 text-center">
+      <ul>
+        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="index.html#jobs" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
+        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
+        <li><a href="#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+        <li><a href="#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
+        <li><a href="admin.html" class="nav-button">Login</a></li>
+        <li><a href="signup.html" class="join-button">Join Now</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Profile Content -->
+  <div class="max-w-md mx-auto mt-10 text-center bg-white p-6 rounded shadow">
+    <p id="userEmail" class="mb-2 text-gray-600"></p>
+    <p id="userRole" class="mb-4 text-blue-600 font-semibold"></p>
+
+    <div id="employerActions" class="hidden">
+      <a href="admin.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post a Job</a>
+    </div>
+
+    <div id="employeeActions" class="hidden">
+      <a href="index.html#jobs" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">View Jobs</a>
+    </div>
+
+    <button onclick="logout()" class="block mt-4 text-red-500 underline">Logout</button>
+  </div>
+
+  <!-- Firebase Logic -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = "admin.html";
+        return;
+      }
+
+      document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
+
+      const doc = await db.collection("users").doc(user.uid).get();
+      const role = doc.exists ? doc.data().role : "employee";
+
+      document.getElementById("userRole").textContent = "Role: " + role;
+
+      if (role === "employer") {
+        document.getElementById("employerActions").classList.remove("hidden");
+      } else {
+        document.getElementById("employeeActions").classList.remove("hidden");
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "admin.html";
+      });
+    }
+  </script>
+</body>
+</html>
