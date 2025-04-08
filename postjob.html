@@ -122,41 +122,46 @@
     const form = document.getElementById('jobForm');
     const successMessage = document.getElementById('successMessage');
 
+    let currentUser = null;
+
+    // Check if user is logged in
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+      } else {
+        alert("You must be logged in to post a job.");
+        window.location.href = "login.html"; // Redirect to login if not authenticated
+      }
+    });
+
     publishBtn.addEventListener('click', async function () {
       const title = document.getElementById('jobTitle').value.trim();
       const location = document.getElementById('jobPlace').value.trim();
       const link = document.getElementById('jobLink').value.trim();
 
-      if (title && location && link) {
-        const user = auth.currentUser;
-
-        if (!user) {
-          alert("You must be logged in to post a job.");
-          return;
-        }
-
-        try {
-          await db.collection('jobs').add({
-            title,
-            location,
-            link,
-            postedBy: user.email,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-          form.reset();
-          successMessage.classList.remove('hidden');
-
-          setTimeout(() => {
-            successMessage.classList.add('hidden');
-          }, 3000);
-
-        } catch (error) {
-          console.error("Error posting job:", error);
-          alert("Failed to post job. Try again.");
-        }
-      } else {
+      if (!title || !location || !link) {
         alert("Please fill in all fields.");
+        return;
+      }
+
+      try {
+        await db.collection('jobs').add({
+          title,
+          location,
+          link,
+          postedBy: currentUser.email,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        form.reset();
+        successMessage.classList.remove('hidden');
+
+        setTimeout(() => {
+          successMessage.classList.add('hidden');
+        }, 3000);
+      } catch (error) {
+        console.error("Error posting job:", error);
+        alert("Failed to post job. Try again.");
       }
     });
   </script>
