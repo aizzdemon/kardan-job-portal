@@ -64,7 +64,7 @@
       <ul>
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="index.html#jobs" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="post-job.html" class="nav-button"><i class="fas fa-upload"></i> Post a Job</a></li>
+        <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
         <li><a href="index.html#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
         <li><a href="index.html#hangouts" class="nav-button"><i class="fas fa-comments"></i> Places to Hangout</a></li>
@@ -82,7 +82,7 @@
     <!-- Action Buttons -->
     <div class="flex flex-col gap-4">
       <a href="jobs.html" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Find Jobs</a>
-      <a href="post-job.html" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">Post a Job</a>
+      <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Post a Job</a>
     </div>
 
     <button onclick="logout()" class="block mt-6 text-red-500 underline">Logout</button>
@@ -106,7 +106,7 @@
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        window.location.href = "login.html"; // Redirect to login if not authenticated
+        window.location.href = "login.html";
         return;
       }
 
