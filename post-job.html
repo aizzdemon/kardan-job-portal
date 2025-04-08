@@ -6,6 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
   <style>
     .logo-box {
       position: absolute;
@@ -96,21 +102,54 @@
     <p id="successMessage" class="text-green-600 font-semibold mt-4 hidden text-center">Job posted successfully!</p>
   </div>
 
-  <!-- JS Logic -->
+  <!-- Firebase Logic -->
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
     const publishBtn = document.getElementById('publishBtn');
     const form = document.getElementById('jobForm');
     const successMessage = document.getElementById('successMessage');
 
-    publishBtn.addEventListener('click', function () {
+    publishBtn.addEventListener('click', async function () {
       const title = document.getElementById('jobTitle').value.trim();
       const place = document.getElementById('jobPlace').value.trim();
       const link = document.getElementById('jobLink').value.trim();
 
       if (title && place && link) {
-        console.log("Job Posted:", { title, place, link });
-        form.reset();
-        successMessage.classList.remove('hidden');
+        const user = auth.currentUser;
+
+        if (!user) {
+          alert("You must be logged in to post a job.");
+          return;
+        }
+
+        try {
+          await db.collection('jobs').add({
+            title,
+            place,
+            link,
+            postedBy: user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          form.reset();
+          successMessage.classList.remove('hidden');
+        } catch (error) {
+          console.error("Error posting job:", error);
+          alert("Failed to post job. Try again.");
+        }
       } else {
         alert("Please fill in all fields.");
       }
