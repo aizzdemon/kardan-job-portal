@@ -5,6 +5,7 @@ body {
     color: #333;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
 }
 
 /* Logo Box */
@@ -50,6 +51,24 @@ input, select, button {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* File Input Custom Style */
+input[type="file"] {
+    display: none;
+}
+
+.custom-file-label {
+    background-color: #eee;
+    padding: 10px;
+    border-radius: 5px;
+    display: inline-block;
+    width: 100%;
+    cursor: pointer;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    text-align: left;
 }
 
 /* Button Styling */
@@ -58,8 +77,34 @@ button {
     color: white;
     border: none;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
     background-color: #e04e2a;
+}
+
+/* Focus Styles */
+input:focus, select:focus, button:focus {
+    outline: none;
+    border-color: #ff5733;
+    box-shadow: 0 0 5px rgba(255, 87, 51, 0.5);
+}
+
+/* Responsive Styling */
+@media (max-width: 480px) {
+    .container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    .logo-box {
+        font-size: 16px;
+        padding: 8px 16px;
+    }
+
+    .signup-title {
+        font-size: 18px;
+    }
 }
