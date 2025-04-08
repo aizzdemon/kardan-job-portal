@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Post a Job - KARDAN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    .logo-box {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #ff5733;
+      color: white;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+
+    nav ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    nav ul li {
+      display: inline;
+      margin: 0 10px;
+    }
+
+    .nav-button {
+      background-color: #d3d3d3;
+      border: 1px solid #bbb;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+      text-decoration: none;
+      color: #000;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .nav-button i {
+      margin-right: 5px;
+    }
+
+    .nav-button:hover {
+      background-color: #c0c0c0;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+  <!-- Header -->
+  <header>
+    <div class="logo-box">KARDAN</div>
+    <h1 class="text-3xl font-bold text-center mt-6">Post a Job</h1>
+    <nav class="mt-4 text-center">
+      <ul>
+        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
+        <li><a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
+        <li><a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
+        <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Form Section -->
+  <div class="max-w-md mx-auto mt-12 bg-white p-8 rounded shadow">
+    <form id="jobForm" class="space-y-5">
+      <div>
+        <label class="block font-semibold text-gray-700">Job Title</label>
+        <input type="text" id="jobTitle" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-gray-700">Location</label>
+        <input type="text" id="jobPlace" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-gray-700">Application Link</label>
+        <input type="url" id="jobLink" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      </div>
+    </form>
+
+    <!-- Publish Job Button -->
+    <button id="publishBtn" class="w-full mt-6 bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">
+      Publish Job
+    </button>
+
+    <p id="successMessage" class="text-green-600 font-semibold mt-4 hidden text-center">Job posted successfully!</p>
+  </div>
+
+  <!-- JS Logic -->
+  <script>
+    const publishBtn = document.getElementById('publishBtn');
+    const form = document.getElementById('jobForm');
+    const successMessage = document.getElementById('successMessage');
+
+    publishBtn.addEventListener('click', function () {
+      const title = document.getElementById('jobTitle').value.trim();
+      const place = document.getElementById('jobPlace').value.trim();
+      const link = document.getElementById('jobLink').value.trim();
+
+      if (title && place && link) {
+        console.log("Job Posted:", { title, place, link });
+        form.reset();
+        successMessage.classList.remove('hidden');
+      } else {
+        alert("Please fill in all fields.");
+      }
+    });
+  </script>
+</body>
+</html>
