@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>User Profile</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
@@ -21,14 +21,17 @@
       font-weight: bold;
       border-radius: 5px;
     }
+
     nav ul {
       list-style: none;
       padding: 0;
     }
+
     nav ul li {
       display: inline;
       margin: 0 10px;
     }
+
     .nav-button {
       background-color: #d3d3d3;
       border: 1px solid #bbb;
@@ -41,31 +44,19 @@
       font-weight: bold;
       display: inline-block;
     }
+
     .nav-button i {
       margin-right: 5px;
     }
+
     .nav-button:hover {
       background-color: #c0c0c0;
-    }
-    .join-button {
-      background-color: #357ABD;
-      border: 1px solid #357ABD;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: white;
-      display: inline-block;
-    }
-    .join-button:hover {
-      background-color: #2b6ea8;
     }
   </style>
 </head>
 <body class="bg-gray-100">
 
-  <!-- Header and Nav -->
+  <!-- Header -->
   <header>
     <div class="logo-box">KARDAN</div>
     <h1 class="text-3xl font-bold text-center mt-6">Your Profile</h1>
@@ -79,25 +70,22 @@
         <li><a href="index.html#hangouts" class="nav-button"><i class="fas fa-comments"></i> Places to Hangout</a></li>
         <li><a href="index.html#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
         <li><a href="admin.html" class="nav-button">Login</a></li>
-        <li><a href="signup.html" class="join-button">Join Now</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- Profile Content -->
+  <!-- Profile Info -->
   <div class="max-w-md mx-auto mt-10 text-center bg-white p-6 rounded shadow">
     <p id="userEmail" class="mb-2 text-gray-600"></p>
-    <p id="userRole" class="mb-4 text-blue-600 font-semibold"></p>
+    <p id="userRole" class="mb-6 text-blue-600 font-semibold"></p>
 
-    <div id="employerActions" class="hidden">
+    <!-- Common Actions -->
+    <div class="flex flex-col gap-4">
+      <a href="index.html#jobs" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Find Jobs</a>
       <a href="admin.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post a Job</a>
     </div>
 
-    <div id="employeeActions" class="hidden">
-      <a href="index.html#jobs" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">View Jobs</a>
-    </div>
-
-    <button onclick="logout()" class="block mt-4 text-red-500 underline">Logout</button>
+    <button onclick="logout()" class="block mt-6 text-red-500 underline">Logout</button>
   </div>
 
   <!-- Firebase Logic -->
@@ -128,12 +116,6 @@
       const role = doc.exists ? doc.data().role : "employee";
 
       document.getElementById("userRole").textContent = "Role: " + role;
-
-      if (role === "employer") {
-        document.getElementById("employerActions").classList.remove("hidden");
-      } else {
-        document.getElementById("employeeActions").classList.remove("hidden");
-      }
     });
 
     function logout() {
