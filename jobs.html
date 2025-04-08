@@ -67,9 +67,20 @@
     </nav>
   </header>
 
+  <!-- Search Bar -->
+  <div class="max-w-3xl mx-auto mt-8">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by title or location..."
+      class="w-full px-4 py-2 border border-gray-300 rounded shadow"
+    />
+  </div>
+
   <!-- Job Listings -->
-  <main class="max-w-3xl mx-auto mt-10 mb-20">
-    <div id="jobsContainer" class="space-y-4">
+  <main class="max-w-3xl mx-auto mt-6 mb-20">
+    <div id="loading" class="text-center text-gray-500">Loading jobs...</div>
+    <div id="jobsContainer" class="space-y-4 mt-4 hidden">
       <!-- Jobs will be displayed here -->
     </div>
   </main>
@@ -89,31 +100,64 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const jobsContainer = document.getElementById("jobsContainer");
+    const loadingIndicator = document.getElementById("loading");
+    const searchInput = document.getElementById("searchInput");
+    let allJobs = [];
+
+    function renderJobs(jobs) {
+      jobsContainer.innerHTML = "";
+
+      if (jobs.length === 0) {
+        jobsContainer.innerHTML = "<p class='text-center text-gray-600'>No matching job postings found.</p>";
+        return;
+      }
+
+      jobs.forEach(job => {
+        const jobCard = document.createElement("div");
+        jobCard.className = "bg-white p-5 rounded shadow";
+
+        const date = job.timestamp?.toDate().toLocaleDateString() || "N/A";
+
+        jobCard.innerHTML = `
+          <h2 class="text-xl font-bold text-blue-700">${job.title}</h2>
+          <p class="text-gray-700"><strong>Location:</strong> ${job.location}</p>
+          ${job.type ? `<p class="text-gray-700"><strong>Type:</strong> ${job.type}</p>` : ""}
+          ${job.description ? `<p class="text-gray-600 mt-1">${job.description}</p>` : ""}
+          <p class="text-sm text-gray-500 mt-1">Posted on: ${date}</p>
+          <a href="${job.link}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline mt-2 inline-block">Apply Now</a>
+        `;
+
+        jobsContainer.appendChild(jobCard);
+      });
+    }
 
     db.collection("jobs").orderBy("timestamp", "desc").get()
       .then(snapshot => {
+        loadingIndicator.style.display = "none";
+        jobsContainer.classList.remove("hidden");
+
         if (snapshot.empty) {
           jobsContainer.innerHTML = "<p class='text-center text-gray-600'>No job postings available yet.</p>";
         } else {
-          snapshot.forEach(doc => {
-            const job = doc.data();
-            const jobCard = document.createElement("div");
-            jobCard.className = "bg-white p-5 rounded shadow";
-
-            jobCard.innerHTML = `
-              <h2 class="text-xl font-bold text-blue-700">${job.title}</h2>
-              <p class="text-gray-700"><strong>Location:</strong> ${job.location}</p>
-              <a href="${job.link}" target="_blank" class="text-blue-500 underline mt-2 inline-block">Apply Now</a>
-            `;
-
-            jobsContainer.appendChild(jobCard);
-          });
+          allJobs = snapshot.docs.map(doc => doc.data());
+          renderJobs(allJobs);
         }
       })
       .catch(error => {
         console.error("Error loading jobs:", error);
+        loadingIndicator.style.display = "none";
+        jobsContainer.classList.remove("hidden");
         jobsContainer.innerHTML = "<p class='text-red-500 text-center'>Failed to load jobs.</p>";
       });
+
+    // Search functionality
+    searchInput.addEventListener("input", (e) => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allJobs.filter(job =>
+        job.title?.toLowerCase().includes(term) || job.location?.toLowerCase().includes(term)
+      );
+      renderJobs(filtered);
+    });
   </script>
 </body>
 </html>
