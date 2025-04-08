@@ -4,10 +4,14 @@
   <meta charset="UTF-8" />
   <title>Jobs - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
   <style>
     .logo-box {
       position: absolute;
@@ -21,16 +25,6 @@
       border-radius: 5px;
     }
 
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    nav ul li {
-      display: inline;
-      margin: 0 10px;
-    }
-
     .nav-button {
       background-color: #d3d3d3;
       border: 1px solid #bbb;
@@ -42,6 +36,7 @@
       color: #000;
       font-weight: bold;
       display: inline-block;
+      margin: 0 5px;
     }
 
     .nav-button:hover {
@@ -54,38 +49,22 @@
   <!-- Header -->
   <header>
     <div class="logo-box">KARDAN</div>
-    <h1 class="text-3xl font-bold text-center mt-6">Job Listings</h1>
+    <h1 class="text-3xl font-bold text-center mt-6">Available Jobs</h1>
     <nav class="mt-4 text-center">
-      <ul>
-        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
-        <li><a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
-        <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
-        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
-      </ul>
+      <a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a>
+      <a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a>
+      <a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Hangout Places</a>
+      <a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a>
+      <a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a>
     </nav>
   </header>
 
-  <!-- Search Bar -->
-  <div class="max-w-3xl mx-auto mt-8">
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by title or location..."
-      class="w-full px-4 py-2 border border-gray-300 rounded shadow"
-    />
+  <!-- Jobs List -->
+  <div class="max-w-4xl mx-auto mt-10 p-4">
+    <div id="jobsContainer" class="space-y-4"></div>
   </div>
 
-  <!-- Job Listings -->
-  <main class="max-w-3xl mx-auto mt-6 mb-20">
-    <div id="loading" class="text-center text-gray-500">Loading jobs...</div>
-    <div id="jobsContainer" class="space-y-4 mt-4 hidden">
-      <!-- Jobs will be displayed here -->
-    </div>
-  </main>
-
-  <!-- Firebase & Script -->
+  <!-- Firebase Logic -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -99,65 +78,40 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const jobsContainer = document.getElementById("jobsContainer");
-    const loadingIndicator = document.getElementById("loading");
-    const searchInput = document.getElementById("searchInput");
-    let allJobs = [];
 
-    function renderJobs(jobs) {
-      jobsContainer.innerHTML = "";
+    const jobsContainer = document.getElementById('jobsContainer');
 
-      if (jobs.length === 0) {
-        jobsContainer.innerHTML = "<p class='text-center text-gray-600'>No matching job postings found.</p>";
-        return;
-      }
-
-      jobs.forEach(job => {
-        const jobCard = document.createElement("div");
-        jobCard.className = "bg-white p-5 rounded shadow";
-
-        const date = job.timestamp?.toDate().toLocaleDateString() || "N/A";
-
-        jobCard.innerHTML = `
-          <h2 class="text-xl font-bold text-blue-700">${job.title}</h2>
-          <p class="text-gray-700"><strong>Location:</strong> ${job.location}</p>
-          ${job.type ? `<p class="text-gray-700"><strong>Type:</strong> ${job.type}</p>` : ""}
-          ${job.description ? `<p class="text-gray-600 mt-1">${job.description}</p>` : ""}
-          <p class="text-sm text-gray-500 mt-1">Posted on: ${date}</p>
-          <a href="${job.link}" target="_blank" rel="noopener noreferrer" class="text-blue-500 underline mt-2 inline-block">Apply Now</a>
-        `;
-
-        jobsContainer.appendChild(jobCard);
-      });
-    }
-
-    db.collection("jobs").orderBy("timestamp", "desc").get()
-      .then(snapshot => {
-        loadingIndicator.style.display = "none";
-        jobsContainer.classList.remove("hidden");
+    async function loadJobs() {
+      try {
+        const snapshot = await db.collection('jobs').orderBy('timestamp', 'desc').get();
 
         if (snapshot.empty) {
-          jobsContainer.innerHTML = "<p class='text-center text-gray-600'>No job postings available yet.</p>";
-        } else {
-          allJobs = snapshot.docs.map(doc => doc.data());
-          renderJobs(allJobs);
+          jobsContainer.innerHTML = '<p class="text-center text-gray-500">No jobs posted yet.</p>';
+          return;
         }
-      })
-      .catch(error => {
-        console.error("Error loading jobs:", error);
-        loadingIndicator.style.display = "none";
-        jobsContainer.classList.remove("hidden");
-        jobsContainer.innerHTML = "<p class='text-red-500 text-center'>Failed to load jobs.</p>";
-      });
 
-    // Search functionality
-    searchInput.addEventListener("input", (e) => {
-      const term = e.target.value.toLowerCase();
-      const filtered = allJobs.filter(job =>
-        job.title?.toLowerCase().includes(term) || job.location?.toLowerCase().includes(term)
-      );
-      renderJobs(filtered);
-    });
+        snapshot.forEach(doc => {
+          const job = doc.data();
+
+          const jobCard = document.createElement('div');
+          jobCard.className = 'bg-white shadow rounded p-6';
+
+          jobCard.innerHTML = `
+            <h2 class="text-xl font-bold text-orange-600 mb-2">${job.title}</h2>
+            <p class="text-gray-700 mb-1"><strong>Location:</strong> ${job.location}</p>
+            <p class="text-gray-700 mb-1"><strong>Posted By:</strong> ${job.postedBy}</p>
+            <a href="${job.link}" target="_blank" class="inline-block mt-3 text-blue-600 font-semibold hover:underline">Apply Now</a>
+          `;
+
+          jobsContainer.appendChild(jobCard);
+        });
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+        jobsContainer.innerHTML = '<p class="text-center text-red-600">Failed to load jobs. Try again later.</p>';
+      }
+    }
+
+    window.onload = loadJobs;
   </script>
 </body>
 </html>
