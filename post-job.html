@@ -138,10 +138,10 @@
         try {
           await db.collection('jobs').add({
             title,
-            place,
+            location: place,
             link,
             postedBy: user.email,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
 
           form.reset();
