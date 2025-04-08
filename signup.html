@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign Up - KARDAN</title>
-
-  <!-- Styles -->
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f0f0f0, #e6e6e6);
+      margin: 0;
+      padding: 0;
+    }
     .logo-box {
       position: absolute;
       top: 10px;
@@ -18,16 +22,9 @@
       font-weight: bold;
       border-radius: 5px;
     }
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #f0f0f0, #e6e6e6);
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
     .container {
       max-width: 400px;
-      margin: 60px auto;
+      margin: 70px auto;
       padding: 20px;
       background: white;
       border-radius: 10px;
@@ -39,12 +36,10 @@
       color: white;
       padding: 10px;
       border-radius: 5px;
-      display: inline-block;
       font-size: 20px;
       font-weight: bold;
     }
     input, select, button {
-      display: block;
       width: 100%;
       margin: 10px 0;
       padding: 10px;
@@ -54,15 +49,15 @@
     button {
       background-color: #ff5733;
       color: white;
-      border: none;
       cursor: pointer;
+      font-weight: bold;
     }
     button:hover {
       background-color: #e04e2a;
     }
   </style>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -85,87 +80,77 @@
     const storage = getStorage(app);
     const provider = new GoogleAuthProvider();
 
-    window.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("signup-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
+    document.getElementById("signup-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-        const name = document.getElementById("name").value;
-        const gender = document.getElementById("gender").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
-        const mobile = document.getElementById("mobile").value;
-        const profilePic = document.getElementById("profile-pic").files[0];
+      const name = document.getElementById("name").value;
+      const gender = document.getElementById("gender").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const mobile = document.getElementById("mobile").value;
+      const profilePic = document.getElementById("profile-pic").files[0];
 
-        try {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          const userId = userCredential.user.uid;
-          let profilePicURL = "";
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
 
-          if (profilePic) {
-            const storageRef = ref(storage, `profile_pictures/${userId}`);
-            await uploadBytes(storageRef, profilePic);
-            profilePicURL = await getDownloadURL(storageRef);
-          }
-
-          await setDoc(doc(db, "users", userId), {
-            name,
-            gender,
-            email,
-            mobile,
-            profilePicURL
-          });
-
-          alert("Sign-up successful! ✅ Redirecting...");
-          window.location.href = "home.html";
-        } catch (error) {
-          alert("Error: " + error.message);
+        let profilePicURL = "";
+        if (profilePic) {
+          const storageRef = ref(storage, `profile_pictures/${uid}`);
+          await uploadBytes(storageRef, profilePic);
+          profilePicURL = await getDownloadURL(storageRef);
         }
-      });
 
-      document.getElementById("googleSignInBtn").addEventListener("click", async function () {
-        try {
-          const result = await signInWithPopup(auth, provider);
-          const user = result.user;
+        await setDoc(doc(db, "users", uid), {
+          name, gender, email, mobile, profilePicURL
+        });
 
-          await setDoc(doc(db, "users", user.uid), {
-            name: user.displayName,
-            email: user.email,
-            profilePic: user.photoURL,
-            timestamp: new Date()
-          });
+        alert("Sign-up successful!");
+        window.location.href = "index.html";
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    });
 
-          alert(`Welcome, ${user.displayName}! ✅`);
-          window.location.href = "home.html";
-        } catch (error) {
-          console.error("Google Sign-In Error:", error);
-          alert("Sign-in failed. Try again.");
-        }
-      });
+    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+
+        await setDoc(doc(db, "users", user.uid), {
+          name: user.displayName,
+          email: user.email,
+          profilePicURL: user.photoURL,
+          timestamp: new Date()
+        });
+
+        alert(`Welcome, ${user.displayName}!`);
+        window.location.href = "index.html";
+      } catch (error) {
+        alert("Google Sign-In Error: " + error.message);
+      }
     });
   </script>
 </head>
-
 <body>
   <div class="logo-box">KARDAN</div>
-
   <div class="container">
     <h2 class="signup-title">Sign Up</h2>
     <form id="signup-form">
-      <input type="text" id="name" name="name" placeholder="Full Name" required>
-      <select id="gender" name="gender" required>
+      <input type="text" id="name" placeholder="Full Name" required />
+      <select id="gender" required>
         <option value="">Select Gender</option>
         <option value="Male">Male</option>
         <option value="Female">Female</option>
         <option value="Other">Other</option>
       </select>
-      <input type="email" id="email" name="email" placeholder="Email ID" required>
-      <input type="password" id="password" name="password" placeholder="Password" required>
-      <input type="tel" id="mobile" name="mobile" placeholder="Mobile Number" required>
+      <input type="email" id="email" placeholder="Email ID" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <input type="tel" id="mobile" placeholder="Mobile Number" required />
       <label for="profile-pic">Upload Profile Picture:</label>
-      <input type="file" id="profile-pic" name="profile-pic" accept="image/*">
+      <input type="file" id="profile-pic" accept="image/*" />
       <button type="submit">Sign Up</button>
     </form>
-
     <button id="googleSignInBtn">Sign Up with Google</button>
   </div>
 </body>
