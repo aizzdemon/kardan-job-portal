@@ -1,120 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - KARDAN</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up - KARDAN</title>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+  <!-- Styles -->
+  <style>
+    .logo-box {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #ff5733;
+      color: white;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f0f0f0, #e6e6e6);
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .signup-title {
+      background-color: #ff5733;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      display: inline-block;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #ff5733;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #e04e2a;
+    }
+  </style>
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-            authDomain: "kar-kardan.firebaseapp.com",
-            projectId: "kar-kardan",
-            storageBucket: "kar-kardan.appspot.com",
-            messagingSenderId: "554147696994",
-            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-            measurementId: "G-RRC3X485KQ"
-        };
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-        const provider = new GoogleAuthProvider();
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
 
-        // Ensure DOM is loaded before adding event listeners
-        window.onload = function () {
-            // Email Sign-Up Form Submission
-            document.getElementById("signup-form").addEventListener("submit", async function(event) {
-                event.preventDefault();
-                
-                const name = document.getElementById("name").value;
-                const gender = document.getElementById("gender").value;
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
-                const mobile = document.getElementById("mobile").value;
-                const profilePicInput = document.getElementById("profile-pic");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const provider = new GoogleAuthProvider();
 
-                try {
-                    // Create User in Firebase Auth
-                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    const userId = userCredential.user.uid;
-                    let profilePicURL = "";
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("signup-form").addEventListener("submit", async function(event) {
+        event.preventDefault();
 
-                    // Upload Profile Picture to Firebase Storage (if selected)
-                    if (profilePicInput.files.length > 0) {
-                        const profilePic = profilePicInput.files[0];
-                        const storageRef = ref(storage, `profile_pictures/${userId}`);
-                        await uploadBytes(storageRef, profilePic);
-                        profilePicURL = await getDownloadURL(storageRef);
-                    }
+        const name = document.getElementById("name").value;
+        const gender = document.getElementById("gender").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const mobile = document.getElementById("mobile").value;
+        const profilePic = document.getElementById("profile-pic").files[0];
 
-                    // Store User Data in Firestore
-                    await setDoc(doc(db, "users", userId), {
-                        name, gender, email, mobile, profilePicURL
-                    });
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const userId = userCredential.user.uid;
+          let profilePicURL = "";
 
-                    alert("Sign-up successful! ✅ Redirecting...");
-                    window.location.href = "home.html"; // Redirect to home
-                } catch (error) {
-                    console.error("Signup Error:", error);
-                    alert("Signup Failed: " + error.message);
-                }
-            });
+          if (profilePic) {
+            const storageRef = ref(storage, `profile_pictures/${userId}`);
+            await uploadBytes(storageRef, profilePic);
+            profilePicURL = await getDownloadURL(storageRef);
+          }
 
-            // Google Sign-In
-            document.getElementById("googleSignInBtn").addEventListener("click", async function () {
-                try {
-                    const result = await signInWithPopup(auth, provider);
-                    const user = result.user;
+          await setDoc(doc(db, "users", userId), {
+            name,
+            gender,
+            email,
+            mobile,
+            profilePicURL
+          });
 
-                    // Store User Data in Firestore
-                    await setDoc(doc(db, "users", user.uid), {
-                        name: user.displayName,
-                        email: user.email,
-                        profilePic: user.photoURL,
-                        timestamp: new Date()
-                    });
+          alert("Sign-up successful! ✅ Redirecting...");
+          window.location.href = "home.html";
+        } catch (error) {
+          alert("Error: " + error.message);
+        }
+      });
 
-                    alert(`Welcome, ${user.displayName}! ✅ Redirecting...`);
-                    window.location.href = "home.html"; // Redirect to home page
-                } catch (error) {
-                    console.error("Google Sign-In Error:", error);
-                    alert("Sign-in failed. Try again.");
-                }
-            });
-        };
-    </script>
+      document.getElementById("googleSignInBtn").addEventListener("click", async function () {
+        try {
+          const result = await signInWithPopup(auth, provider);
+          const user = result.user;
+
+          await setDoc(doc(db, "users", user.uid), {
+            name: user.displayName,
+            email: user.email,
+            profilePic: user.photoURL,
+            timestamp: new Date()
+          });
+
+          alert(`Welcome, ${user.displayName}! ✅`);
+          window.location.href = "home.html";
+        } catch (error) {
+          console.error("Google Sign-In Error:", error);
+          alert("Sign-in failed. Try again.");
+        }
+      });
+    });
+  </script>
 </head>
+
 <body>
-    <div class="logo-box">KARDAN</div>
-    <div class="container">
-        <h2 class="signup-title">Sign Up</h2>
-        <form id="signup-form">
-            <input type="text" id="name" name="name" placeholder="Full Name" required>
-            <select id="gender" name="gender" required>
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-            <input type="email" id="email" name="email" placeholder="Email ID" required>
-            <input type="password" id="password" name="password" placeholder="Password" required>
-            <input type="tel" id="mobile" name="mobile" placeholder="Mobile Number" required>
-            <label for="profile-pic">Upload Profile Picture:</label>
-            <input type="file" id="profile-pic" name="profile-pic" accept="image/*">
-            <button type="submit">Sign Up</button>
-        </form>
-        <button id="googleSignInBtn">Sign Up with Google</button>
-    </div>
+  <div class="logo-box">KARDAN</div>
+
+  <div class="container">
+    <h2 class="signup-title">Sign Up</h2>
+    <form id="signup-form">
+      <input type="text" id="name" name="name" placeholder="Full Name" required>
+      <select id="gender" name="gender" required>
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="email" id="email" name="email" placeholder="Email ID" required>
+      <input type="password" id="password" name="password" placeholder="Password" required>
+      <input type="tel" id="mobile" name="mobile" placeholder="Mobile Number" required>
+      <label for="profile-pic">Upload Profile Picture:</label>
+      <input type="file" id="profile-pic" name="profile-pic" accept="image/*">
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <button id="googleSignInBtn">Sign Up with Google</button>
+  </div>
 </body>
 </html>
