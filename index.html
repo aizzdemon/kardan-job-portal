@@ -119,7 +119,7 @@
     <h1>Be the Part of Professionalism</h1>
     <nav>
       <ul>
-        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="#" onclick="goHome()" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
         <li><a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
         <li><a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
@@ -139,5 +139,34 @@
       </ul>
     </nav>
   </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function goHome() {
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          window.location.href = "home.html";
+        } else {
+          window.location.href = "index.html";
+        }
+      });
+    }
+  </script>
 </body>
 </html>
