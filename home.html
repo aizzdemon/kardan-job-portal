@@ -30,6 +30,9 @@
       padding: 15px;
       text-align: center;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     nav {
       text-align: center;
@@ -77,12 +80,18 @@
     }
     .button-section {
       max-width: 600px;
-      margin: 60px auto;
+      margin: 0 auto;
+      padding-top: 15px;
       text-align: center;
+      position: sticky;
+      top: 90px;
+      z-index: 999;
+      background: #f0f0f0;
+      padding-bottom: 10px;
     }
     .action-button {
       padding: 12px 24px;
-      margin: 15px;
+      margin: 5px;
       border: none;
       border-radius: 8px;
       font-size: 16px;
@@ -105,6 +114,47 @@
     .post-button:hover {
       background-color: #0069d9;
     }
+    .post-box {
+      background-color: #eef2ff;
+      border: 2px solid #c3dafe;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 30px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      max-width: 600px;
+    }
+    textarea#postText {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: none;
+      font-size: 14px;
+      background-color: #ffffff;
+      height: 40px;
+    }
+    input#postMedia {
+      background-color: #e7f0ff;
+      padding: 8px;
+      border-radius: 6px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      display: block;
+      color: #333;
+    }
+    button.post-btn {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button.post-btn:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
@@ -124,10 +174,116 @@
     </nav>
   </header>
 
-  <!-- Button Section -->
   <div class="button-section">
     <a href="jobs.html" class="action-button find-button">Find Jobs</a>
     <a href="admin.html" class="action-button post-button">Post a Job</a>
   </div>
+
+  <!-- Post Feature -->
+  <div class="max-w-xl mx-auto post-box">
+    <h2 class="text-xl font-bold mb-4" style="color:#3742fa">Create a Post</h2>
+    <textarea id="postText" rows="2" placeholder="What's on your mind?"></textarea>
+    <input type="file" id="postMedia" accept="image/*,video/*">
+    <button onclick="submitPost()" class="post-btn">Post</button>
+  </div>
+
+  <div id="postsContainer" class="max-w-xl mx-auto mt-10 space-y-6"></div>
+
+  <!-- Firebase SDK & Post Logic -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    function submitPost() {
+      const postText = document.getElementById('postText').value;
+      const file = document.getElementById('postMedia').files[0];
+
+      if (!postText && !file) return alert("Write something or upload media.");
+
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          const postRef = db.collection("posts").doc();
+
+          const savePost = (mediaURL = null, mediaType = null) => {
+            postRef.set({
+              userId: user.uid,
+              userName: user.displayName || "Anonymous",
+              text: postText,
+              mediaURL,
+              mediaType,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+              document.getElementById('postText').value = "";
+              document.getElementById('postMedia').value = "";
+            });
+          };
+
+          if (file) {
+            const fileRef = storage.ref("posts/" + postRef.id + "_" + file.name);
+            fileRef.put(file).then(snapshot => {
+              snapshot.ref.getDownloadURL().then(url => {
+                const mediaType = file.type.startsWith("image") ? "image" : "video";
+                savePost(url, mediaType);
+              });
+            });
+          } else {
+            savePost();
+          }
+        } else {
+          alert("Please log in to post.");
+        }
+      });
+    }
+
+    db.collection("posts").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      const container = document.getElementById("postsContainer");
+      container.innerHTML = "";
+      snapshot.forEach(doc => {
+        const post = doc.data();
+        let time = "Just now";
+        try {
+          if (post.timestamp && post.timestamp.toDate) {
+            time = post.timestamp.toDate().toLocaleString();
+          }
+        } catch (e) {
+          console.error("Error parsing timestamp:", e);
+        }
+
+        let mediaContent = "";
+        if (post.mediaType === "image") {
+          mediaContent = `<img src="${post.mediaURL}" class="mt-2 rounded max-h-60 w-auto">`;
+        } else if (post.mediaType === "video") {
+          mediaContent = `<video controls class="mt-2 rounded w-full max-h-72"><source src="${post.mediaURL}"></video>`;
+        }
+
+        container.innerHTML += `
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-bold text-lg">${post.userName}</h3>
+            <p class="text-gray-700">${post.text}</p>
+            ${mediaContent}
+            <p class="text-xs text-gray-500 mt-2">${time}</p>
+          </div>
+        `;
+      });
+    }, error => {
+      console.error("Snapshot listener error:", error);
+    });
+  </script>
 </body>
 </html>
