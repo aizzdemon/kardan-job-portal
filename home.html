@@ -7,153 +7,35 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <style>
-    .logo-box {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background-color: #ff5733;
-      color: white;
-      padding: 10px 20px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 5px;
-    }
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #f0f0f0, #e6e6e6);
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #ffffff;
-      padding: 15px;
-      text-align: center;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-    nav {
-      text-align: center;
-      margin-top: 10px;
-    }
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
-    nav ul li {
-      display: inline;
-      margin: 0 10px;
-    }
-    .nav-button {
-      background-color: #d3d3d3;
-      border: 1px solid #bbb;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: #000;
-      font-weight: bold;
-      display: inline-block;
-    }
-    .nav-button i {
-      margin-right: 5px;
-    }
-    .nav-button:hover {
-      background-color: #c0c0c0;
-    }
-    .join-button {
-      background-color: #357ABD;
-      border: 1px solid #357ABD;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: white;
-      display: inline-block;
-    }
-    .join-button:hover {
-      background-color: #2b6ea8;
-    }
-    .button-section {
-      max-width: 600px;
-      margin: 0 auto;
-      padding-top: 15px;
-      text-align: center;
-      position: sticky;
-      top: 90px;
-      z-index: 999;
-      background: #f0f0f0;
-      padding-bottom: 10px;
-    }
-    .action-button {
-      padding: 12px 24px;
-      margin: 5px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .find-button {
-      background-color: #28a745;
-      color: white;
-    }
-    .find-button:hover {
-      background-color: #218838;
-    }
-    .post-button {
-      background-color: #007bff;
-      color: white;
-    }
-    .post-button:hover {
-      background-color: #0069d9;
-    }
-    .post-box {
-      background-color: #eef2ff;
-      border: 2px solid #c3dafe;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 30px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      max-width: 600px;
-    }
-    textarea#postText {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      resize: none;
-      font-size: 14px;
-      background-color: #ffffff;
-      height: 40px;
-    }
-    input#postMedia {
-      background-color: #e7f0ff;
-      padding: 8px;
-      border-radius: 6px;
+    /* ...existing styles... (keep all your previous CSS here) ... */
+
+    .post-actions {
+      text-align: right;
       margin-top: 8px;
-      border: 1px solid #ccc;
-      display: block;
-      color: #333;
     }
-    button.post-btn {
-      background-color: #007bff;
+    .delete-btn {
+      background-color: #dc3545;
       color: white;
-      padding: 10px 20px;
-      margin-top: 10px;
       border: none;
-      border-radius: 6px;
+      padding: 6px 12px;
+      border-radius: 4px;
       cursor: pointer;
-      font-weight: bold;
+      font-size: 12px;
     }
-    button.post-btn:hover {
-      background-color: #0056b3;
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
     }
   </style>
 </head>
@@ -211,10 +93,17 @@
     const storage = firebase.storage();
 
     function submitPost() {
-      const postText = document.getElementById('postText').value;
-      const file = document.getElementById('postMedia').files[0];
+      const postText = document.getElementById('postText').value.trim();
+      const fileInput = document.getElementById('postMedia');
+      const file = fileInput.files[0];
 
-      if (!postText && !file) return alert("Write something or upload media.");
+      if (!postText && !file) {
+        return alert("Write something or upload media.");
+      }
+
+      if (file && file.size > 10 * 1024 * 1024) { // 10MB
+        return alert("File too large. Please upload media under 10MB.");
+      }
 
       auth.onAuthStateChanged(user => {
         if (user) {
@@ -223,14 +112,17 @@
           const savePost = (mediaURL = null, mediaType = null) => {
             postRef.set({
               userId: user.uid,
-              userName: user.displayName || "Anonymous",
+              userName: user.displayName || user.email || "Anonymous",
+              userPhoto: user.photoURL || null,
               text: postText,
               mediaURL,
               mediaType,
               timestamp: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
               document.getElementById('postText').value = "";
-              document.getElementById('postMedia').value = "";
+              fileInput.value = "";
+              document.getElementById('postText').focus();
+              alert("Post submitted successfully!");
             });
           };
 
@@ -251,39 +143,64 @@
       });
     }
 
-    db.collection("posts").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      const container = document.getElementById("postsContainer");
-      container.innerHTML = "";
-      snapshot.forEach(doc => {
-        const post = doc.data();
-        let time = "Just now";
-        try {
-          if (post.timestamp && post.timestamp.toDate) {
-            time = post.timestamp.toDate().toLocaleString();
+    auth.onAuthStateChanged(user => {
+      db.collection("posts").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+        const container = document.getElementById("postsContainer");
+        container.innerHTML = "";
+        snapshot.forEach(doc => {
+          const post = doc.data();
+          const postId = doc.id;
+
+          let time = "Just now";
+          try {
+            if (post.timestamp && post.timestamp.toDate) {
+              time = post.timestamp.toDate().toLocaleString();
+            }
+          } catch (e) {
+            console.error("Error parsing timestamp:", e);
           }
-        } catch (e) {
-          console.error("Error parsing timestamp:", e);
-        }
 
-        let mediaContent = "";
-        if (post.mediaType === "image") {
-          mediaContent = `<img src="${post.mediaURL}" class="mt-2 rounded max-h-60 w-auto">`;
-        } else if (post.mediaType === "video") {
-          mediaContent = `<video controls class="mt-2 rounded w-full max-h-72"><source src="${post.mediaURL}"></video>`;
-        }
+          let mediaContent = "";
+          if (post.mediaType === "image") {
+            mediaContent = `<img src="${post.mediaURL}" class="mt-2 rounded max-h-60 w-auto">`;
+          } else if (post.mediaType === "video") {
+            mediaContent = `<video controls class="mt-2 rounded w-full max-h-72"><source src="${post.mediaURL}"></video>`;
+          }
 
-        container.innerHTML += `
-          <div class="bg-white p-4 rounded shadow">
-            <h3 class="font-bold text-lg">${post.userName}</h3>
-            <p class="text-gray-700">${post.text}</p>
-            ${mediaContent}
-            <p class="text-xs text-gray-500 mt-2">${time}</p>
-          </div>
-        `;
+          let deleteButton = "";
+          if (user && user.uid === post.userId) {
+            deleteButton = `<div class="post-actions">
+                              <button class="delete-btn" onclick="deletePost('${postId}')">Delete</button>
+                            </div>`;
+          }
+
+          container.innerHTML += `
+            <div class="bg-white p-4 rounded shadow">
+              <div class="user-info">
+                <img src="${post.userPhoto || 'https://via.placeholder.com/36'}" alt="User" class="user-avatar">
+                <h3 class="font-bold text-lg">${post.userName}</h3>
+              </div>
+              <p class="text-gray-700">${post.text}</p>
+              ${mediaContent}
+              <p class="text-xs text-gray-500 mt-2">${time}</p>
+              ${deleteButton}
+            </div>
+          `;
+        });
+      }, error => {
+        console.error("Snapshot listener error:", error);
       });
-    }, error => {
-      console.error("Snapshot listener error:", error);
     });
+
+    function deletePost(postId) {
+      if (confirm("Are you sure you want to delete this post?")) {
+        db.collection("posts").doc(postId).delete().then(() => {
+          alert("Post deleted.");
+        }).catch(error => {
+          console.error("Error deleting post:", error);
+        });
+      }
+    }
   </script>
 </body>
 </html>
