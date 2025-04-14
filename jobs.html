@@ -72,15 +72,18 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.firestore();
     const jobsContainer = document.getElementById("jobsContainer");
 
-    // Attempt to order by timestamp
+    // Fetch and display jobs
     db.collection("jobs")
       .orderBy("timestamp", "desc")
       .onSnapshot(snapshot => {
-        jobsContainer.innerHTML = "";
+        jobsContainer.innerHTML = "";  // Clear existing content
 
         if (snapshot.empty) {
           jobsContainer.innerHTML = `<p class="text-center text-gray-500">No jobs posted yet.</p>`;
@@ -89,7 +92,8 @@
 
         snapshot.forEach(doc => {
           const job = doc.data();
-          const timestamp = job.timestamp?.toDate?.();
+          const timestamp = job.timestamp?.toDate();  // Ensure this is a Firestore Timestamp
+
           const formattedDate = timestamp
             ? timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             : 'N/A';
