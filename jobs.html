@@ -6,8 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
@@ -63,7 +61,6 @@
     <div id="jobsContainer" class="space-y-6"></div>
   </div>
 
-  <!-- Firebase Logic -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -79,22 +76,23 @@
     const db = firebase.firestore();
     const jobsContainer = document.getElementById("jobsContainer");
 
+    // Attempt to order by timestamp
     db.collection("jobs")
       .orderBy("timestamp", "desc")
-      .onSnapshot((snapshot) => {
-        jobsContainer.innerHTML = ""; // Clear old content
+      .onSnapshot(snapshot => {
+        jobsContainer.innerHTML = "";
 
         if (snapshot.empty) {
           jobsContainer.innerHTML = `<p class="text-center text-gray-500">No jobs posted yet.</p>`;
           return;
         }
 
-        snapshot.forEach((doc) => {
+        snapshot.forEach(doc => {
           const job = doc.data();
           const timestamp = job.timestamp?.toDate?.();
           const formattedDate = timestamp
             ? timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : 'Date not available';
+            : 'N/A';
 
           const jobHTML = `
             <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -107,6 +105,9 @@
           `;
           jobsContainer.innerHTML += jobHTML;
         });
+      }, err => {
+        console.error("Error loading jobs:", err);
+        jobsContainer.innerHTML = `<p class="text-center text-red-500">Failed to load jobs.</p>`;
       });
   </script>
 </body>
