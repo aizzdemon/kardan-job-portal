@@ -118,9 +118,25 @@
         <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Place</button>
       </div>
     </form>
+
+    <!-- Embedded Map Preview -->
+    <div id="mapPreview" class="mt-6 hidden">
+      <h3 class="text-lg font-semibold mb-2">Map Preview</h3>
+      <iframe
+        id="mapEmbed"
+        width="100%"
+        height="300"
+        class="rounded shadow"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+
   </div>
 
-  <!-- Firebase Script -->
+  <!-- Firebase & Map Script -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -135,6 +151,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Submit handler
     document.getElementById('addPlaceForm').addEventListener('submit', async (event) => {
       event.preventDefault();
 
@@ -148,14 +165,13 @@
         const user = firebase.auth().currentUser;
 
         if (user) {
-          // Correcting the missing comma
           await db.collection('places').add({
             name: placeName,
             description: placeDescription,
             link: placeLink,
             phoneNumber: phoneNumber || null,
             placeType: placeType,
-            userId: firebase.auth().currentUser.uid, // fixed comma issue
+            userId: user.uid,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
 
@@ -169,6 +185,36 @@
         alert("There was an error adding the place.");
       }
     });
+
+    // Live Map Preview
+    document.getElementById('placeLink').addEventListener('input', function () {
+      const inputUrl = this.value;
+      const embedUrl = convertToEmbedUrl(inputUrl);
+      const mapPreview = document.getElementById('mapPreview');
+      const mapEmbed = document.getElementById('mapEmbed');
+
+      if (embedUrl) {
+        mapEmbed.src = embedUrl;
+        mapPreview.classList.remove('hidden');
+      } else {
+        mapEmbed.src = '';
+        mapPreview.classList.add('hidden');
+      }
+    });
+
+    // Convert to embeddable URL
+    function convertToEmbedUrl(link) {
+      try {
+        const url = new URL(link);
+        if (url.hostname.includes('google.com') && url.pathname.includes('/maps')) {
+          return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I&q=${encodeURIComponent(url.searchParams.get('q') || url.pathname.split('/').pop())}`;
+        }
+      } catch (e) {
+        return null;
+      }
+      return null;
+    }
   </script>
+
 </body>
 </html>
