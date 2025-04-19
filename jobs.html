@@ -59,6 +59,9 @@
   <!-- Jobs List -->
   <div class="max-w-4xl mx-auto mt-10 p-4">
     <div id="jobsContainer" class="space-y-6"></div>
+    <div class="text-center mt-6">
+      <button id="nextBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Next</button>
+    </div>
   </div>
 
   <script>
@@ -72,47 +75,64 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    // Initialize Firebase
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
     const jobsContainer = document.getElementById("jobsContainer");
+    const nextBtn = document.getElementById("nextBtn");
 
-    // Fetch and display jobs
-    db.collection("jobs")
-      .orderBy("timestamp", "desc")
-      .onSnapshot(snapshot => {
-        jobsContainer.innerHTML = "";  // Clear existing content
+    let lastVisible = null;
+    const pageSize = 10;
 
-        if (snapshot.empty) {
+    function formatTimestamp(ts) {
+      if (!ts?.toDate) return 'N/A';
+      const d = ts.toDate();
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function loadJobs() {
+      let query = db.collection("jobs").orderBy("timestamp", "desc").limit(pageSize);
+      if (lastVisible) {
+        query = query.startAfter(lastVisible);
+      }
+
+      query.get().then(snapshot => {
+        if (snapshot.empty && !lastVisible) {
           jobsContainer.innerHTML = `<p class="text-center text-gray-500">No jobs posted yet.</p>`;
+          nextBtn.style.display = "none";
           return;
         }
 
+        if (snapshot.size < pageSize) {
+          nextBtn.style.display = "none"; // Hide if no more jobs to fetch
+        }
+
+        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+
         snapshot.forEach(doc => {
           const job = doc.data();
-          const timestamp = job.timestamp?.toDate();  // Ensure this is a Firestore Timestamp
-
-          const formattedDate = timestamp
-            ? timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : 'N/A';
-
           const jobHTML = `
             <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
               <h2 class="text-2xl font-bold text-orange-600 mb-2">${job.title}</h2>
               <p class="text-gray-700 mb-1"><strong>Location:</strong> ${job.location}</p>
               <p class="text-gray-700 mb-1"><strong>Posted By:</strong> ${job.postedBy || 'Unknown'}</p>
-              <p class="text-sm text-gray-500 mb-4"><strong>Posted On:</strong> ${formattedDate}</p>
+              <p class="text-sm text-gray-500 mb-4"><strong>Posted On:</strong> ${formatTimestamp(job.timestamp)}</p>
               <a href="${job.link}" target="_blank" class="inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded hover:bg-green-600 transition duration-200">Apply Now</a>
             </div>
           `;
           jobsContainer.innerHTML += jobHTML;
         });
-      }, err => {
-        console.error("Error loading jobs:", err);
+      }).catch(error => {
+        console.error("Error loading jobs:", error);
         jobsContainer.innerHTML = `<p class="text-center text-red-500">Failed to load jobs.</p>`;
       });
+    }
+
+    nextBtn.addEventListener("click", loadJobs);
+
+    // Load first page
+    loadJobs();
   </script>
 </body>
 </html>
