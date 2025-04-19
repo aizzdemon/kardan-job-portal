@@ -93,8 +93,8 @@
       </div>
 
       <div>
-        <label class="block font-semibold text-gray-700">Salary</label>
-        <input type="text" id="salary" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+        <label class="block font-semibold text-gray-700">Salary (Optional)</label>
+        <input type="text" id="salary" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400">
       </div>
 
       <div>
@@ -145,8 +145,8 @@
       const salary = document.getElementById('salary').value.trim();
       const applyLink = document.getElementById('jobLink').value.trim();
 
-      if (!title || !companyName || !location || !salary || !applyLink) {
-        alert("Please fill in all fields.");
+      if (!title || !companyName || !location || !applyLink) {
+        alert("Please fill in all required fields.");
         return;
       }
 
@@ -155,7 +155,7 @@
           title,
           company: companyName,
           location,
-          salary,
+          salary: salary || null,
           applyLink,
           postedBy: currentUser.email,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
