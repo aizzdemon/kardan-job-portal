@@ -153,7 +153,7 @@
               <tr class="border-t">
                 <td class="py-2 px-4">${job.title}</td>
                 <td class="py-2 px-4">${job.location}</td>
-                <td class="py-2 px-4"><a href="${job.link}" target="_blank" class="text-blue-500 underline">Apply</a></td>
+                <td class="py-2 px-4"><a href="${job.applyLink}" target="_blank" class="text-blue-500 underline">Apply</a></td>
                 <td class="py-2 px-4 text-center">
                   <button onclick="editJob('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded hover:bg-yellow-500 mr-2">Edit</button>
                   <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600">Delete</button>
@@ -186,7 +186,7 @@
 
     function editJob(id) {
       alert("Edit functionality to be implemented. Job ID: " + id);
-      // You can redirect to an edit page like: window.location.href = `edit-job.html?id=${id}`;
+      // Future: window.location.href = `edit-job.html?id=${id}`;
     }
   </script>
 </body>
