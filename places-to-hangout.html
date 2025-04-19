@@ -17,11 +17,6 @@
       background: white;
       margin-bottom: 1.5rem;
     }
-    .place-image {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-    }
     .place-info {
       padding: 1rem;
     }
@@ -43,6 +38,12 @@
     }
     .nav-button:hover {
       background-color: #c0c0c0;
+    }
+    .map-preview {
+      width: 100%;
+      height: 200px;
+      border-radius: 8px;
+      margin-top: 1rem;
     }
   </style>
 </head>
@@ -112,11 +113,6 @@
           const placeCard = document.createElement("div");
           placeCard.className = "place-card";
 
-          // Check if there's a photo URL, else use placeholder
-          const placeImage = document.createElement("img");
-          placeImage.className = "place-image";
-          placeImage.src = place.photoUrl || "https://via.placeholder.com/400x200?text=No+Image+Available";
-
           const placeInfo = document.createElement("div");
           placeInfo.className = "place-info";
 
@@ -127,17 +123,25 @@
           const placeDescription = document.createElement("p");
           placeDescription.textContent = place.description;
 
-          // Google Maps link
+          // Google Maps link and Map Preview
           const placeLink = document.createElement("a");
           placeLink.href = place.googleMapsLink || "#";
           placeLink.target = "_blank";
           placeLink.className = "text-blue-500 hover:text-blue-700";
           placeLink.textContent = "View on Google Maps";
 
+          // Map preview (iframe)
+          const mapPreview = document.createElement("iframe");
+          mapPreview.className = "map-preview";
+          mapPreview.src = generateEmbedUrl(place.googleMapsLink);
+          mapPreview.allowfullscreen = "";
+          mapPreview.loading = "lazy";
+
           placeInfo.appendChild(placeName);
           placeInfo.appendChild(placeDescription);
           placeInfo.appendChild(placeLink);
-          placeCard.appendChild(placeImage);
+
+          placeCard.appendChild(mapPreview);
           placeCard.appendChild(placeInfo);
 
           placesContainer.appendChild(placeCard);
@@ -145,6 +149,14 @@
       } catch (error) {
         console.error("Error fetching places:", error);
       }
+    }
+
+    // Generate embed URL for Google Maps Link
+    function generateEmbedUrl(googleMapsLink) {
+      if (!googleMapsLink) return "";
+      const baseUrl = "https://www.google.com/maps/embed/v1/place?key=AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I&q=";
+      const encodedLink = encodeURIComponent(googleMapsLink);
+      return baseUrl + encodedLink;
     }
 
     window.onload = () => {
