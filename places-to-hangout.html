@@ -97,7 +97,6 @@
           window.location.href = "login.html";
         } else {
           console.log("User is logged in:", user.email);
-          // You can allow post functionality here if needed
         }
       });
     }
@@ -113,19 +112,24 @@
           const placeCard = document.createElement("div");
           placeCard.className = "place-card";
 
+          // Check if there's a photo URL, else use placeholder
           const placeImage = document.createElement("img");
           placeImage.className = "place-image";
           placeImage.src = place.photoUrl || "https://via.placeholder.com/400x200?text=No+Image+Available";
 
           const placeInfo = document.createElement("div");
           placeInfo.className = "place-info";
+
+          // Place name and description
           const placeName = document.createElement("h3");
           placeName.textContent = place.name;
+
           const placeDescription = document.createElement("p");
           placeDescription.textContent = place.description;
 
+          // Google Maps link
           const placeLink = document.createElement("a");
-          placeLink.href = place.googleMapsLink;
+          placeLink.href = place.googleMapsLink || "#";
           placeLink.target = "_blank";
           placeLink.className = "text-blue-500 hover:text-blue-700";
           placeLink.textContent = "View on Google Maps";
