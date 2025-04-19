@@ -83,8 +83,18 @@
       </div>
 
       <div>
+        <label class="block font-semibold text-gray-700">Company Name</label>
+        <input type="text" id="companyName" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      </div>
+
+      <div>
         <label class="block font-semibold text-gray-700">Location</label>
         <input type="text" id="jobPlace" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-gray-700">Salary</label>
+        <input type="text" id="salary" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
       </div>
 
       <div>
@@ -137,10 +147,12 @@
       }
 
       const title = document.getElementById('jobTitle').value.trim();
+      const companyName = document.getElementById('companyName').value.trim();
       const location = document.getElementById('jobPlace').value.trim();
+      const salary = document.getElementById('salary').value.trim();
       const applyLink = document.getElementById('jobLink').value.trim();
 
-      if (!title || !location || !applyLink) {
+      if (!title || !companyName || !location || !salary || !applyLink) {
         alert("Please fill in all fields.");
         return;
       }
@@ -148,8 +160,10 @@
       try {
         await db.collection('jobs').add({
           title,
+          company: companyName,
           location,
-          applyLink, // ✅ updated field name
+          salary,
+          applyLink,
           postedBy: currentUser.email,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           uid: currentUser.uid
@@ -172,7 +186,9 @@
         const jobCard = `
           <div class="p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50">
             <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
+            <p class="text-gray-600">Company: ${job.company}</p>
             <p class="text-gray-600">Location: ${job.location}</p>
+            <p class="text-gray-600">Salary: ${job.salary}</p>
             <p class="text-gray-500 text-sm">Posted by: ${job.postedBy}</p>
             <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
           </div>
