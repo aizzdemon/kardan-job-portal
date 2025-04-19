@@ -206,11 +206,13 @@
     function convertToEmbedUrl(link) {
       try {
         const url = new URL(link);
-        if (url.hostname.includes('google.com') && url.pathname.includes('/maps')) {
-          const placeId = url.pathname.split('/').pop();
-          return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I&q=${encodeURIComponent(placeId)}`;
+        const regExp = /(?:place|search)\?q=([^&]+)/; // Match "q=" query from Google Maps
+        const match = regExp.exec(url.search);
+        if (match) {
+          return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I&q=${encodeURIComponent(match[1])}`;
         }
       } catch (e) {
+        console.error("Error converting URL:", e);
         return null;
       }
       return null;
