@@ -148,14 +148,15 @@
         const user = firebase.auth().currentUser;
 
         if (user) {
+          // Correcting the missing comma
           await db.collection('places').add({
             name: placeName,
             description: placeDescription,
             link: placeLink,
             phoneNumber: phoneNumber || null,
             placeType: placeType,
-            userId: firebase.auth().currentUser.uid
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            userId: firebase.auth().currentUser.uid, // fixed comma issue
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
           });
 
           alert("Place added successfully!");
