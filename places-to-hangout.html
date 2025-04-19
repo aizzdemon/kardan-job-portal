@@ -5,6 +5,7 @@
   <title>Places to Hangout</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
@@ -85,11 +86,22 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    // Fetch and display places
+    function checkUserAndPost() {
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          alert("You have to login first to post");
+          window.location.href = "login.html";
+        } else {
+          console.log("User is logged in:", user.email);
+          // You can allow post functionality here if needed
+        }
+      });
+    }
+
     async function fetchPlaces() {
       const placesContainer = document.getElementById("placesContainer");
 
@@ -98,16 +110,13 @@
         snapshot.forEach(doc => {
           const place = doc.data();
 
-          // Create a card for each place
           const placeCard = document.createElement("div");
           placeCard.className = "place-card";
 
-          // Place Image (if available)
           const placeImage = document.createElement("img");
           placeImage.className = "place-image";
           placeImage.src = place.photoUrl || "https://via.placeholder.com/400x200?text=No+Image+Available";
 
-          // Place Info
           const placeInfo = document.createElement("div");
           placeInfo.className = "place-info";
           const placeName = document.createElement("h3");
@@ -121,14 +130,12 @@
           placeLink.className = "text-blue-500 hover:text-blue-700";
           placeLink.textContent = "View on Google Maps";
 
-          // Append elements
           placeInfo.appendChild(placeName);
           placeInfo.appendChild(placeDescription);
           placeInfo.appendChild(placeLink);
           placeCard.appendChild(placeImage);
           placeCard.appendChild(placeInfo);
 
-          // Append the place card to the container
           placesContainer.appendChild(placeCard);
         });
       } catch (error) {
@@ -136,8 +143,10 @@
       }
     }
 
-    // Load places when the page loads
-    window.onload = fetchPlaces;
+    window.onload = () => {
+      checkUserAndPost();
+      fetchPlaces();
+    };
   </script>
 </body>
 </html>
