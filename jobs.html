@@ -102,13 +102,19 @@
       jobsList.innerHTML = "";
       snapshot.forEach(doc => {
         const job = doc.data();
+        const timestamp = job.timestamp?.toDate?.();
+        const postedDate = timestamp
+          ? timestamp.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+          : "N/A";
+
         const jobCard = `
           <div class="p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50">
             <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
-            <p class="text-gray-600">Company: ${job.company}</p>
-            <p class="text-gray-600">Location: ${job.location}</p>
-            <p class="text-gray-600">Salary: ${job.salary}</p>
-            <p class="text-gray-500 text-sm">Posted by: ${job.postedBy}</p>
+            <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
+            <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
+            <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
+            <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
+            <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
             <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
           </div>
         `;
