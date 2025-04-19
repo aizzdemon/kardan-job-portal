@@ -120,7 +120,7 @@
       padding: 20px;
       border-radius: 10px;
       margin-top: 30px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       max-width: 600px;
       margin-left: auto;
       margin-right: auto;
@@ -226,11 +226,17 @@
     });
 
     function submitPost() {
+      if (!currentUser) {
+        alert("You need to be logged in to post.");
+        return;
+      }
+
       const postText = document.getElementById('postText').value;
       const file = document.getElementById('postMedia').files[0];
 
-      if (!postText && !file) return alert("Write something or upload media.");
-      if (!currentUser) return alert("Please log in to post.");
+      if (!postText && !file) {
+        return alert("Please write something or upload a media.");
+      }
 
       const postRef = db.collection("posts").doc();
 
@@ -245,6 +251,10 @@
         }).then(() => {
           document.getElementById('postText').value = "";
           document.getElementById('postMedia').value = "";
+          alert("Post successfully created!");
+        }).catch(error => {
+          console.error("Error creating post:", error);
+          alert("There was an error posting your content.");
         });
       };
 
@@ -255,6 +265,9 @@
             const mediaType = file.type.startsWith("image") ? "image" : "video";
             savePost(url, mediaType);
           });
+        }).catch(error => {
+          console.error("File upload failed:", error);
+          alert("File upload failed.");
         });
       } else {
         savePost();
