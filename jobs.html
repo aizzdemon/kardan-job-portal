@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Jobs - KARDAN</title>
+  <title>Job Listings - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
   <style>
@@ -22,6 +24,16 @@
       border-radius: 5px;
     }
 
+    nav ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    nav ul li {
+      display: inline;
+      margin: 0 10px;
+    }
+
     .nav-button {
       background-color: #d3d3d3;
       border: 1px solid #bbb;
@@ -33,7 +45,10 @@
       color: #000;
       font-weight: bold;
       display: inline-block;
-      margin: 0 5px;
+    }
+
+    .nav-button i {
+      margin-right: 5px;
     }
 
     .nav-button:hover {
@@ -43,27 +58,29 @@
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- Header -->
   <header>
     <div class="logo-box">KARDAN</div>
-    <h1 class="text-3xl font-bold text-center mt-6">Available Jobs</h1>
+    <h1 class="text-3xl font-bold text-center mt-6">Job Listings</h1>
     <nav class="mt-4 text-center">
-      <a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a>
-      <a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a>
-      <a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Hangout Places</a>
-      <a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a>
-      <a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a>
+      <ul>
+        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
+        <li><a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
+        <li><a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
+        <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
+        <li><a href="post-job.html" class="nav-button"><i class="fas fa-plus"></i> Post a Job</a></li>
+      </ul>
     </nav>
   </header>
 
-  <!-- Jobs List -->
-  <div class="max-w-4xl mx-auto mt-10 p-4">
-    <div id="jobsContainer" class="space-y-6"></div>
-    <div class="text-center mt-6">
-      <button id="nextBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Next</button>
-    </div>
+  <!-- All Posted Jobs Section -->
+  <div class="max-w-4xl mx-auto mt-12 bg-white p-8 rounded shadow">
+    <h2 class="text-2xl font-bold mb-6 text-center">All Posted Jobs</h2>
+    <div id="jobsList" class="space-y-4"></div>
   </div>
 
+  <!-- Firebase Script -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -75,64 +92,29 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const jobsContainer = document.getElementById("jobsContainer");
-    const nextBtn = document.getElementById("nextBtn");
 
-    let lastVisible = null;
-    const pageSize = 10;
+    const jobsList = document.getElementById('jobsList');
 
-    function formatTimestamp(ts) {
-      if (!ts?.toDate) return 'N/A';
-      const d = ts.toDate();
-      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function loadJobs() {
-      let query = db.collection("jobs").orderBy("timestamp", "desc").limit(pageSize);
-      if (lastVisible) {
-        query = query.startAfter(lastVisible);
-      }
-
-      query.get().then(snapshot => {
-        if (snapshot.empty && !lastVisible) {
-          jobsContainer.innerHTML = `<p class="text-center text-gray-500">No jobs posted yet.</p>`;
-          nextBtn.style.display = "none";
-          return;
-        }
-
-        if (snapshot.size < pageSize) {
-          nextBtn.style.display = "none"; // Hide if no more jobs to fetch
-        }
-
-        lastVisible = snapshot.docs[snapshot.docs.length - 1];
-
-        snapshot.forEach(doc => {
-          const job = doc.data();
-          const jobHTML = `
-            <div class="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-              <h2 class="text-2xl font-bold text-orange-600 mb-2">${job.title}</h2>
-              <p class="text-gray-700 mb-1"><strong>Location:</strong> ${job.location}</p>
-              <p class="text-gray-700 mb-1"><strong>Posted By:</strong> ${job.postedBy || 'Unknown'}</p>
-              <p class="text-sm text-gray-500 mb-4"><strong>Posted On:</strong> ${formatTimestamp(job.timestamp)}</p>
-              <a href="${job.link}" target="_blank" class="inline-block bg-green-500 text-white font-semibold py-2 px-4 rounded hover:bg-green-600 transition duration-200">Apply Now</a>
-            </div>
-          `;
-          jobsContainer.innerHTML += jobHTML;
-        });
-      }).catch(error => {
-        console.error("Error loading jobs:", error);
-        jobsContainer.innerHTML = `<p class="text-center text-red-500">Failed to load jobs.</p>`;
+    // Load all jobs and display
+    db.collection("jobs").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      jobsList.innerHTML = "";
+      snapshot.forEach(doc => {
+        const job = doc.data();
+        const jobCard = `
+          <div class="p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50">
+            <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
+            <p class="text-gray-600">Company: ${job.company}</p>
+            <p class="text-gray-600">Location: ${job.location}</p>
+            <p class="text-gray-600">Salary: ${job.salary}</p>
+            <p class="text-gray-500 text-sm">Posted by: ${job.postedBy}</p>
+            <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
+          </div>
+        `;
+        jobsList.innerHTML += jobCard;
       });
-    }
-
-    nextBtn.addEventListener("click", loadJobs);
-
-    // Load first page
-    loadJobs();
+    });
   </script>
 </body>
 </html>
