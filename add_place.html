@@ -154,7 +154,7 @@
             link: placeLink,
             phoneNumber: phoneNumber || null,
             placeType: placeType,
-            userId: user.uid,
+            userId: firebase.auth().currentUser.uid
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           });
 
