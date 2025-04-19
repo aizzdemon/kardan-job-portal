@@ -154,6 +154,8 @@
     // Generate embed URL for Google Maps Link
     function generateEmbedUrl(googleMapsLink) {
       if (!googleMapsLink) return "";
+      
+      // Assuming googleMapsLink is a simple address or lat/lng string
       const baseUrl = "https://www.google.com/maps/embed/v1/place?key=AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I&q=";
       const encodedLink = encodeURIComponent(googleMapsLink);
       return baseUrl + encodedLink;
