@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Places to Hangout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    .place-card {
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      background: white;
+      margin-bottom: 1.5rem;
+    }
+    .place-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .place-info {
+      padding: 1rem;
+    }
+    .place-info h3 {
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+
+  <header class="bg-purple-600 p-4 text-white text-center">
+    <h1 class="text-3xl font-bold">Places to Hangout</h1>
+  </header>
+
+  <!-- Places List -->
+  <div id="placesContainer" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"></div>
+
+  <!-- Firebase Script -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Fetch and display places
+    async function fetchPlaces() {
+      const placesContainer = document.getElementById("placesContainer");
+
+      try {
+        const snapshot = await db.collection("places").get();
+        snapshot.forEach(doc => {
+          const place = doc.data();
+
+          // Create a card for each place
+          const placeCard = document.createElement("div");
+          placeCard.className = "place-card";
+
+          // Place Image (if available)
+          const placeImage = document.createElement("img");
+          placeImage.className = "place-image";
+          placeImage.src = place.photoUrl || "https://via.placeholder.com/400x200?text=No+Image+Available";
+          
+          // Place Info
+          const placeInfo = document.createElement("div");
+          placeInfo.className = "place-info";
+          const placeName = document.createElement("h3");
+          placeName.textContent = place.name;
+          const placeDescription = document.createElement("p");
+          placeDescription.textContent = place.description;
+
+          const placeLink = document.createElement("a");
+          placeLink.href = place.googleMapsLink;
+          placeLink.target = "_blank";
+          placeLink.className = "text-blue-500 hover:text-blue-700";
+          placeLink.textContent = "View on Google Maps";
+
+          // Append elements
+          placeInfo.appendChild(placeName);
+          placeInfo.appendChild(placeDescription);
+          placeInfo.appendChild(placeLink);
+          placeCard.appendChild(placeImage);
+          placeCard.appendChild(placeInfo);
+
+          // Append the place card to the container
+          placesContainer.appendChild(placeCard);
+        });
+      } catch (error) {
+        console.error("Error fetching places:", error);
+      }
+    }
+
+    // Load places when the page loads
+    window.onload = fetchPlaces;
+  </script>
+</body>
+</html>
