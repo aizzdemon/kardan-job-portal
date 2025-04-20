@@ -16,10 +16,15 @@
       background: white;
       margin-bottom: 1.5rem;
     }
-    .place-image {
+    .place-image, .place-map {
       width: 100%;
       height: 200px;
       object-fit: cover;
+    }
+    .place-map iframe {
+      width: 100%;
+      height: 200px;
+      border: 0;
     }
     .place-info {
       padding: 1rem;
@@ -55,7 +60,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fetch and display places
     async function fetchPlaces() {
       const placesContainer = document.getElementById("placesContainer");
 
@@ -63,38 +67,46 @@
         const snapshot = await db.collection("places").get();
         snapshot.forEach(doc => {
           const place = doc.data();
-
-          // Create a card for each place
           const placeCard = document.createElement("div");
           placeCard.className = "place-card";
 
-          // Place Image (if available)
-          const placeImage = document.createElement("img");
-          placeImage.className = "place-image";
-          placeImage.src = place.photoUrl || "https://via.placeholder.com/400x200?text=No+Image+Available";
-          
-          // Place Info
+          // Use Google Maps Static API to get a preview image
+          if (place.googleMapsLink) {
+            // Assuming the Google Maps URL has the place name or location in it.
+            const mapPreviewUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(place.name)}&zoom=14&size=600x400&markers=color:red%7C${encodeURIComponent(place.name)}&key=YOUR_GOOGLE_MAPS_API_KEY`;
+
+            const placeImage = document.createElement("img");
+            placeImage.className = "place-image";
+            placeImage.src = mapPreviewUrl;
+            placeCard.appendChild(placeImage);
+          } else {
+            const placeholder = document.createElement("img");
+            placeholder.className = "place-image";
+            placeholder.src = "https://via.placeholder.com/400x200?text=No+Image+Available";
+            placeCard.appendChild(placeholder);
+          }
+
+          // Info
           const placeInfo = document.createElement("div");
           placeInfo.className = "place-info";
+
           const placeName = document.createElement("h3");
           placeName.textContent = place.name;
+
           const placeDescription = document.createElement("p");
           placeDescription.textContent = place.description;
+
+          placeInfo.appendChild(placeName);
+          placeInfo.appendChild(placeDescription);
 
           const placeLink = document.createElement("a");
           placeLink.href = place.googleMapsLink;
           placeLink.target = "_blank";
           placeLink.className = "text-blue-500 hover:text-blue-700";
           placeLink.textContent = "View on Google Maps";
-
-          // Append elements
-          placeInfo.appendChild(placeName);
-          placeInfo.appendChild(placeDescription);
           placeInfo.appendChild(placeLink);
-          placeCard.appendChild(placeImage);
-          placeCard.appendChild(placeInfo);
 
-          // Append the place card to the container
+          placeCard.appendChild(placeInfo);
           placesContainer.appendChild(placeCard);
         });
       } catch (error) {
@@ -102,7 +114,6 @@
       }
     }
 
-    // Load places when the page loads
     window.onload = fetchPlaces;
   </script>
 </body>
