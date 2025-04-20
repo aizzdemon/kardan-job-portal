@@ -121,7 +121,7 @@
     const db = firebase.firestore();
     const tableBody = document.getElementById('jobsTableBody');
     const postBookBtnContainer = document.getElementById("postBookBtnContainer");
-    const allowedEmails = ["admin@example.com", "bookmanager@example.com", "oster2you@gmail.com"];
+    const allowedEmails = ["admin@example.com", "bookmanager@example.com", "oster2you@gmail.com"]; // Updated email list
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
