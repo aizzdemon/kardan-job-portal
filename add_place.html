@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Add Place</title>
+  <title>Places to Hangout</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -10,28 +10,20 @@
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
-    .logo-box {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background-color: #ff5733;
-      color: white;
-      padding: 10px 20px;
-      font-size: 18px;
+    .place-card {
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      background: white;
+      margin-bottom: 1.5rem;
+    }
+    .place-info {
+      padding: 1rem;
+    }
+    .place-info h3 {
+      font-size: 1.25rem;
       font-weight: bold;
-      border-radius: 5px;
     }
-
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    nav ul li {
-      display: inline;
-      margin: 0 10px;
-    }
-
     .nav-button {
       background-color: #d3d3d3;
       border: 1px solid #bbb;
@@ -44,99 +36,80 @@
       font-weight: bold;
       display: inline-block;
     }
-
-    .nav-button i {
-      margin-right: 5px;
-    }
-
     .nav-button:hover {
       background-color: #c0c0c0;
     }
-
-    .form-container {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 2rem;
+    .map-preview {
+      width: 100%;
+      height: 200px;
+      border-radius: 8px;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body class="bg-gray-100">
 
-  <!-- Header -->
-  <header>
-    <div class="logo-box">KARDAN</div>
-    <nav class="mt-4 text-center pt-14">
-      <ul>
-        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="index.html#jobs" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
-        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
-        <li><a href="index.html#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
-        <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-comments"></i> Places to Hangout</a></li>
-        <li><a href="index.html#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
-      </ul>
-    </nav>
+  <!-- Navigation Bar -->
+  <header class="bg-white shadow p-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="text-purple-600 text-xl font-bold">KARDAN</div>
+      <nav>
+        <ul class="flex space-x-4">
+          <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
+           <li><a href="buy-books.html" class="join-button">Buy Books</a></li>
+          <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
+          <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
+          <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+          <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-comments"></i> Places to Hangout</a></li>
+          <li><a href="index.html#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
-  <!-- Main Section -->
-  <div class="form-container bg-white rounded shadow-lg">
-    <h2 class="text-xl font-semibold mb-6">Add a New Place</h2>
+  <!-- Page Title -->
+  <section class="bg-purple-600 p-4 text-white text-center">
+    <h1 class="text-3xl font-bold">Places to Hangout</h1>
+  </section>
 
-    <form id="addPlaceForm">
-      <div class="mb-4">
-        <label for="placeName" class="block text-gray-700">Place Name</label>
-        <input type="text" id="placeName" name="placeName" class="w-full px-4 py-2 border border-gray-300 rounded" required />
+  <!-- Add Place Form -->
+  <div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow">
+    <h2 class="text-2xl font-bold mb-4">Add a New Place</h2>
+    <form id="addPlaceForm" class="space-y-4">
+      <div>
+        <label for="placeName" class="block font-semibold">Place Name</label>
+        <input type="text" id="placeName" class="w-full p-2 border border-gray-300 rounded" required />
       </div>
-
-      <div class="mb-4">
-        <label for="placeDescription" class="block text-gray-700">Description</label>
-        <textarea id="placeDescription" name="placeDescription" class="w-full px-4 py-2 border border-gray-300 rounded" required></textarea>
+      <div>
+        <label for="description" class="block font-semibold">Description</label>
+        <textarea id="description" class="w-full p-2 border border-gray-300 rounded" required></textarea>
       </div>
-
-      <div class="mb-4">
-        <label for="placeLink" class="block text-gray-700">Google Maps Link</label>
-        <input type="url" id="placeLink" name="placeLink" class="w-full px-4 py-2 border border-gray-300 rounded" required />
+      <div>
+        <label for="embedMapLink" class="block font-semibold">Embed Map Link</label>
+        <input type="text" id="embedMapLink" class="w-full p-2 border border-gray-300 rounded" required />
       </div>
-
-      <div class="mb-4">
-        <label for="phoneNumber" class="block text-gray-700">Phone Number (Optional)</label>
-        <input type="text" id="phoneNumber" name="phoneNumber" class="w-full px-4 py-2 border border-gray-300 rounded" />
-      </div>
-
-      <div class="mb-4">
-        <label for="placeType" class="block text-gray-700">Place Type</label>
-        <select id="placeType" name="placeType" class="w-full px-4 py-2 border border-gray-300 rounded" required>
-          <option value="hotel">Hotel</option>
-          <option value="restaurant">Restaurant</option>
-          <option value="cafe">Cafe</option>
-          <option value="mall">Mall</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-
-      <div class="mb-6">
-        <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Place</button>
-      </div>
+      <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Submit</button>
     </form>
 
-    <!-- Embedded Map Preview -->
-    <div id="mapPreview" class="mt-6 hidden">
-      <h3 class="text-lg font-semibold mb-2">Map Preview</h3>
-      <iframe
-        id="mapEmbed"
-        width="100%"
-        height="300"
-        class="rounded shadow"
-        style="border:0;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
+    <!-- Instructions -->
+    <div class="mt-6 text-sm text-gray-700 bg-gray-100 p-4 rounded">
+      <h3 class="font-semibold mb-2">How to Get the Embed Map Link from Google Maps:</h3>
+      <ol class="list-decimal list-inside space-y-1">
+        <li>Go to <a href="https://maps.google.com" class="text-blue-500 underline" target="_blank">Google Maps</a>.</li>
+        <li>Search for the place you want to embed.</li>
+        <li>Click the "Share" button.</li>
+        <li>Select the “Embed a map” tab.</li>
+        <li>Click "Copy HTML" and copy only the <code>src</code> link from the iframe.</li>
+        <li>Paste that <strong>src URL</strong> into the “Embed Map Link” field above.</li>
+      </ol>
     </div>
-
   </div>
 
-  <!-- Firebase & Map Script -->
+  <!-- Places List -->
+  <div id="placesContainer" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"></div>
+
+  <!-- Firebase Script -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -150,74 +123,86 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    // Submit handler
-    document.getElementById('addPlaceForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-
-      const placeName = document.getElementById('placeName').value;
-      const placeDescription = document.getElementById('placeDescription').value;
-      const placeLink = document.getElementById('placeLink').value;
-      const phoneNumber = document.getElementById('phoneNumber').value;
-      const placeType = document.getElementById('placeType').value;
-
-      try {
-        const user = firebase.auth().currentUser;
-
-        if (user) {
-          await db.collection('places').add({
-            name: placeName,
-            description: placeDescription,
-            link: placeLink,
-            phoneNumber: phoneNumber || null,
-            placeType: placeType,
-            userId: user.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
-
-          alert("Place added successfully!");
-          window.location.href = "places-to-hangout.html";
+    function checkUserAndPost() {
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          alert("You have to login first to post");
+          window.location.href = "login.html";
         } else {
-          alert("You need to be logged in to add a place.");
+          console.log("User is logged in:", user.email);
         }
-      } catch (error) {
-        console.error("Error adding place: ", error);
-        alert("There was an error adding the place.");
-      }
-    });
-
-    // Live Map Preview
-    document.getElementById('placeLink').addEventListener('input', function () {
-      const inputUrl = this.value;
-      const embedUrl = convertToEmbedUrl(inputUrl);
-      const mapPreview = document.getElementById('mapPreview');
-      const mapEmbed = document.getElementById('mapEmbed');
-
-      if (embedUrl) {
-        mapEmbed.src = embedUrl;
-        mapPreview.classList.remove('hidden');
-      } else {
-        mapEmbed.src = '';
-        mapPreview.classList.add('hidden');
-      }
-    });
-
-    // Convert to embeddable URL
-    function convertToEmbedUrl(link) {
-      try {
-        const url = new URL(link);
-        const regExp = /(?:place|search)\?q=([^&]+)/; // Match "q=" query from Google Maps
-        const match = regExp.exec(url.search);
-        if (match) {
-          return `https://www.google.com/maps/embed/v1/place?key=AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I&q=${encodeURIComponent(match[1])}`;
-        }
-      } catch (e) {
-        console.error("Error converting URL:", e);
-        return null;
-      }
-      return null;
+      });
     }
-  </script>
 
+    async function fetchPlaces() {
+      const placesContainer = document.getElementById("placesContainer");
+
+      try {
+        const snapshot = await db.collection("places").get();
+        snapshot.forEach(doc => {
+          const place = doc.data();
+
+          const placeCard = document.createElement("div");
+          placeCard.className = "place-card";
+
+          const placeInfo = document.createElement("div");
+          placeInfo.className = "place-info";
+
+          // Place name and description
+          const placeName = document.createElement("h3");
+          placeName.textContent = place.name;
+
+          const placeDescription = document.createElement("p");
+          placeDescription.textContent = place.description;
+
+          // Embed Map preview (iframe)
+          const mapPreview = document.createElement("iframe");
+          mapPreview.className = "map-preview";
+          mapPreview.src = place.embedMapLink;
+          mapPreview.allowfullscreen = "";
+          mapPreview.loading = "lazy";
+
+          placeInfo.appendChild(placeName);
+          placeInfo.appendChild(placeDescription);
+
+          placeCard.appendChild(mapPreview);
+          placeCard.appendChild(placeInfo);
+
+          placesContainer.appendChild(placeCard);
+        });
+      } catch (error) {
+        console.error("Error fetching places:", error);
+      }
+    }
+
+    window.onload = () => {
+      checkUserAndPost();
+      fetchPlaces();
+    };
+
+    // Submit place form
+    const addPlaceForm = document.getElementById("addPlaceForm");
+    addPlaceForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const placeName = document.getElementById("placeName").value;
+      const description = document.getElementById("description").value;
+      const embedMapLink = document.getElementById("embedMapLink").value;
+
+      try {
+        await db.collection("places").add({
+          name: placeName,
+          description: description,
+          embedMapLink: embedMapLink,
+        });
+        alert("Place added successfully!");
+        addPlaceForm.reset();
+      } catch (error) {
+        console.error("Error adding place:", error);
+      }
+    });
+  </script>
 </body>
 </html>
