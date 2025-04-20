@@ -21,17 +21,8 @@
       font-weight: bold;
       border-radius: 5px;
     }
-
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    nav ul li {
-      display: inline;
-      margin: 0 10px;
-    }
-
+    nav ul { list-style: none; padding: 0; }
+    nav ul li { display: inline; margin: 0 10px; }
     .nav-button {
       background-color: #d3d3d3;
       border: 1px solid #bbb;
@@ -44,14 +35,8 @@
       font-weight: bold;
       display: inline-block;
     }
-
-    .nav-button i {
-      margin-right: 5px;
-    }
-
-    .nav-button:hover {
-      background-color: #c0c0c0;
-    }
+    .nav-button i { margin-right: 5px; }
+    .nav-button:hover { background-color: #c0c0c0; }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -86,18 +71,14 @@
       <div class="flex flex-col gap-4">
         <a href="jobs.html" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Find Jobs</a>
         <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Post a Job</a>
+        <a href="manage-applications.html" class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">Manage Applications</a>
 
         <!-- Post a Book Button (Visible only for allowed users) -->
         <div id="postBookBtnContainer" class="hidden">
           <a href="post-a-book.html" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Post a Book</a>
         </div>
 
-        <!-- Add Place to Hang Out Button -->
-        <a href="add_place.html">
-          <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Place to Hang Out</button>
-        </a>
-
-        <!-- View Places to Hangout -->
+        <a href="add_place.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Place to Hang Out</a>
         <a href="places-to-hangout.html" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">View Places to Hangout</a>
       </div>
 
@@ -123,7 +104,7 @@
     </div>
   </div>
 
-  <!-- Firebase Script -->
+  <!-- Firebase & Script -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -139,6 +120,8 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     const tableBody = document.getElementById('jobsTableBody');
+    const postBookBtnContainer = document.getElementById("postBookBtnContainer");
+    const allowedEmails = ["admin@example.com", "bookmanager@example.com"];
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -147,6 +130,10 @@
       }
 
       document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
+
+      if (allowedEmails.includes(user.email)) {
+        postBookBtnContainer.classList.remove("hidden");
+      }
 
       try {
         const doc = await db.collection("users").doc(user.uid).get();
@@ -158,7 +145,6 @@
           }
         }
 
-        // Load user's posted jobs
         db.collection("jobs").where("uid", "==", user.uid).onSnapshot(snapshot => {
           tableBody.innerHTML = '';
           snapshot.forEach(doc => {
@@ -201,21 +187,6 @@
     function editJob(id) {
       alert("Edit functionality to be implemented. Job ID: " + id);
     }
-  </script>
-
-  <!-- Post Book Access Script -->
-  <script type="module">
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-
-    const allowedEmails = ["admin@example.com", "bookmanager@example.com"]; // Customize this list
-    const postBookBtnContainer = document.getElementById("postBookBtnContainer");
-
-    const authModule = getAuth();
-    onAuthStateChanged(authModule, (user) => {
-      if (user && allowedEmails.includes(user.email)) {
-        postBookBtnContainer.classList.remove("hidden");
-      }
-    });
   </script>
 </body>
 </html>
