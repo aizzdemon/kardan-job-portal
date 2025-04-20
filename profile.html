@@ -64,7 +64,7 @@
       <ul>
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="buy-books.html" class="join-button">Buy Books</a></li>
+        <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
         <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
         <li><a href="index.html#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
@@ -86,6 +86,11 @@
       <div class="flex flex-col gap-4">
         <a href="jobs.html" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Find Jobs</a>
         <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Post a Job</a>
+
+        <!-- Post a Book Button (Visible only for allowed users) -->
+        <div id="postBookBtnContainer" class="hidden">
+          <a href="post-a-book.html" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Post a Book</a>
+        </div>
 
         <!-- Add Place to Hang Out Button -->
         <a href="add_place.html">
@@ -195,8 +200,22 @@
 
     function editJob(id) {
       alert("Edit functionality to be implemented. Job ID: " + id);
-      // Future: window.location.href = `edit-job.html?id=${id}`;
     }
+  </script>
+
+  <!-- Post Book Access Script -->
+  <script type="module">
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+
+    const allowedEmails = ["admin@example.com", "bookmanager@example.com"]; // Customize this list
+    const postBookBtnContainer = document.getElementById("postBookBtnContainer");
+
+    const authModule = getAuth();
+    onAuthStateChanged(authModule, (user) => {
+      if (user && allowedEmails.includes(user.email)) {
+        postBookBtnContainer.classList.remove("hidden");
+      }
+    });
   </script>
 </body>
 </html>
