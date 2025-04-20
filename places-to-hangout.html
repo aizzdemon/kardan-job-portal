@@ -5,7 +5,6 @@
   <title>Places to Hangout</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
@@ -17,6 +16,11 @@
       background: white;
       margin-bottom: 1.5rem;
     }
+    .place-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
     .place-info {
       padding: 1rem;
     }
@@ -24,87 +28,13 @@
       font-size: 1.25rem;
       font-weight: bold;
     }
-    .nav-button {
-      background-color: #d3d3d3;
-      border: 1px solid #bbb;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: #000;
-      font-weight: bold;
-      display: inline-block;
-    }
-    .nav-button:hover {
-      background-color: #c0c0c0;
-    }
-    .map-preview {
-      width: 100%;
-      height: 200px;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
   </style>
 </head>
 <body class="bg-gray-100">
 
-  <!-- Navigation Bar -->
-  <header class="bg-white shadow p-4">
-    <div class="max-w-7xl mx-auto flex justify-between items-center">
-      <div class="text-purple-600 text-xl font-bold">KARDAN</div>
-      <nav>
-        <ul class="flex space-x-4">
-          <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
-          <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-           <li><a href="buy-books.html" class="join-button">Buy Books</a></li>
-          <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
-          <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
-          <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
-          <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-comments"></i> Places to Hangout</a></li>
-          <li><a href="index.html#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
-        </ul>
-      </nav>
-    </div>
-  </header>
-
-  <!-- Page Title -->
-  <section class="bg-purple-600 p-4 text-white text-center">
+  <header class="bg-purple-600 p-4 text-white text-center">
     <h1 class="text-3xl font-bold">Places to Hangout</h1>
-  </section>
-
-  <!-- Add Place Form -->
-  <div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow">
-    <h2 class="text-2xl font-bold mb-4">Add a New Place</h2>
-    <form id="addPlaceForm" class="space-y-4">
-      <div>
-        <label for="placeName" class="block font-semibold">Place Name</label>
-        <input type="text" id="placeName" class="w-full p-2 border border-gray-300 rounded" required />
-      </div>
-      <div>
-        <label for="description" class="block font-semibold">Description</label>
-        <textarea id="description" class="w-full p-2 border border-gray-300 rounded" required></textarea>
-      </div>
-      <div>
-        <label for="embedMapLink" class="block font-semibold">Embed Map Link</label>
-        <input type="text" id="embedMapLink" class="w-full p-2 border border-gray-300 rounded" required />
-      </div>
-      <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Submit</button>
-    </form>
-
-    <!-- Instructions -->
-    <div class="mt-6 text-sm text-gray-700 bg-gray-100 p-4 rounded">
-      <h3 class="font-semibold mb-2">How to Get the Embed Map Link from Google Maps:</h3>
-      <ol class="list-decimal list-inside space-y-1">
-        <li>Go to <a href="https://maps.google.com" class="text-blue-500 underline" target="_blank">Google Maps</a>.</li>
-        <li>Search for the place you want to embed.</li>
-        <li>Click the "Share" button.</li>
-        <li>Select the “Embed a map” tab.</li>
-        <li>Click "Copy HTML" and copy only the <code>src</code> link from the iframe.</li>
-        <li>Paste that <strong>src URL</strong> into the “Embed Map Link” field above.</li>
-      </ol>
-    </div>
-  </div>
+  </header>
 
   <!-- Places List -->
   <div id="placesContainer" class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8"></div>
@@ -121,21 +51,11 @@
       measurementId: "G-RRC3X485KQ"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    function checkUserAndPost() {
-      auth.onAuthStateChanged(user => {
-        if (!user) {
-          alert("You have to login first to post");
-          window.location.href = "login.html";
-        } else {
-          console.log("User is logged in:", user.email);
-        }
-      });
-    }
-
+    // Fetch and display places
     async function fetchPlaces() {
       const placesContainer = document.getElementById("placesContainer");
 
@@ -144,32 +64,37 @@
         snapshot.forEach(doc => {
           const place = doc.data();
 
+          // Create a card for each place
           const placeCard = document.createElement("div");
           placeCard.className = "place-card";
 
+          // Place Image (if available)
+          const placeImage = document.createElement("img");
+          placeImage.className = "place-image";
+          placeImage.src = place.photoUrl || "https://via.placeholder.com/400x200?text=No+Image+Available";
+          
+          // Place Info
           const placeInfo = document.createElement("div");
           placeInfo.className = "place-info";
-
-          // Place name and description
           const placeName = document.createElement("h3");
           placeName.textContent = place.name;
-
           const placeDescription = document.createElement("p");
           placeDescription.textContent = place.description;
 
-          // Embed Map preview (iframe)
-          const mapPreview = document.createElement("iframe");
-          mapPreview.className = "map-preview";
-          mapPreview.src = place.embedMapLink;
-          mapPreview.allowfullscreen = "";
-          mapPreview.loading = "lazy";
+          const placeLink = document.createElement("a");
+          placeLink.href = place.googleMapsLink;
+          placeLink.target = "_blank";
+          placeLink.className = "text-blue-500 hover:text-blue-700";
+          placeLink.textContent = "View on Google Maps";
 
+          // Append elements
           placeInfo.appendChild(placeName);
           placeInfo.appendChild(placeDescription);
-
-          placeCard.appendChild(mapPreview);
+          placeInfo.appendChild(placeLink);
+          placeCard.appendChild(placeImage);
           placeCard.appendChild(placeInfo);
 
+          // Append the place card to the container
           placesContainer.appendChild(placeCard);
         });
       } catch (error) {
@@ -177,32 +102,8 @@
       }
     }
 
-    window.onload = () => {
-      checkUserAndPost();
-      fetchPlaces();
-    };
-
-    // Submit place form
-    const addPlaceForm = document.getElementById("addPlaceForm");
-    addPlaceForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const placeName = document.getElementById("placeName").value;
-      const description = document.getElementById("description").value;
-      const embedMapLink = document.getElementById("embedMapLink").value;
-
-      try {
-        await db.collection("places").add({
-          name: placeName,
-          description: description,
-          embedMapLink: embedMapLink,
-        });
-        alert("Place added successfully!");
-        addPlaceForm.reset();
-      } catch (error) {
-        console.error("Error adding place:", error);
-      }
-    });
+    // Load places when the page loads
+    window.onload = fetchPlaces;
   </script>
 </body>
 </html>
