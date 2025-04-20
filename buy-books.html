@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buy Books</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const booksContainer = document.getElementById("booksContainer");
+
+    async function fetchBooks() {
+      const q = query(collection(db, "booksForSale"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      querySnapshot.forEach((doc) => {
+        const { title, description, link, photo } = doc.data();
+        const bookCard = `
+          <div class="bg-white rounded shadow p-4">
+            <img src="${photo || 'https://via.placeholder.com/150'}" alt="Book Cover" class="w-full h-64 object-cover mb-4 rounded">
+            <h2 class="text-xl font-semibold">${title}</h2>
+            <p class="text-gray-600 mb-2">${description}</p>
+            <a href="${link}" target="_blank" class="text-blue-600 hover:underline">Buy on Amazon</a>
+          </div>
+        `;
+        booksContainer.innerHTML += bookCard;
+      });
+    }
+
+    fetchBooks();
+  </script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <nav class="bg-white shadow-md p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="index.html" class="text-xl font-bold">Kar Kardan</a>
+      <div class="space-x-4">
+        <a href="index.html" class="text-gray-700 hover:text-blue-600">Home</a>
+        <a href="jobs.html" class="text-gray-700 hover:text-blue-600">Jobs</a>
+        <a href="buy-books.html" class="text-gray-700 hover:text-blue-600">Buy Books</a>
+        <a href="places-to-hangout.html" class="text-gray-700 hover:text-blue-600">Hangouts</a>
+        <a href="companies.html" class="text-gray-700 hover:text-blue-600">Companies</a>
+        <a href="login.html" class="text-gray-700 hover:text-blue-600">Login</a>
+        <a href="signup.html" class="text-gray-700 hover:text-blue-600">Join Now</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="container mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-6">Buy Books</h1>
+    <div id="booksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </section>
+</body>
+</html>
