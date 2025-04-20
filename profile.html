@@ -131,10 +131,6 @@
 
       document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
 
-      if (allowedEmails.includes(user.email)) {
-        postBookBtnContainer.classList.remove("hidden");
-      }
-
       try {
         const doc = await db.collection("users").doc(user.uid).get();
         if (doc.exists) {
@@ -142,6 +138,11 @@
           document.getElementById("userRole").textContent = "Role: " + (data.role || "employee");
           if (data.name) {
             document.getElementById("userName").textContent = data.name;
+          }
+
+          // Show Post Book button if user has 'bookPoster' role or email is allowed
+          if (data.role === "bookPoster" || allowedEmails.includes(user.email)) {
+            postBookBtnContainer.classList.remove("hidden");
           }
         }
 
