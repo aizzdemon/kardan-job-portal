@@ -97,18 +97,15 @@
 
     const jobsList = document.getElementById('jobsList');
 
-    // Load all jobs and display
     db.collection("jobs").orderBy("timestamp", "desc").onSnapshot(snapshot => {
       jobsList.innerHTML = "";
       snapshot.forEach(doc => {
         const job = doc.data();
         const timestamp = job.timestamp?.toDate?.();
-        const postedDate = timestamp
-          ? timestamp.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-          : "N/A";
+        const postedDate = timestamp ? timestamp.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A";
 
-        const likes = job.likes || 0;
-        const dislikes = job.dislikes || 0;
+        const likes = job.likes ?? 0;
+        const dislikes = job.dislikes ?? 0;
 
         const jobCard = `
           <div class="p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50">
@@ -130,12 +127,6 @@
               <button onclick="viewJob('${doc.id}')" class="text-blue-600 hover:text-blue-800">
                 👁️ View
               </button>
-              <button onclick="editJob('${doc.id}')" class="text-yellow-600 hover:text-yellow-800">
-                ✏️ Edit
-              </button>
-              <button onclick="deleteJob('${doc.id}')" class="text-gray-600 hover:text-gray-800">
-                🗑️ Delete
-              </button>
             </div>
           </div>
         `;
@@ -145,41 +136,16 @@
 
     function likeJob(jobId) {
       const jobRef = db.collection("jobs").doc(jobId);
-      jobRef.update({
-        likes: firebase.firestore.FieldValue.increment(1)
-      }).then(() => {
-        const el = document.getElementById(`likes-${jobId}`);
-        if (el) el.textContent = parseInt(el.textContent) + 1;
-      });
+      jobRef.update({ likes: firebase.firestore.FieldValue.increment(1) });
     }
 
     function dislikeJob(jobId) {
       const jobRef = db.collection("jobs").doc(jobId);
-      jobRef.update({
-        dislikes: firebase.firestore.FieldValue.increment(1)
-      }).then(() => {
-        const el = document.getElementById(`dislikes-${jobId}`);
-        if (el) el.textContent = parseInt(el.textContent) + 1;
-      });
+      jobRef.update({ dislikes: firebase.firestore.FieldValue.increment(1) });
     }
 
     function viewJob(jobId) {
       window.location.href = `job-details.html?id=${jobId}`;
-    }
-
-    function editJob(jobId) {
-      window.location.href = `edit-job.html?id=${jobId}`;
-    }
-
-    function deleteJob(jobId) {
-      if (confirm("Are you sure you want to delete this job posting?")) {
-        db.collection("jobs").doc(jobId).delete().then(() => {
-          alert("Job deleted successfully.");
-        }).catch(error => {
-          console.error("Error deleting job: ", error);
-          alert("Failed to delete the job.");
-        });
-      }
     }
   </script>
 </body>
