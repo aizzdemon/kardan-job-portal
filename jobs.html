@@ -124,9 +124,6 @@
               <button onclick="dislikeJob('${doc.id}')" class="text-red-600 hover:text-red-800">
                 👎 <span id="dislikes-${doc.id}">${dislikes}</span>
               </button>
-              <button onclick="viewJob('${doc.id}')" class="text-blue-600 hover:text-blue-800">
-                👁️ View
-              </button>
             </div>
           </div>
         `;
@@ -142,10 +139,6 @@
     function dislikeJob(jobId) {
       const jobRef = db.collection("jobs").doc(jobId);
       jobRef.update({ dislikes: firebase.firestore.FieldValue.increment(1) });
-    }
-
-    function viewJob(jobId) {
-      window.location.href = `job-details.html?id=${jobId}`;
     }
   </script>
 </body>
