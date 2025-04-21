@@ -53,7 +53,6 @@
         <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
         <li><a href="index.html#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
-        <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-comments"></i> Places to Hangout</a></li>
         <li><a href="index.html#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
       </ul>
     </nav>
@@ -77,9 +76,6 @@
         <div id="postBookBtnContainer" class="hidden">
           <a href="post-a-book.html" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Post a Book</a>
         </div>
-
-        <a href="add_place.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add Place to Hang Out</a>
-        <a href="places-to-hangout.html" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">View Places to Hangout</a>
       </div>
 
       <button onclick="logout()" class="block mt-6 text-red-500 underline">Logout</button>
@@ -121,7 +117,7 @@
     const db = firebase.firestore();
     const tableBody = document.getElementById('jobsTableBody');
     const postBookBtnContainer = document.getElementById("postBookBtnContainer");
-    const allowedEmails = ["admin@example.com", "bookmanager@example.com", "oster2you@gmail.com"]; // Updated email list
+    const allowedEmails = ["admin@example.com", "bookmanager@example.com", "oster2you@gmail.com"];
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -140,7 +136,6 @@
             document.getElementById("userName").textContent = data.name;
           }
 
-          // Show Post Book button if user has 'bookPoster' role or email is allowed
           if (data.role === "bookPoster" || allowedEmails.includes(user.email)) {
             postBookBtnContainer.classList.remove("hidden");
           }
