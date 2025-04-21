@@ -66,7 +66,6 @@
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
         <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
-        <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
         <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
         <li><a href="post-job.html" class="nav-button"><i class="fas fa-plus"></i> Post a Job</a></li>
@@ -107,38 +106,44 @@
         const likes = job.likes ?? 0;
         const dislikes = job.dislikes ?? 0;
 
-        const jobCard = `
-          <div class="p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50">
-            <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
-            <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
-            <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
-            <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
-            <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
-            <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
-            <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
+        const jobCard = document.createElement('div');
+        jobCard.className = "p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50";
+        jobCard.innerHTML = `
+          <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
+          <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
+          <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
+          <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
+          <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
+          <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
+          <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
 
-            <div class="mt-4 flex gap-6 text-lg">
-              <button onclick="likeJob('${doc.id}')" class="text-green-600 hover:text-green-800">
-                👍 <span id="likes-${doc.id}">${likes}</span>
-              </button>
-              <button onclick="dislikeJob('${doc.id}')" class="text-red-600 hover:text-red-800">
-                👎 <span id="dislikes-${doc.id}">${dislikes}</span>
-              </button>
-            </div>
+          <div class="mt-4 flex gap-6 text-lg">
+            <button onclick="likeJob('${doc.id}')" class="text-green-600 hover:text-green-800">
+              👍 <span id="likes-${doc.id}">${likes}</span>
+            </button>
+            <button onclick="dislikeJob('${doc.id}')" class="text-red-600 hover:text-red-800">
+              👎 <span id="dislikes-${doc.id}">${dislikes}</span>
+            </button>
           </div>
         `;
-        jobsList.innerHTML += jobCard;
+        jobsList.appendChild(jobCard);
       });
     });
 
     function likeJob(jobId) {
       const jobRef = db.collection("jobs").doc(jobId);
-      jobRef.update({ likes: firebase.firestore.FieldValue.increment(1) });
+      jobRef.update({ likes: firebase.firestore.FieldValue.increment(1) }).then(() => {
+        const likesSpan = document.getElementById(`likes-${jobId}`);
+        likesSpan.textContent = parseInt(likesSpan.textContent) + 1;
+      });
     }
 
     function dislikeJob(jobId) {
       const jobRef = db.collection("jobs").doc(jobId);
-      jobRef.update({ dislikes: firebase.firestore.FieldValue.increment(1) });
+      jobRef.update({ dislikes: firebase.firestore.FieldValue.increment(1) }).then(() => {
+        const dislikesSpan = document.getElementById(`dislikes-${jobId}`);
+        dislikesSpan.textContent = parseInt(dislikesSpan.textContent) + 1;
+      });
     }
   </script>
 </body>
