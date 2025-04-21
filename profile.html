@@ -24,19 +24,19 @@
     nav ul { list-style: none; padding: 0; }
     nav ul li { display: inline; margin: 0 10px; }
     .nav-button {
-      background-color: #d3d3d3;
-      border: 1px solid #bbb;
+      background-color: #1D4ED8; /* Blue color */
+      border: 1px solid #1D4ED8; /* Same blue border */
       padding: 10px 15px;
       cursor: pointer;
       border-radius: 5px;
       font-size: 14px;
       text-decoration: none;
-      color: #000;
+      color: white; /* White text color */
       font-weight: bold;
       display: inline-block;
     }
     .nav-button i { margin-right: 5px; }
-    .nav-button:hover { background-color: #c0c0c0; }
+    .nav-button:hover { background-color: #2563EB; /* Slightly darker blue on hover */ }
   </style>
 </head>
 <body class="bg-gray-100">
@@ -50,7 +50,7 @@
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
         <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
-        <li><a href="post-job.html" class="nav-button" style="background-color: #7c3aed; color: white;"><i class="fas fa-upload"></i> Post a Job</a></li>
+        <li><a href="post-job.html" class="nav-button"><i class="fas fa-upload"></i> Post a Job</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
         <li><a href="index.html#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
         <li><a href="index.html#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
@@ -68,13 +68,14 @@
 
       <!-- Action Buttons -->
       <div class="flex flex-col gap-4">
+        <!-- Find Jobs Button (Green) -->
         <a href="jobs.html" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Find Jobs</a>
+        <!-- Post a Job Button (Purple) -->
         <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Post a Job</a>
-        <a href="manage-applications.html" class="bg-pink-500 text-white px-4 py-2 rounded hover:bg-pink-600">Manage Applications</a>
 
         <!-- Post a Book Button (Visible only for allowed users) -->
         <div id="postBookBtnContainer" class="hidden">
-          <a href="post-a-book.html" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Post a Book</a>
+          <a href="post-a-book.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post a Book</a>
         </div>
       </div>
 
