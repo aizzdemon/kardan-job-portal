@@ -73,7 +73,7 @@
         <!-- Post a Job Button (Purple) -->
         <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Post a Job</a>
 
-        <!-- Post a Book Button (Visible only for allowed users) -->
+        <!-- Post a Book Button (Visible for all users now) -->
         <div id="postBookBtnContainer" class="hidden">
           <a href="post-a-book.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post a Book</a>
         </div>
@@ -118,7 +118,6 @@
     const db = firebase.firestore();
     const tableBody = document.getElementById('jobsTableBody');
     const postBookBtnContainer = document.getElementById("postBookBtnContainer");
-    const allowedEmails = ["admin@example.com", "bookmanager@example.com", "oster2you@gmail.com"];
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
@@ -137,9 +136,8 @@
             document.getElementById("userName").textContent = data.name;
           }
 
-          if (data.role === "bookPoster" || allowedEmails.includes(user.email)) {
-            postBookBtnContainer.classList.remove("hidden");
-          }
+          // Make the "Post a Book" button visible for all users now
+          postBookBtnContainer.classList.remove("hidden");
         }
 
         db.collection("jobs").where("uid", "==", user.uid).onSnapshot(snapshot => {
