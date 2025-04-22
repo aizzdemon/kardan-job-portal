@@ -108,22 +108,32 @@
 
         const jobCard = document.createElement('div');
         jobCard.className = "p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50";
-        jobCard.innerHTML = `
-          <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
-          <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
-          <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
-          <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
-          <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
-          <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
-          <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
 
-          <div class="mt-4 flex gap-6 text-lg">
-            <button onclick="likeJob('${doc.id}')" class="text-green-600 hover:text-green-800">
-              👍 <span id="likes-${doc.id}">${likes}</span>
-            </button>
-            <button onclick="dislikeJob('${doc.id}')" class="text-red-600 hover:text-red-800">
-              👎 <span id="dislikes-${doc.id}">${dislikes}</span>
-            </button>
+        jobCard.innerHTML = `
+          <div class="md:flex justify-between gap-6">
+            <div class="flex-1">
+              <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
+              <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
+              <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
+              <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
+              <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
+              <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
+              <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
+
+              <div class="mt-4 flex gap-6 text-lg">
+                <button onclick="likeJob('${doc.id}')" class="text-green-600 hover:text-green-800">
+                  👍 <span id="likes-${doc.id}">${likes}</span>
+                </button>
+                <button onclick="dislikeJob('${doc.id}')" class="text-red-600 hover:text-red-800">
+                  👎 <span id="dislikes-${doc.id}">${dislikes}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="w-full md:w-1/3 mt-4 md:mt-0 p-6 border-l border-gray-300 bg-white rounded min-h-[160px]">
+              <h4 class="font-semibold text-gray-800 mb-2">About this job</h4>
+              <p class="text-sm text-gray-600">${job.about || "No additional information provided."}</p>
+            </div>
           </div>
         `;
         jobsList.appendChild(jobCard);
