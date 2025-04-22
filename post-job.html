@@ -71,12 +71,24 @@
       background-color: #2779bd;
     }
 
-    .success-message {
-      color: #38a169;
+    .popup-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #38a169;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 5px;
       font-weight: bold;
-      margin-top: 20px;
-      text-align: center;
       display: none;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .popup-message.show {
+      display: block;
+      opacity: 1;
     }
   </style>
 </head>
@@ -124,8 +136,11 @@
     <button id="publishBtn" class="publish-button">
       Publish Book
     </button>
+  </div>
 
-    <p id="successMessage" class="success-message">Book posted successfully!</p>
+  <!-- Popup Message -->
+  <div id="popupMessage" class="popup-message">
+    Book posted successfully!
   </div>
 
   <!-- Firebase Script -->
@@ -146,7 +161,7 @@
 
     const publishBtn = document.getElementById('publishBtn');
     const form = document.getElementById('bookForm');
-    const successMessage = document.getElementById('successMessage');
+    const popupMessage = document.getElementById('popupMessage');
 
     publishBtn.addEventListener('click', async function () {
       const currentUser = auth.currentUser;
@@ -179,8 +194,10 @@
         });
 
         form.reset();
-        successMessage.classList.remove('hidden');
-        setTimeout(() => successMessage.classList.add('hidden'), 3000);
+        popupMessage.classList.add('show');
+        setTimeout(() => {
+          popupMessage.classList.remove('show');
+        }, 3000); // Popup disappears after 3 seconds
       } catch (error) {
         console.error("Error posting book:", error);
         alert("Failed to post book. Try again.");
