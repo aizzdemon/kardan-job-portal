@@ -20,10 +20,12 @@
       measurementId: "G-RRC3X485KQ"
     };
 
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // Check if user is authenticated
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "login.html";
@@ -40,6 +42,7 @@
       const link = form.link.value;
 
       try {
+        // Add book document to Firestore
         await addDoc(collection(db, "booksForSale"), {
           title,
           description,
@@ -47,9 +50,14 @@
           timestamp: serverTimestamp()
         });
 
+        // Notify user on successful post
         alert("Book posted successfully!");
+
+        // Reset the form after posting
         form.reset();
       } catch (error) {
+        // Handle errors during Firestore submission
+        console.error("Error posting book: ", error);
         alert("Error posting book: " + error.message);
       }
     });
