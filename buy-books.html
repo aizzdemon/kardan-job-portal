@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KARDAN - Buy Books</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
@@ -83,7 +83,7 @@
       border-radius: 10px;
       margin-top: 30px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      max-width: 600px;
+      max-width: 800px;
       margin-left: auto;
       margin-right: auto;
     }
@@ -106,6 +106,14 @@
       color: #555;
     }
 
+    .book-item img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
     .buy-button {
       background-color: #007bff;
       color: white;
@@ -113,6 +121,7 @@
       border-radius: 5px;
       text-decoration: none;
       font-weight: bold;
+      display: inline-block;
     }
 
     .buy-button:hover {
@@ -130,8 +139,8 @@
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
         <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
-        <li><a href="#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
-        <li><a href="#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
+        <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+        <li><a href="contact.html" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
         <li><a href="signin.html" class="nav-button"><i class="fas fa-sign-in-alt"></i> Login</a></li>
         <li><a href="signup.html" class="join-button">Join Now</a></li>
       </ul>
@@ -141,25 +150,7 @@
   <!-- Books Section -->
   <div class="book-box">
     <h2 style="color:#3742fa">Books Available for Purchase</h2>
-
-    <!-- Example of a book listing -->
-    <div class="book-item">
-      <h3>Book Title 1</h3>
-      <p>Description of the book, including its features, contents, and why it's a must-buy.</p>
-      <a href="#" class="buy-button">Buy Now</a>
-    </div>
-
-    <div class="book-item">
-      <h3>Book Title 2</h3>
-      <p>Description of the book, including its features, contents, and why it's a must-buy.</p>
-      <a href="#" class="buy-button">Buy Now</a>
-    </div>
-
-    <div class="book-item">
-      <h3>Book Title 3</h3>
-      <p>Description of the book, including its features, contents, and why it's a must-buy.</p>
-      <a href="#" class="buy-button">Buy Now</a>
-    </div>
+    <!-- Dynamic book entries will load here -->
   </div>
 
   <!-- Firebase SDK -->
@@ -183,14 +174,17 @@
 
     db.collection("books").orderBy("timestamp", "desc").onSnapshot(snapshot => {
       const booksContainer = document.querySelector('.book-box');
+      booksContainer.innerHTML = '<h2 style="color:#3742fa">Books Available for Purchase</h2>'; // reset content
+
       snapshot.forEach(doc => {
         const book = doc.data();
         const bookElement = document.createElement('div');
         bookElement.classList.add('book-item');
         bookElement.innerHTML = `
           <h3>${book.title}</h3>
+          <img src="${book.imageUrl}" alt="${book.title}" />
           <p>${book.description}</p>
-          <a href="${book.purchaseLink}" class="buy-button">Buy Now</a>
+          <a href="${book.purchaseLink}" class="buy-button" target="_blank">Buy Now</a>
         `;
         booksContainer.appendChild(bookElement);
       });
