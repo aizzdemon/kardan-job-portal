@@ -20,45 +20,47 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Check if user is authenticated
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "login.html";
+        return;
       }
-    });
 
-    const form = document.getElementById("bookForm");
+      const form = document.getElementById("bookForm");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+      if (form) {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-      const title = form.title.value;
-      const description = form.description.value;
-      const link = form.link.value;
+          const title = form.title.value.trim();
+          const description = form.description.value.trim();
+          const link = form.link.value.trim();
 
-      try {
-        // Add book document to Firestore
-        await addDoc(collection(db, "booksForSale"), {
-          title,
-          description,
-          link,
-          timestamp: serverTimestamp()
+          if (!title || !description || !link) {
+            alert("All fields are required.");
+            return;
+          }
+
+          try {
+            await addDoc(collection(db, "booksForSale"), {
+              title,
+              description,
+              link,
+              userId: user.uid,
+              timestamp: serverTimestamp()
+            });
+
+            alert("Book posted successfully!");
+            form.reset();
+          } catch (error) {
+            console.error("Error posting book: ", error);
+            alert("Error posting book: " + error.message);
+          }
         });
-
-        // Notify user on successful post
-        alert("Book posted successfully!");
-
-        // Reset the form after posting
-        form.reset();
-      } catch (error) {
-        // Handle errors during Firestore submission
-        console.error("Error posting book: ", error);
-        alert("Error posting book: " + error.message);
       }
     });
   </script>
