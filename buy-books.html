@@ -157,7 +157,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -182,9 +181,11 @@
         bookElement.classList.add('book-item');
         bookElement.innerHTML = `
           <h3>${book.title}</h3>
-          <img src="${book.imageUrl}" alt="${book.title}" />
+          <img src="${book.photo || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${book.title}" />
+          <p><strong>Author:</strong> ${book.author || 'Unknown Author'}</p>
+          <p><strong>Price:</strong> ₹${book.price || 'N/A'}</p>
           <p>${book.description}</p>
-          <a href="${book.purchaseLink}" class="buy-button" target="_blank">Buy Now</a>
+          <a href="${book.link}" class="buy-button" target="_blank">Buy Now</a>
         `;
         booksContainer.appendChild(bookElement);
       });
