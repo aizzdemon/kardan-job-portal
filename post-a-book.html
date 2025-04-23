@@ -24,36 +24,46 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
+    // Check if the user is logged in
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-        window.location.href = "login.html";
+        window.location.href = "login.html"; // Redirect to login if not authenticated
         return;
       }
 
       const form = document.getElementById("bookForm");
 
+      // Handle form submission
       if (form) {
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
 
+          // Collect form data
           const title = form.title.value.trim();
           const description = form.description.value.trim();
           const link = form.link.value.trim();
+          const author = form.author.value.trim();
+          const price = form.price.value.trim();
 
-          if (!title || !description || !link) {
+          // Validate required fields
+          if (!title || !description || !link || !author || !price) {
             alert("All fields are required.");
             return;
           }
 
           try {
-            await addDoc(collection(db, "booksForSale"), {
+            // Add the book to Firestore (correct collection name)
+            await addDoc(collection(db, "books"), {
               title,
               description,
               link,
+              author,
+              price,
               userId: user.uid,
               timestamp: serverTimestamp()
             });
 
+            // Notify user and reset form
             alert("Book posted successfully!");
             form.reset();
           } catch (error) {
@@ -90,6 +100,8 @@
     <form id="bookForm" class="space-y-4">
       <input type="text" name="title" placeholder="Book Title" required class="w-full p-2 border rounded" />
       <textarea name="description" placeholder="Short Description" required class="w-full p-2 border rounded"></textarea>
+      <input type="text" name="author" placeholder="Author" required class="w-full p-2 border rounded" />
+      <input type="text" name="price" placeholder="Price (e.g. $15 or 500 PKR)" required class="w-full p-2 border rounded" />
       <input type="url" name="link" placeholder="Amazon Book Link" required class="w-full p-2 border rounded" />
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Post Book</button>
     </form>
