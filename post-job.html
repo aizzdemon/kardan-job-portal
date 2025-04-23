@@ -102,10 +102,35 @@
         <label class="block font-semibold text-gray-700">Application Link</label>
         <input type="url" id="jobLink" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
       </div>
+
+      <!-- New About Section -->
+      <div>
+        <label class="block font-semibold text-gray-700">About the Job</label>
+        <textarea id="jobDescription" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" rows="4" placeholder="Provide a detailed description of the job and responsibilities..." required></textarea>
+      </div>
     </form>
 
     <button id="publishBtn" class="w-full mt-6 bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">
       Publish Job
     </button>
 
-    <p id="success
+    <p id="successMessage" class="mt-4 text-green-600 font-semibold hidden">Job successfully posted!</p>
+  </div>
+
+  <script>
+    document.getElementById("publishBtn").addEventListener("click", function() {
+      const jobTitle = document.getElementById("jobTitle").value;
+      const companyName = document.getElementById("companyName").value;
+      const jobPlace = document.getElementById("jobPlace").value;
+      const salary = document.getElementById("salary").value;
+      const jobLink = document.getElementById("jobLink").value;
+      const jobDescription = document.getElementById("jobDescription").value;
+
+      // Firebase logic here to save the job posting
+
+      // Show success message after job is published
+      document.getElementById("successMessage").classList.remove("hidden");
+    });
+  </script>
+</body>
+</html>
