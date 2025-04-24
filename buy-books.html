@@ -108,12 +108,10 @@
 
     .book-item img {
       width: 100%;
-      height: auto;
-      object-fit: contain;
+      max-height: 300px;
+      object-fit: cover;
       border-radius: 8px;
       margin-bottom: 10px;
-      max-height: 400px;
-      background-color: #f9f9f9;
     }
 
     .buy-button {
@@ -124,18 +122,10 @@
       text-decoration: none;
       font-weight: bold;
       display: inline-block;
-      margin-top: 10px;
     }
 
     .buy-button:hover {
       background-color: #0069d9;
-    }
-
-    .price {
-      font-weight: bold;
-      color: #222;
-      margin-top: 5px;
-      display: block;
     }
   </style>
 </head>
@@ -167,7 +157,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -184,7 +173,7 @@
 
     db.collection("books").orderBy("timestamp", "desc").onSnapshot(snapshot => {
       const booksContainer = document.querySelector('.book-box');
-      booksContainer.innerHTML = '<h2 style="color:#3742fa">Books Available for Purchase</h2>';
+      booksContainer.innerHTML = '<h2 style="color:#3742fa">Books Available for Purchase</h2>'; // reset content
 
       snapshot.forEach(doc => {
         const book = doc.data();
@@ -192,9 +181,10 @@
         bookElement.classList.add('book-item');
         bookElement.innerHTML = `
           <h3>${book.title}</h3>
-          <img src="${book.imageUrl}" alt="${book.title}" />
+          <img src="${book.photo || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${book.title}" />
+          <p><strong>Author:</strong> ${book.author || 'Unknown Author'}</p>
+          <p><strong>Price:</strong> ₹${book.price || 'N/A'}</p>
           <p>${book.description}</p>
-          <span class="price">Price: ${book.price}</span>
           <a href="${book.link}" class="buy-button" target="_blank">Buy Now</a>
         `;
         booksContainer.appendChild(bookElement);
