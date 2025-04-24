@@ -103,7 +103,6 @@
         <input type="url" id="jobLink" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
       </div>
 
-      <!-- New About Section -->
       <div>
         <label class="block font-semibold text-gray-700">About the Job</label>
         <textarea id="jobDescription" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" rows="4" placeholder="Provide a detailed description of the job and responsibilities..." required></textarea>
@@ -114,22 +113,57 @@
       Publish Job
     </button>
 
-    <p id="successMessage" class="mt-4 text-green-600 font-semibold hidden">Job successfully posted!</p>
+    <p id="successMessage" class="mt-4 text-green-600 font-semibold hidden">✅ Job successfully posted!</p>
   </div>
 
   <script>
-    document.getElementById("publishBtn").addEventListener("click", function() {
-      const jobTitle = document.getElementById("jobTitle").value;
-      const companyName = document.getElementById("companyName").value;
-      const jobPlace = document.getElementById("jobPlace").value;
-      const salary = document.getElementById("salary").value;
-      const jobLink = document.getElementById("jobLink").value;
-      const jobDescription = document.getElementById("jobDescription").value;
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
 
-      // Firebase logic here to save the job posting
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-      // Show success message after job is published
-      document.getElementById("successMessage").classList.remove("hidden");
+    document.getElementById("publishBtn").addEventListener("click", async function () {
+      const jobTitle = document.getElementById("jobTitle").value.trim();
+      const companyName = document.getElementById("companyName").value.trim();
+      const jobPlace = document.getElementById("jobPlace").value.trim();
+      const salary = document.getElementById("salary").value.trim();
+      const jobLink = document.getElementById("jobLink").value.trim();
+      const jobDescription = document.getElementById("jobDescription").value.trim();
+
+      if (!jobTitle || !companyName || !jobPlace || !jobLink || !jobDescription) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+      try {
+        await db.collection("jobs").add({
+          title: jobTitle,
+          company: companyName,
+          location: jobPlace,
+          salary: salary || null,
+          applyLink: jobLink,
+          about: jobDescription,
+          postedBy: firebase.auth().currentUser?.email || "Anonymous",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          likes: 0,
+          dislikes: 0
+        });
+
+        document.getElementById("successMessage").classList.remove("hidden");
+        document.getElementById("jobForm").reset();
+      } catch (error) {
+        console.error("Error posting job:", error);
+        alert("Failed to post job. Check console for more info.");
+      }
     });
   </script>
 </body>
