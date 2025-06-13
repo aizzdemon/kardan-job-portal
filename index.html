@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KARDAN - Job Listings</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     .logo-box {
       position: absolute;
@@ -17,6 +17,7 @@
       font-size: 18px;
       font-weight: bold;
       border-radius: 5px;
+      text-decoration: none;
     }
 
     body {
@@ -38,18 +39,25 @@
     }
 
     nav {
-      text-align: center;
       margin-top: 10px;
+    }
+
+    nav .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     nav ul {
       list-style: none;
-      padding: 0;
-    }
-
-    nav ul li {
-      display: inline;
-      margin: 0 5px;
+      display: flex;
+      padding-left: 0;
+      margin: 0;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .nav-button,
@@ -178,33 +186,36 @@
 </head>
 <body>
   <header>
-    <div class="logo-box">KARDAN</div>
-    <h1>Find Your Dream Job</h1>
+    <a href="home.html" class="logo-box">KARDAN</a>
+
     <nav>
-      <ul>
-        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
-        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
-        <li><a href="#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
-        <li><a href="#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
-        <li><a href="signin.html" class="nav-button"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-        <li><a href="signup.html" class="join-button">Join Now</a></li>
-      </ul>
+      <div class="nav-container">
+        <ul class="left-nav">
+          <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
+          <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
+          <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
+          <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
+          <li><a href="#companies" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+        </ul>
+        <ul class="right-nav">
+          <li><a href="#contact" class="nav-button"><i class="fas fa-envelope"></i> Contact</a></li>
+          <li><a href="signin.html" class="nav-button"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+          <li><a href="signup.html" class="join-button"><i class="fas fa-user-plus"></i> Join Now</a></li>
+        </ul>
+      </div>
     </nav>
   </header>
 
   <div class="button-section">
-    <a href="jobs.html" class="action-button find-button">Find Jobs</a>
-    <a href="post-job.html" class="action-button post-button">Post a Job</a>
+    <a href="jobs.html" class="action-button find-button"><i class="fas fa-search"></i> Find Jobs</a>
+    <a href="post-job.html" class="action-button post-button"><i class="fas fa-plus-circle"></i> Post a Job</a>
   </div>
 
-  <!-- Post Feature -->
   <div class="post-box">
-    <h2 style="color:#3742fa">Create a Post</h2>
+    <h2 style="color:#3742fa"><i class="fas fa-edit"></i> Create a Post</h2>
     <textarea id="postText" rows="2" placeholder="What's on your mind?"></textarea>
     <input type="file" id="postMedia" accept="image/*,video/*">
-    <button onclick="submitPost()" class="post-btn">Post</button>
+    <button onclick="submitPost()" class="post-btn"><i class="fas fa-paper-plane"></i> Post</button>
   </div>
 
   <div id="postsContainer" style="max-width:600px; margin:40px auto;"></div>
