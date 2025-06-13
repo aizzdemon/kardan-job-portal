@@ -101,7 +101,6 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
     const jobsList = document.getElementById('jobsList');
 
     db.collection("jobs").orderBy("timestamp", "desc").onSnapshot(snapshot => {
@@ -120,7 +119,9 @@
         jobCard.innerHTML = `
           <div class="md:flex justify-between gap-6">
             <div class="flex-1">
-              <h3 class="text-lg font-bold text-blue-700">${job.title}</h3>
+              <h3 class="text-lg font-bold text-blue-700">
+                <a href="job-detail.html?id=${doc.id}" class="hover:underline">${job.title}</a>
+              </h3>
               <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
               <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
               <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
