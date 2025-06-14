@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign Up - KARDAN</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,14 +23,15 @@
       font-size: 18px;
       font-weight: bold;
       border-radius: 5px;
+      cursor: pointer;
     }
     .container {
       max-width: 400px;
-      margin: 70px auto;
-      padding: 20px;
+      margin: 80px auto;
+      padding: 25px 20px;
       background: white;
       border-radius: 10px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
       text-align: center;
     }
     .signup-title {
@@ -36,26 +39,82 @@
       color: white;
       padding: 10px;
       border-radius: 5px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
+      margin-bottom: 20px;
     }
-    input, select, button {
+    input, select {
       width: 100%;
       margin: 10px 0;
       padding: 10px;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-    button {
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin-top: 15px;
+      padding: 12px;
       background-color: #ff5733;
       color: white;
-      cursor: pointer;
+      border: none;
+      border-radius: 8px;
       font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(255, 87, 51, 0.4);
+      transition: all 0.3s ease;
     }
-    button:hover {
+    .btn:hover {
       background-color: #e04e2a;
+      transform: translateY(-2px);
+    }
+
+    .google-btn {
+      background-color: #4285F4;
+      margin-top: 10px;
+    }
+    .google-btn:hover {
+      background-color: #3367d6;
+    }
+
+    .btn i {
+      font-size: 18px;
     }
   </style>
+</head>
+<body>
+  <div class="logo-box" onclick="location.href='index.html'">KARDAN</div>
+  <div class="container">
+    <h2 class="signup-title">Sign Up</h2>
+    <form id="signup-form">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <select id="gender" required>
+        <option value="">Select Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="email" id="email" placeholder="Email ID" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <input type="tel" id="mobile" placeholder="Mobile Number" required />
+
+      <label for="profile-pic">Upload Profile Picture:</label>
+      <input type="file" id="profile-pic" accept="image/*" />
+
+      <button type="submit" class="btn">
+        <i class="fas fa-user-plus"></i> Sign Up
+      </button>
+    </form>
+
+    <button id="googleSignInBtn" class="btn google-btn">
+      <i class="fab fa-google"></i> Sign Up with Google
+    </button>
+  </div>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -131,27 +190,5 @@
       }
     });
   </script>
-</head>
-<body>
-  <div class="logo-box">KARDAN</div>
-  <div class="container">
-    <h2 class="signup-title">Sign Up</h2>
-    <form id="signup-form">
-      <input type="text" id="name" placeholder="Full Name" required />
-      <select id="gender" required>
-        <option value="">Select Gender</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="email" id="email" placeholder="Email ID" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <input type="tel" id="mobile" placeholder="Mobile Number" required />
-      <label for="profile-pic">Upload Profile Picture:</label>
-      <input type="file" id="profile-pic" accept="image/*" />
-      <button type="submit">Sign Up</button>
-    </form>
-    <button id="googleSignInBtn">Sign Up with Google</button>
-  </div>
 </body>
 </html>
