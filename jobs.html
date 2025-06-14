@@ -5,7 +5,7 @@
   <title>Job Listings - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
@@ -22,16 +22,7 @@
       font-size: 18px;
       font-weight: bold;
       border-radius: 5px;
-    }
-
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    nav ul li {
-      display: inline;
-      margin: 0 10px;
+      cursor: pointer;
     }
 
     .nav-button {
@@ -51,43 +42,45 @@
       margin-right: 5px;
     }
 
-    .nav-button:hover {
-      background-color: #1e40af;
-    }
-
-    .truncate-text {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      display: block;
+    @media (max-width: 640px) {
+      nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
   <header>
-    <div class="logo-box">KARDAN</div>
+    <div class="logo-box" onclick="window.location.href='index.html'">KARDAN</div>
     <h1 class="text-3xl font-bold text-center mt-6">Job Listings</h1>
     <nav class="mt-4 text-center">
-      <ul>
+      <ul class="flex flex-wrap justify-center gap-2 px-4">
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
-        <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
+        <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book-open"></i> Buy Books</a></li>
+        <li><a href="companies.html" class="nav-button"><i class="fas fa-city"></i> Companies</a></li>
         <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-map-marker-alt"></i> Places to Hangout</a></li>
-        <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
-        <li><a href="post-job.html" class="nav-button"><i class="fas fa-plus"></i> Post a Job</a></li>
+        <li><a href="profile.html" class="nav-button"><i class="fas fa-user-circle"></i> Profile</a></li>
       </ul>
     </nav>
   </header>
 
-  <!-- All Posted Jobs Section -->
-  <div class="max-w-4xl mx-auto mt-12 bg-white p-8 rounded shadow">
-    <h2 class="text-2xl font-bold mb-6 text-center">All Posted Jobs</h2>
-    <div id="jobsList" class="space-y-4"></div>
-  </div>
+  <main class="max-w-5xl mx-auto mt-12 bg-white p-6 rounded shadow">
+    <div class="mb-4 flex flex-col sm:flex-row sm:justify-between gap-4">
+      <input id="filterLocation" type="text" placeholder="Filter by Location" class="border p-2 rounded w-full sm:w-1/2">
+      <input id="filterCompany" type="text" placeholder="Filter by Company" class="border p-2 rounded w-full sm:w-1/2">
+    </div>
 
-  <!-- Firebase Script -->
+    <h2 class="text-2xl font-bold mb-6 text-center">All Approved Jobs</h2>
+    <div id="jobsList" class="space-y-4"></div>
+
+    <div class="text-center mt-6">
+      <button id="loadMoreBtn" class="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded">Load More</button>
+    </div>
+  </main>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -95,93 +88,91 @@
       projectId: "kar-kardan",
       storageBucket: "kar-kardan.appspot.com",
       messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-      measurementId: "G-RRC3X485KQ"
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const jobsList = document.getElementById('jobsList');
+    const filterLocation = document.getElementById('filterLocation');
+    const filterCompany = document.getElementById('filterCompany');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-    db.collection("jobs").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      jobsList.innerHTML = "";
-      snapshot.forEach(doc => {
-        const job = doc.data();
-        const timestamp = job.timestamp?.toDate?.();
-        const postedDate = timestamp ? timestamp.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A";
+    let lastVisible = null;
+    const pageSize = 5;
 
-        const likes = job.likes ?? 0;
-        const dislikes = job.dislikes ?? 0;
+    async function loadJobs(reset = false) {
+      try {
+        let query = db.collection("jobs")
+          .where("status", "==", "approved")
+          .orderBy("timestamp", "desc");
 
-        const jobCard = document.createElement('div');
-        jobCard.className = "p-4 border rounded shadow-sm hover:shadow-md transition bg-gray-50";
+        if (reset) {
+          jobsList.innerHTML = "";
+          lastVisible = null;
+        }
 
-        jobCard.innerHTML = `
-          <div class="md:flex justify-between gap-6">
-            <div class="flex-1">
-              <h3 class="text-lg font-bold text-blue-700">
-                <a href="job-detail.html?id=${doc.id}" class="hover:underline">${job.title}</a>
-              </h3>
-              <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
-              <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
-              <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
-              <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
-              <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
-              <a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>
+        if (lastVisible) {
+          query = query.startAfter(lastVisible);
+        }
 
-              <div class="mt-4 flex gap-6 text-lg">
-                <button onclick="likeJob('${doc.id}')" class="text-green-600 hover:text-green-800">
-                  👍 <span id="likes-${doc.id}">${likes}</span>
-                </button>
-                <button onclick="dislikeJob('${doc.id}')" class="text-red-600 hover:text-red-800">
-                  👎 <span id="dislikes-${doc.id}">${dislikes}</span>
-                </button>
+        const snapshot = await query.limit(pageSize).get();
+        if (!snapshot.empty) {
+          lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        }
+
+        const locationFilter = filterLocation.value.trim().toLowerCase();
+        const companyFilter = filterCompany.value.trim().toLowerCase();
+
+        snapshot.forEach(doc => {
+          const job = doc.data();
+          const timestamp = job.timestamp?.toDate?.();
+          const postedDate = timestamp ? timestamp.toLocaleDateString() : "N/A";
+
+          const locationMatch = job.location?.toLowerCase().includes(locationFilter);
+          const companyMatch = job.company?.toLowerCase().includes(companyFilter);
+
+          if ((!locationFilter || locationMatch) && (!companyFilter || companyMatch)) {
+            const jobCard = document.createElement("div");
+            jobCard.className = "p-4 border rounded bg-gray-50 hover:shadow-md";
+
+            jobCard.innerHTML = `
+              <div class="md:flex gap-6">
+                <div class="w-24 h-24 flex-shrink-0">
+                  ${job.logoUrl ? `<img src="${job.logoUrl}" alt="Logo" class="w-full h-full object-contain">` : `<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Logo</div>`}
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-lg font-bold text-blue-700">
+                    <a href="job-detail.html?id=${doc.id}" class="hover:underline">${job.title || "Untitled Job"}</a>
+                  </h3>
+                  <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
+                  <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
+                  <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
+                  <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
+                  <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
+                  ${job.applyLink ? `<a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>` : ""}
+                </div>
               </div>
-            </div>
+            `;
+            jobsList.appendChild(jobCard);
+          }
+        });
 
-            <div class="w-full md:w-1/3 mt-4 md:mt-0 p-6 border-l border-gray-300 bg-white rounded min-h-[160px]">
-              <h4 class="font-semibold text-gray-800 mb-2">About this job</h4>
-              <div class="text-sm text-gray-600">
-                <p id="about-${doc.id}" class="truncate-text">${job.about?.slice(0, 100) || "No additional information provided."}</p>
-                ${job.about && job.about.length > 100 ? `<button onclick="toggleReadMore('${doc.id}', \`${job.about.replace(/`/g, "\\`")}\`)" class="text-blue-600 hover:underline mt-2 block text-sm">Read More</button>` : ''}
-              </div>
-            </div>
-          </div>
-        `;
-        jobsList.appendChild(jobCard);
-      });
-    });
-
-    function likeJob(jobId) {
-      const jobRef = db.collection("jobs").doc(jobId);
-      jobRef.update({ likes: firebase.firestore.FieldValue.increment(1) }).then(() => {
-        const likesSpan = document.getElementById(`likes-${jobId}`);
-        likesSpan.textContent = parseInt(likesSpan.textContent) + 1;
-      });
-    }
-
-    function dislikeJob(jobId) {
-      const jobRef = db.collection("jobs").doc(jobId);
-      jobRef.update({ dislikes: firebase.firestore.FieldValue.increment(1) }).then(() => {
-        const dislikesSpan = document.getElementById(`dislikes-${jobId}`);
-        dislikesSpan.textContent = parseInt(dislikesSpan.textContent) + 1;
-      });
-    }
-
-    function toggleReadMore(id, fullText) {
-      const aboutEl = document.getElementById(`about-${id}`);
-      const isTruncated = aboutEl.classList.contains("truncate-text");
-
-      if (isTruncated) {
-        aboutEl.textContent = fullText;
-        aboutEl.classList.remove("truncate-text");
-        aboutEl.nextElementSibling.textContent = "Show Less";
-      } else {
-        aboutEl.textContent = fullText.slice(0, 100);
-        aboutEl.classList.add("truncate-text");
-        aboutEl.nextElementSibling.textContent = "Read More";
+        if (snapshot.empty || snapshot.docs.length < pageSize) {
+          loadMoreBtn.style.display = "none";
+        } else {
+          loadMoreBtn.style.display = "block";
+        }
+      } catch (error) {
+        console.error("Error loading jobs:", error);
       }
     }
+
+    loadJobs(true);
+
+    filterLocation.addEventListener("input", () => loadJobs(true));
+    filterCompany.addEventListener("input", () => loadJobs(true));
+    loadMoreBtn.addEventListener("click", () => loadJobs(false));
   </script>
 </body>
 </html>
