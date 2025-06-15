@@ -7,6 +7,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
@@ -20,6 +21,9 @@
       font-size: 18px;
       font-weight: bold;
       border-radius: 5px;
+    }
+    .logo-box:hover {
+      background-color: #e64e2c;
     }
     nav ul { list-style: none; padding: 0; }
     nav ul li { display: inline; margin: 0 10px; }
@@ -43,7 +47,7 @@
 
   <!-- Header -->
   <header>
-    <div class="logo-box">KARDAN</div>
+    <a href="index.html" class="logo-box">KARDAN</a>
     <h1 class="text-3xl font-bold text-center mt-6">Your Profile</h1>
     <nav class="mt-4 text-center">
       <ul>
@@ -64,14 +68,23 @@
     <div class="md:w-1/3 bg-white p-6 rounded shadow text-center">
       <p id="userName" class="text-xl font-semibold text-gray-700 mb-2"></p>
       <p id="userEmail" class="mb-2 text-gray-600"></p>
-      <p id="userRole" class="mb-6 text-blue-600 font-semibold"></p>
+      <p id="userRole" class="mb-2 text-blue-600 font-semibold"></p>
+      <p id="userExperience" class="mb-1 text-gray-700"></p>
+      <p id="userEducation" class="mb-1 text-gray-700"></p>
+      <p id="userUniversity" class="mb-1 text-gray-700"></p>
+      <p id="userYear" class="mb-4 text-gray-700"></p>
+
+      <!-- Resume Upload -->
+      <div class="mb-4">
+        <label class="block mb-2 font-semibold">Upload Resume (PDF)</label>
+        <input type="file" id="resumeInput" class="block w-full border p-2 rounded mb-2" accept=".pdf" />
+        <button onclick="uploadResume()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Upload Resume</button>
+      </div>
 
       <!-- Action Buttons -->
       <div class="flex flex-col gap-4">
         <a href="jobs.html" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Find Jobs</a>
         <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Post a Job</a>
-
-        <!-- Post a Book Button -->
         <div id="postBookBtnContainer" class="hidden">
           <a href="post-a-book.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Post a Book</a>
         </div>
@@ -114,14 +127,12 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    const storage = firebase.storage();
     const tableBody = document.getElementById('jobsTableBody');
     const postBookBtnContainer = document.getElementById("postBookBtnContainer");
 
     auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+      if (!user) return window.location.href = "login.html";
 
       document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
 
@@ -130,18 +141,16 @@
         if (doc.exists) {
           const data = doc.data();
           document.getElementById("userRole").textContent = "Role: " + (data.role || "employee");
-          if (data.name) {
-            document.getElementById("userName").textContent = data.name;
-          }
+          document.getElementById("userName").textContent = data.name || "";
+          document.getElementById("userExperience").textContent = "Experience: " + (data.experience || "N/A");
+          document.getElementById("userEducation").textContent = "Education: " + (data.education || "N/A");
+          document.getElementById("userUniversity").textContent = "University: " + (data.university || "N/A");
+          document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
+
+          const allowedEmails = ["oster2you@gmail.com", "admin@example.com"];
+          if (allowedEmails.includes(user.email)) postBookBtnContainer.classList.remove("hidden");
         }
 
-        // Only show the "Post a Book" button if the user is allowed
-        const allowedEmails = ["oster2you@gmail.com", "admin@example.com"];
-        if (allowedEmails.includes(user.email)) {
-          postBookBtnContainer.classList.remove("hidden");
-        }
-
-        // Fetch user's posted jobs
         db.collection("jobs").where("uid", "==", user.uid).onSnapshot(snapshot => {
           tableBody.innerHTML = '';
           snapshot.forEach(doc => {
@@ -165,10 +174,23 @@
       }
     });
 
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = "login.html";
+    function uploadResume() {
+      const file = document.getElementById("resumeInput").files[0];
+      if (!file) return alert("Please select a file to upload.");
+
+      const user = auth.currentUser;
+      const storageRef = storage.ref(`resumes/${user.uid}/${file.name}`);
+
+      storageRef.put(file).then(() => {
+        alert("Resume uploaded successfully.");
+      }).catch(error => {
+        console.error("Error uploading resume:", error);
+        alert("Failed to upload resume.");
       });
+    }
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = "login.html");
     }
 
     function deleteJob(id) {
@@ -182,7 +204,7 @@
     }
 
     function editJob(id) {
-      alert("Edit functionality to be implemented. Job ID: " + id);
+      window.location.href = `edit-job.html?id=${id}`;
     }
   </script>
 </body>
