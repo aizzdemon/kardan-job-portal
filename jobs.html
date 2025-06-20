@@ -115,7 +115,6 @@
 
     let lastVisible = null;
     const pageSize = 5;
-
     let currentUser = null;
 
     auth.onAuthStateChanged(user => {
@@ -129,9 +128,7 @@
           lastVisible = null;
         }
 
-        let query = db.collection("jobs")
-                      .where("status", "==", "approved")
-                      .orderBy("timestamp", "desc");
+        let query = db.collection("jobs").orderBy("timestamp", "desc");
 
         if (lastVisible) {
           query = query.startAfter(lastVisible);
@@ -149,6 +146,7 @@
 
         snapshot.forEach(doc => {
           const job = doc.data();
+          console.log("Job:", job); // for debugging
           const titleMatch = job.title?.toLowerCase().includes(keywordFilter);
           const companyMatch = job.company?.toLowerCase().includes(keywordFilter);
           const locationMatch = job.location?.toLowerCase().includes(locationFilter);
@@ -207,7 +205,7 @@
     filterLocation.addEventListener("input", () => loadJobs(true));
     loadMoreBtn.addEventListener("click", () => loadJobs(false));
 
-    // Secure links for guest users
+    // Redirect unauthenticated users
     document.addEventListener('click', function (e) {
       if (e.target.matches('.job-title')) {
         e.preventDefault();
