@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Job Listings - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -54,7 +53,6 @@
 
   <header>
     <div class="logo-box" onclick="window.location.href='index.html'">KARDAN</div>
-    <h1 class="text-3xl font-bold text-center mt-6">Job Listings</h1>
     <nav class="mt-4 text-center">
       <ul class="flex flex-wrap justify-center gap-2 px-4">
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
@@ -70,8 +68,8 @@
   <main class="max-w-5xl mx-auto mt-12 bg-white p-6 rounded shadow">
     <!-- Filter inputs -->
     <div class="mb-4 flex flex-col sm:flex-row sm:justify-between gap-4">
+      <input id="filterKeyword" type="text" placeholder="Search by Job Title or Company" class="border p-2 rounded w-full sm:w-1/2">
       <input id="filterLocation" type="text" placeholder="Filter by Location" class="border p-2 rounded w-full sm:w-1/2">
-      <input id="filterCompany" type="text" placeholder="Filter by Company" class="border p-2 rounded w-full sm:w-1/2">
     </div>
 
     <!-- Search button -->
@@ -107,23 +105,33 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
+
     const jobsList = document.getElementById('jobsList');
+    const filterKeyword = document.getElementById('filterKeyword');
     const filterLocation = document.getElementById('filterLocation');
-    const filterCompany = document.getElementById('filterCompany');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
     const searchBtn = document.getElementById('searchBtn');
 
     let lastVisible = null;
     const pageSize = 5;
 
+    let currentUser = null;
+
+    auth.onAuthStateChanged(user => {
+      currentUser = user;
+    });
+
     async function loadJobs(reset = false) {
       try {
-        let query = db.collection("jobs").orderBy("timestamp", "desc");
-
         if (reset) {
           jobsList.innerHTML = "";
           lastVisible = null;
         }
+
+        let query = db.collection("jobs")
+                      .where("status", "==", "approved")
+                      .orderBy("timestamp", "desc");
 
         if (lastVisible) {
           query = query.startAfter(lastVisible);
@@ -134,44 +142,56 @@
           lastVisible = snapshot.docs[snapshot.docs.length - 1];
         }
 
+        const keywordFilter = filterKeyword.value.trim().toLowerCase();
         const locationFilter = filterLocation.value.trim().toLowerCase();
-        const companyFilter = filterCompany.value.trim().toLowerCase();
+
+        let jobsShown = 0;
 
         snapshot.forEach(doc => {
           const job = doc.data();
-          const timestamp = job.timestamp?.toDate?.();
-          const postedDate = timestamp ? timestamp.toLocaleDateString() : "N/A";
-
+          const titleMatch = job.title?.toLowerCase().includes(keywordFilter);
+          const companyMatch = job.company?.toLowerCase().includes(keywordFilter);
           const locationMatch = job.location?.toLowerCase().includes(locationFilter);
-          const companyMatch = job.company?.toLowerCase().includes(companyFilter);
 
-          if ((!locationFilter || locationMatch) && (!companyFilter || companyMatch)) {
+          if ((!keywordFilter || titleMatch || companyMatch) && (!locationFilter || locationMatch)) {
+            const timestamp = job.timestamp?.toDate?.();
+            const postedDate = timestamp instanceof Date ? timestamp.toLocaleDateString() : "N/A";
+
             const jobCard = document.createElement("div");
             jobCard.className = "p-4 border rounded bg-gray-50 hover:shadow-md";
 
             jobCard.innerHTML = `
               <div class="md:flex gap-6">
                 <div class="w-24 h-24 flex-shrink-0">
-                  ${job.logoUrl ? `<img src="${job.logoUrl}" alt="Logo" class="w-full h-full object-contain">` : `<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Logo</div>`}
+                  ${job.logoUrl
+                    ? `<img src="${job.logoUrl}" alt="Logo" class="w-full h-full object-contain">`
+                    : `<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Logo</div>`}
                 </div>
                 <div class="flex-1">
                   <h3 class="text-lg font-bold text-blue-700">
-                    <a href="job-detail.html?id=${doc.id}" class="hover:underline">${job.title || "Untitled Job"}</a>
+                    <a href="#" class="job-title hover:underline" data-id="${doc.id}">${job.title || "Untitled Job"}</a>
                   </h3>
                   <p class="text-gray-600">Company: ${job.company || "N/A"}</p>
                   <p class="text-gray-600">Location: ${job.location || "N/A"}</p>
                   <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
                   <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
                   <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
-                  ${job.applyLink ? `<a href="${job.applyLink}" target="_blank" class="inline-block mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Apply Now</a>` : ""}
+                  ${job.applyLink
+                    ? `<a href="#" class="apply-btn mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 inline-block" data-link="${job.applyLink}">Apply Now</a>`
+                    : ""}
                 </div>
               </div>
             `;
             jobsList.appendChild(jobCard);
+            jobsShown++;
           }
         });
 
-        loadMoreBtn.style.display = (snapshot.empty || snapshot.docs.length < pageSize) ? "none" : "block";
+        loadMoreBtn.style.display = (snapshot.empty || snapshot.docs.length < pageSize || jobsShown === 0) ? "none" : "block";
+
+        if (jobsShown === 0 && reset) {
+          jobsList.innerHTML = `<p class="text-center text-gray-500">No matching jobs found.</p>`;
+        }
 
       } catch (error) {
         console.error("Error loading jobs:", error);
@@ -181,11 +201,34 @@
     // Initial load
     loadJobs(true);
 
-    // Events
+    // Event listeners
     searchBtn.addEventListener("click", () => loadJobs(true));
+    filterKeyword.addEventListener("input", () => loadJobs(true));
     filterLocation.addEventListener("input", () => loadJobs(true));
-    filterCompany.addEventListener("input", () => loadJobs(true));
     loadMoreBtn.addEventListener("click", () => loadJobs(false));
+
+    // Secure links for guest users
+    document.addEventListener('click', function (e) {
+      if (e.target.matches('.job-title')) {
+        e.preventDefault();
+        const jobId = e.target.getAttribute('data-id');
+        if (currentUser) {
+          window.location.href = `job-detail.html?id=${jobId}`;
+        } else {
+          window.location.href = `login.html?redirect=job-detail.html?id=${jobId}`;
+        }
+      }
+
+      if (e.target.matches('.apply-btn')) {
+        e.preventDefault();
+        const applyUrl = e.target.getAttribute('data-link');
+        if (currentUser) {
+          window.open(applyUrl, '_blank');
+        } else {
+          window.location.href = `login.html`;
+        }
+      }
+    });
   </script>
 </body>
 </html>
