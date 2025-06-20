@@ -146,7 +146,6 @@
 
         snapshot.forEach(doc => {
           const job = doc.data();
-          console.log("Job:", job); // for debugging
           const titleMatch = job.title?.toLowerCase().includes(keywordFilter);
           const companyMatch = job.company?.toLowerCase().includes(keywordFilter);
           const locationMatch = job.location?.toLowerCase().includes(locationFilter);
@@ -213,7 +212,7 @@
         if (currentUser) {
           window.location.href = `job-detail.html?id=${jobId}`;
         } else {
-          window.location.href = `login.html?redirect=job-detail.html?id=${jobId}`;
+          window.location.href = `/kardan-job-portal/signin.html?redirect=job-detail.html?id=${jobId}`;
         }
       }
 
@@ -223,7 +222,7 @@
         if (currentUser) {
           window.open(applyUrl, '_blank');
         } else {
-          window.location.href = `login.html`;
+          window.location.href = `/kardan-job-portal/signin.html`;
         }
       }
     });
