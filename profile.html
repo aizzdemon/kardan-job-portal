@@ -1,3 +1,4 @@
+<!-- Full updated file, scroll to see -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -88,7 +89,8 @@
         <a href="post-job.html" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"><i class="fas fa-upload"></i> Post a Job</a>
       </div>
 
-      <div id="postBookBtnContainer" class="hidden mt-4">
+      <!-- ✅ Post a Book Button - Now visible to all users -->
+      <div id="postBookBtnContainer" class="mt-4">
         <a href="post-a-book.html" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"><i class="fas fa-book-medical"></i> Post a Book</a>
       </div>
 
@@ -149,8 +151,8 @@
           document.getElementById("userUniversity").textContent = "University: " + (data.university || "N/A");
           document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
 
-          const allowedEmails = ["oster2you@gmail.com", "admin@example.com"];
-          if (allowedEmails.includes(user.email)) postBookBtnContainer.classList.remove("hidden");
+          // ✅ Show Post a Book button to all users now
+          postBookBtnContainer.classList.remove("hidden");
         }
 
         db.collection("jobs").where("uid", "==", user.uid).onSnapshot(snapshot => {
