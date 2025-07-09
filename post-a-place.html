@@ -30,8 +30,7 @@
         <iframe id="mapPreview" class="w-full h-64 border rounded" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
 
-      <!-- ✅ New Image URL Input -->
-      <label class="block mb-2 font-semibold">Place Image URL</label>
+      <label class="block mb-2 font-semibold">Place Image (Link)</label>
       <input type="url" id="imageUrl" class="w-full border p-2 rounded mb-4" required />
       <img id="imagePreview" class="w-full h-64 object-cover border rounded mb-4 hidden" />
 
@@ -57,17 +56,13 @@
     function updateMapPreview() {
       const mapLink = document.getElementById("mapLink").value;
       const iframe = document.getElementById("mapPreview");
-      if (mapLink.includes("google")) {
-        iframe.src = mapLink;
-      } else {
-        iframe.src = "";
-      }
+      iframe.src = mapLink.includes("google") ? mapLink : "";
     }
 
     document.getElementById("imageUrl").addEventListener("input", () => {
       const url = document.getElementById("imageUrl").value;
       const preview = document.getElementById("imagePreview");
-      if (url && url.startsWith("http")) {
+      if (url.startsWith("http")) {
         preview.src = url;
         preview.classList.remove("hidden");
       } else {
@@ -77,7 +72,6 @@
 
     document.getElementById("placeForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const user = auth.currentUser;
       if (!user) return alert("Please log in to post a place.");
 
