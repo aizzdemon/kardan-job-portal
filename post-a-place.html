@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Post a Place - KARDAN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100">
+  <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow">
+    <h1 class="text-2xl font-bold mb-6 text-center">Post a New Place</h1>
+    <form id="placeForm">
+      <label class="block mb-2 font-semibold">Place Name</label>
+      <input type="text" id="placeName" class="w-full border p-2 rounded mb-4" required />
+
+      <label class="block mb-2 font-semibold">Place Type (e.g., Cafe, Mall, Hotel)</label>
+      <input type="text" id="placeType" class="w-full border p-2 rounded mb-4" required />
+
+      <label class="block mb-2 font-semibold">Location</label>
+      <input type="text" id="location" class="w-full border p-2 rounded mb-4" required />
+
+      <label class="block mb-2 font-semibold">Google Maps Link</label>
+      <input type="url" id="mapLink" class="w-full border p-2 rounded mb-2" required oninput="updateMapPreview()" />
+
+      <div class="mb-4">
+        <iframe id="mapPreview" class="w-full h-64 border rounded" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+
+      <label class="block mb-2 font-semibold">Upload Image</label>
+      <input type="file" id="placeImage" accept="image/*" class="w-full border p-2 rounded mb-4" required />
+
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">Publish Place</button>
+    </form>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.appspot.com",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    function updateMapPreview() {
+      const mapLink = document.getElementById("mapLink").value;
+      const iframe = document.getElementById("mapPreview");
+      if (mapLink.includes("google")) {
+        iframe.src = mapLink;
+      } else {
+        iframe.src = "";
+      }
+    }
+
+    document.getElementById("placeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in to post a place.");
+
+      const name = document.getElementById("placeName").value;
+      const type = document.getElementById("placeType").value;
+      const location = document.getElementById("location").value;
+      const mapLink = document.getElementById("mapLink").value;
+      const file = document.getElementById("placeImage").files[0];
+
+      if (!file) return alert("Please select an image.");
+
+      const storageRef = storage.ref(`places/${user.uid}/${Date.now()}_${file.name}`);
+      const snapshot = await storageRef.put(file);
+      const imageUrl = await snapshot.ref.getDownloadURL();
+
+      await db.collection("places").add({
+        uid: user.uid,
+        name,
+        type,
+        location,
+        mapLink,
+        imageUrl,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      alert("Place posted successfully.");
+      document.getElementById("placeForm").reset();
+      updateMapPreview();
+    });
+
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+  </script>
+</body>
+</html>
