@@ -2,193 +2,129 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign Up - KARDAN</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #f0f0f0, #e6e6e6);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e0f7fa);
       margin: 0;
       padding: 0;
     }
-    .logo-box {
+
+    .logo-text {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      background-color: #ff5733;
-      color: white;
-      padding: 10px 20px;
-      font-size: 18px;
+      top: 20px;
+      left: 20px;
+      font-size: 28px;
       font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
+      color: #ff5733;
+      text-decoration: none;
+      font-family: 'Georgia', serif;
     }
-    .container {
-      max-width: 400px;
-      margin: 80px auto;
-      padding: 25px 20px;
-      background: white;
+
+    .vision-top {
+      max-width: 700px;
+      margin: 90px auto 10px;
+      padding: 20px;
+      background-color: #fff8f2;
+      border-left: 5px solid #ff5733;
+      box-shadow: 0 4px 12px rgba(255, 87, 51, 0.1);
       border-radius: 10px;
-      box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+      font-family: 'Georgia', serif;
       text-align: center;
     }
-    .signup-title {
-      background-color: #ff5733;
-      color: white;
-      padding: 10px;
-      border-radius: 5px;
-      font-size: 22px;
-      font-weight: bold;
-      margin-bottom: 20px;
+
+    .vision-top h2 {
+      color: #ff5733;
+      margin-bottom: 10px;
+      font-size: 28px;
     }
+
+    .vision-top p {
+      color: #333;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
     input, select {
-      width: 100%;
-      margin: 10px 0;
       padding: 10px;
+      margin: 10px 0;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
 
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      margin-top: 15px;
-      padding: 12px;
+    button {
+      padding: 10px;
       background-color: #ff5733;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 16px;
+      border-radius: 5px;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(255, 87, 51, 0.4);
-      transition: all 0.3s ease;
-    }
-    .btn:hover {
-      background-color: #e04e2a;
-      transform: translateY(-2px);
     }
 
-    .google-btn {
+    button:hover {
+      background-color: #e64a19;
+    }
+
+    .google-signin {
       background-color: #4285F4;
       margin-top: 10px;
     }
-    .google-btn:hover {
-      background-color: #3367d6;
-    }
 
-    .btn i {
-      font-size: 18px;
+    .google-signin:hover {
+      background-color: #3367D6;
     }
   </style>
 </head>
 <body>
-  <div class="logo-box" onclick="location.href='index.html'">KARDAN</div>
-  <div class="container">
-    <h2 class="signup-title">Sign Up</h2>
-    <form id="signup-form">
-      <input type="text" id="name" placeholder="Full Name" required />
-      <select id="gender" required>
-        <option value="">Select Gender</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="email" id="email" placeholder="Email ID" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <input type="tel" id="mobile" placeholder="Mobile Number" required />
+  <!-- Text logo in top-left corner -->
+  <a href="index.html" class="logo-text">KARDAN</a>
 
-      <label for="profile-pic">Upload Profile Picture:</label>
-      <input type="file" id="profile-pic" accept="image/*" />
-
-      <button type="submit" class="btn">
-        <i class="fas fa-user-plus"></i> Sign Up
-      </button>
-    </form>
-
-    <button id="googleSignInBtn" class="btn google-btn">
-      <i class="fab fa-google"></i> Sign Up with Google
-    </button>
+  <div class="vision-top">
+    <h2>Our Vision</h2>
+    <p>
+      At <strong>KARDAN</strong>, we aim to provide a wide variety of <strong>work-from-home jobs</strong> sourced from trusted websites — all in one place. 
+      No more switching between multiple job portals. Find everything here, organized and accessible for your convenience.
+    </p>
   </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-      authDomain: "kar-kardan.firebaseapp.com",
-      projectId: "kar-kardan",
-      storageBucket: "kar-kardan.appspot.com",
-      messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-      measurementId: "G-RRC3X485KQ"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-    const provider = new GoogleAuthProvider();
-
-    document.getElementById("signup-form").addEventListener("submit", async function (e) {
-      e.preventDefault();
-
-      const name = document.getElementById("name").value;
-      const gender = document.getElementById("gender").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const mobile = document.getElementById("mobile").value;
-      const profilePic = document.getElementById("profile-pic").files[0];
-
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCredential.user.uid;
-
-        let profilePicURL = "";
-        if (profilePic) {
-          const storageRef = ref(storage, `profile_pictures/${uid}`);
-          await uploadBytes(storageRef, profilePic);
-          profilePicURL = await getDownloadURL(storageRef);
-        }
-
-        await setDoc(doc(db, "users", uid), {
-          name, gender, email, mobile, profilePicURL
-        });
-
-        alert("Sign-up successful!");
-        window.location.href = "index.html";
-      } catch (error) {
-        alert("Error: " + error.message);
-      }
-    });
-
-    document.getElementById("googleSignInBtn").addEventListener("click", async () => {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-
-        await setDoc(doc(db, "users", user.uid), {
-          name: user.displayName,
-          email: user.email,
-          profilePicURL: user.photoURL,
-          timestamp: new Date()
-        });
-
-        alert(`Welcome, ${user.displayName}!`);
-        window.location.href = "index.html";
-      } catch (error) {
-        alert("Google Sign-In Error: " + error.message);
-      }
-    });
-  </script>
+  <div class="container">
+    <h2>Sign Up</h2>
+    <form>
+      <input type="text" placeholder="Full Name" required />
+      <input type="email" placeholder="Email" required />
+      <input type="tel" placeholder="Mobile Number" required />
+      <select required>
+        <option value="">Select Gender</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="password" placeholder="Password" required />
+      <button type="submit">Create Account</button>
+      <button type="button" class="google-signin">Sign Up with Google</button>
+    </form>
+  </div>
 </body>
 </html>
