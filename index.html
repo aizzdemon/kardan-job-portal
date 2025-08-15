@@ -8,19 +8,19 @@
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f9f9f9, #e3eaf2);
+      background: linear-gradient(135deg, #fdfdfd, #f3f8ff);
       margin: 0;
       padding: 0;
-      color: #333;
+      color: #2c3e50;
     }
 
     header {
-      background-color: #ffffffcc;
+      background: rgba(255, 255, 255, 0.9);
       padding: 15px 0;
       position: sticky;
       top: 0;
       backdrop-filter: blur(12px);
-      box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
       z-index: 1000;
     }
 
@@ -34,14 +34,19 @@
     }
 
     .logo-box {
-      background-color: #ff5733;
+      background: linear-gradient(135deg, #ff6b6b, #ff9f43);
       color: white;
       padding: 10px 20px;
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
-      border-radius: 6px;
+      border-radius: 10px;
       text-decoration: none;
       margin-right: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: transform 0.2s;
+    }
+    .logo-box:hover {
+      transform: scale(1.05);
     }
 
     nav ul {
@@ -55,23 +60,25 @@
 
     .nav-button,
     .join-button {
-      background: #357ABD;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
       color: white;
-      padding: 10px 16px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
       font-size: 14px;
       font-weight: 600;
       border: none;
       cursor: pointer;
       text-decoration: none;
-      transition: background 0.3s ease;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     }
 
     .nav-button:hover,
     .join-button:hover {
-      background: #285ea8;
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #00c6ff, #0072ff);
     }
 
     .nav-button i,
@@ -82,120 +89,134 @@
     .button-section {
       position: sticky;
       top: 90px;
-      background: #f9f9f9cc;
+      background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
-      padding: 15px;
+      padding: 18px;
       text-align: center;
       z-index: 900;
+      border-bottom: 1px solid #eee;
     }
 
     .action-button {
       font-weight: bold;
       font-size: 15px;
-      padding: 12px 24px;
+      padding: 12px 26px;
       margin: 5px;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       text-decoration: none;
-      transition: transform 0.2s ease, background-color 0.3s;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
 
     .action-button:hover {
-      transform: translateY(-2px);
+      transform: translateY(-3px);
     }
 
     .find-button {
-      background-color: #28a745;
+      background: linear-gradient(135deg, #6ee7b7, #3b82f6);
       color: white;
     }
 
     .find-button:hover {
-      background-color: #1e7e34;
+      background: linear-gradient(135deg, #34d399, #2563eb);
     }
 
     .post-button {
-      background-color: #007bff;
+      background: linear-gradient(135deg, #f093fb, #f5576c);
       color: white;
     }
 
     .post-button:hover {
-      background-color: #0056b3;
+      background: linear-gradient(135deg, #ec4899, #ef4444);
     }
 
     .post-box {
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid #d1d9e6;
-      border-radius: 12px;
-      padding: 20px;
+      background: #ffffff;
+      border: none;
+      border-radius: 16px;
+      padding: 22px;
       margin: 40px auto 0;
-      max-width: 600px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+      max-width: 650px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      transition: transform 0.2s;
+    }
+    .post-box:hover {
+      transform: translateY(-3px);
     }
 
     textarea#postText {
       width: 100%;
-      padding: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #d1d9e6;
+      border-radius: 10px;
       resize: none;
-      height: 50px;
-      background-color: #fdfdfd;
+      height: 60px;
+      background-color: #f9fbff;
     }
 
     input#postMedia {
-      margin-top: 10px;
+      margin-top: 12px;
       display: block;
       background-color: #f0f6ff;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #d1d9e6;
     }
 
     button.post-btn {
-      background-color: #007bff;
+      background: linear-gradient(135deg, #3b82f6, #06b6d4);
       color: white;
-      padding: 10px 18px;
-      margin-top: 12px;
+      padding: 10px 20px;
+      margin-top: 14px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
+      transition: all 0.3s;
     }
-
     button.post-btn:hover {
-      background-color: #0056b3;
+      background: linear-gradient(135deg, #2563eb, #0891b2);
+      transform: translateY(-2px);
     }
 
     #postsContainer > div {
       background: #fff;
-      border-radius: 10px;
-      padding: 18px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      margin-bottom: 20px;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      margin-bottom: 22px;
+      transition: transform 0.2s;
+    }
+    #postsContainer > div:hover {
+      transform: translateY(-2px);
     }
 
     #postsContainer img,
     #postsContainer video {
-      margin-top: 10px;
+      margin-top: 12px;
       max-width: 100%;
-      border-radius: 8px;
-    }
-
-    #postsContainer p {
-      margin: 10px 0 0;
-      font-size: 14px;
+      border-radius: 12px;
     }
 
     #postsContainer h3 {
       margin-bottom: 6px;
-      color: #333;
+      color: #1f2937;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    #postsContainer p {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: #374151;
     }
 
     #postsContainer p:last-child {
       font-size: 12px;
-      color: #777;
+      color: #6b7280;
       margin-top: 10px;
     }
   </style>
@@ -234,7 +255,7 @@
     <button onclick="submitPost()" class="post-btn"><i class="fas fa-paper-plane"></i> Post</button>
   </div>
 
-  <div id="postsContainer" style="max-width:600px; margin:40px auto;"></div>
+  <div id="postsContainer" style="max-width:650px; margin:40px auto;"></div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
