@@ -1,256 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobs in India | KARDAN Job Portal</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Find latest job openings in India. Search by job title, company, or location. Apply now on KARDAN Job Portal.">
+  <meta name="keywords" content="Jobs in India, IT Jobs, Sales Jobs, Marketing Jobs, Software Engineer Jobs, HR Jobs, KARDAN job portal">
+  <meta name="author" content="KARDAN">
 
-  <!-- ✅ Basic SEO Meta Tags -->
-  <title>Find Jobs | KARDAN Job Portal</title>
-  <meta name="description" content="Explore the latest jobs on KARDAN Job Portal. Search by title, company, or location and apply directly. Your next career opportunity is just one click away." />
-  <meta name="keywords" content="jobs, careers, job portal, find jobs, IT jobs, sales jobs, India jobs, KARDAN jobs" />
-  <meta name="author" content="KARDAN Team" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="Jobs in India | KARDAN Job Portal">
+  <meta property="og:description" content="Discover job opportunities across India. Search and apply with KARDAN.">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/logo.png">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
+  <meta property="og:type" content="website">
 
-  <!-- ✅ Open Graph (Social Sharing) -->
-  <meta property="og:title" content="Find Jobs | KARDAN Job Portal" />
-  <meta property="og:description" content="Discover top job opportunities across industries. Apply instantly on KARDAN Job Portal." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html" />
-  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/job-preview.png" />
-
-  <!-- ✅ Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Find Jobs | KARDAN Job Portal" />
-  <meta name="twitter:description" content="Explore and apply to jobs instantly with KARDAN Job Portal." />
-  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/job-preview.png" />
-
-  <!-- ✅ Canonical URL -->
-  <link rel="canonical" href="https://aizzdemon.github.io/kardan-job-portal/jobs.html" />
-
-  <!-- ✅ Tailwind & Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
-  <!-- ✅ Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
-  <style>
-    .logo-box {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background-color: #ff5733;
-      color: white;
-      padding: 10px 20px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .nav-button {
-      background-color: #2563eb;
-      border: 1px solid #1d4ed8;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: #fff;
-      font-weight: bold;
-      display: inline-block;
-    }
-    .nav-button i { margin-right: 5px; }
-    @media (max-width: 640px) {
-      nav ul { flex-wrap: wrap; justify-content: center; }
-    }
-  </style>
-</head>
-<body class="bg-gray-100 min-h-screen">
-
-  <header>
-    <div class="logo-box" onclick="window.location.href='index.html'">KARDAN</div>
-    <nav class="mt-4 text-center" aria-label="Main Navigation">
-      <ul class="flex flex-wrap justify-center gap-2 px-4">
-        <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="jobs.html" class="nav-button" aria-current="page"><i class="fas fa-briefcase"></i> Jobs</a></li>
-        <li><a href="buy-books.html" class="nav-button"><i class="fas fa-book-open"></i> Buy Books</a></li>
-        <li><a href="companies.html" class="nav-button"><i class="fas fa-city"></i> Companies</a></li>
-        <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-map-marker-alt"></i> Places to Hangout</a></li>
-        <li><a href="profile.html" class="nav-button"><i class="fas fa-user-circle"></i> Profile</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main class="max-w-5xl mx-auto mt-12 bg-white p-6 rounded shadow">
-    <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Find Your Next Job Opportunity</h1>
-    <p class="text-center text-gray-600 mb-6">Browse the latest job postings across industries. Filter by title, company, or location to find your perfect match.</p>
-
-    <!-- Filter inputs -->
-    <section aria-labelledby="filter-jobs">
-      <div class="mb-4 flex flex-col sm:flex-row sm:justify-between gap-4">
-        <input id="filterKeyword" type="text" placeholder="Search by Job Title or Company" class="border p-2 rounded w-full sm:w-1/2" aria-label="Filter by keyword">
-        <input id="filterLocation" type="text" placeholder="Filter by Location" class="border p-2 rounded w-full sm:w-1/2" aria-label="Filter by location">
-      </div>
-      <div class="text-center mb-6">
-        <button id="searchBtn" class="bg-green-600 hover:bg-green-800 text-white font-semibold px-4 py-2 rounded">
-          <i class="fas fa-search mr-2"></i>Search
-        </button>
-      </div>
-    </section>
-
-    <!-- Job Listings -->
-    <section aria-labelledby="job-listings">
-      <div class="text-center mb-6">
-        <span class="nav-button inline-block"><i class="fas fa-list"></i> All Posted Jobs</span>
-      </div>
-      <div id="jobsList" class="space-y-4"></div>
-      <div class="text-center mt-6">
-        <button id="loadMoreBtn" class="bg-blue-600 hover:bg-blue-800 text-white px-4 py-2 rounded">Load More</button>
-      </div>
-    </section>
-  </main>
-
-  <!-- ✅ Structured Data (Helps Google Jobs) -->
+  <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
-    "title": "Software Engineer",
-    "description": "We are looking for a skilled Software Engineer to join our growing team at KARDAN.",
-    "datePosted": "2025-08-31",
-    "employmentType": "FULL_TIME",
+    "title": "Find Jobs in India",
+    "description": "Search latest jobs across India including IT, Sales, HR, Marketing and more.",
     "hiringOrganization": {
       "@type": "Organization",
       "name": "KARDAN",
-      "sameAs": "https://aizzdemon.github.io/kardan-job-portal/",
-      "logo": "https://aizzdemon.github.io/kardan-job-portal/assets/logo.png"
+      "sameAs": "https://aizzdemon.github.io/kardan-job-portal/"
     },
     "jobLocation": {
       "@type": "Place",
       "address": {
         "@type": "PostalAddress",
-        "addressLocality": "India",
         "addressCountry": "IN"
       }
-    },
-    "applicantLocationRequirements": {
-      "@type": "Country",
-      "name": "India"
     }
   }
   </script>
 
-  <!-- ✅ Firebase Job Loader (same as before) -->
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  
+  <!-- Header -->
+  <header class="bg-white shadow p-4 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold text-blue-600">KARDAN</a>
+    <nav class="space-x-4">
+      <a href="index.html" class="hover:text-blue-600">Home</a>
+      <a href="jobs.html" class="hover:text-blue-600">Jobs</a>
+      <a href="companies.html" class="hover:text-blue-600">Companies</a>
+      <a href="places-to-hangout.html" class="hover:text-blue-600">Hangouts</a>
+    </nav>
+  </header>
+
+  <!-- Search Filters -->
+  <section class="p-6 bg-blue-50">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Job Title Search -->
+      <div class="relative">
+        <input id="filterKeyword" type="text" 
+               placeholder="Search by Job Title or Company" 
+               class="border p-3 rounded w-full" 
+               autocomplete="off">
+        <div id="keywordSuggestions" class="absolute bg-white border w-full rounded shadow hidden max-h-40 overflow-y-auto z-10"></div>
+      </div>
+      
+      <!-- Location Search -->
+      <div class="relative">
+        <input id="filterLocation" type="text" 
+               placeholder="Filter by Location" 
+               class="border p-3 rounded w-full" 
+               autocomplete="off">
+        <div id="locationSuggestions" class="absolute bg-white border w-full rounded shadow hidden max-h-40 overflow-y-auto z-10"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Job Listings -->
+  <main class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-semibold mb-4">Latest Jobs in India</h1>
+    <div id="jobList" class="space-y-4"></div>
+  </main>
+
+  <!-- Firebase Config -->
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-      authDomain: "kar-kardan.firebaseapp.com",
-      projectId: "kar-kardan",
-      storageBucket: "kar-kardan.appspot.com",
-      messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+  const firebaseConfig = {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan",
+    storageBucket: "kar-kardan.firebasestorage.app",
+    messagingSenderId: "554147696994",
+    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  </script>
 
-    const jobsList = document.getElementById('jobsList');
-    const filterKeyword = document.getElementById('filterKeyword');
-    const filterLocation = document.getElementById('filterLocation');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    const searchBtn = document.getElementById('searchBtn');
-    let lastVisible = null;
-    const pageSize = 5;
-    let currentUser = null;
+  <!-- Job Script -->
+  <script>
+  const jobList = document.getElementById("jobList");
+  const filterKeyword = document.getElementById("filterKeyword");
+  const filterLocation = document.getElementById("filterLocation");
+  const keywordSuggestions = document.getElementById("keywordSuggestions");
+  const locationSuggestions = document.getElementById("locationSuggestions");
 
-    auth.onAuthStateChanged(user => { currentUser = user; });
+  let jobTitles = new Set();
+  let jobLocations = new Set();
+  const defaultCities = ["Delhi", "Mumbai", "Bengaluru", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur"];
 
-    async function loadJobs(reset = false) {
-      try {
-        if (reset) {
-          jobsList.innerHTML = "";
-          lastVisible = null;
+  // Fetch jobs
+  async function loadJobs(search = false) {
+    jobList.innerHTML = "<p>Loading jobs...</p>";
+    let snapshot = await db.collection("jobs").orderBy("timestamp", "desc").get();
+    jobList.innerHTML = "";
+    
+    snapshot.forEach(doc => {
+      const job = doc.data();
+      if (job.title) jobTitles.add(job.title);
+      if (job.company) jobTitles.add(job.company);
+      if (job.location) jobLocations.add(job.location);
+
+      let match = true;
+      if (search) {
+        if (filterKeyword.value && !job.title.toLowerCase().includes(filterKeyword.value.toLowerCase()) && !job.company.toLowerCase().includes(filterKeyword.value.toLowerCase())) {
+          match = false;
         }
-        let query = db.collection("jobs").orderBy("timestamp", "desc");
-        if (lastVisible) query = query.startAfter(lastVisible);
-        const snapshot = await query.limit(pageSize).get();
-        if (!snapshot.empty) lastVisible = snapshot.docs[snapshot.docs.length - 1];
-
-        const keywordFilter = filterKeyword.value.trim().toLowerCase();
-        const locationFilter = filterLocation.value.trim().toLowerCase();
-        let jobsShown = 0;
-
-        snapshot.forEach(doc => {
-          const job = doc.data();
-          const titleMatch = job.title?.toLowerCase().includes(keywordFilter);
-          const companyMatch = job.company?.toLowerCase().includes(keywordFilter);
-          const locationMatch = job.location?.toLowerCase().includes(locationFilter);
-
-          if ((!keywordFilter || titleMatch || companyMatch) && (!locationFilter || locationMatch)) {
-            const timestamp = job.timestamp?.toDate?.();
-            const postedDate = timestamp instanceof Date ? timestamp.toLocaleDateString() : "N/A";
-            const jobCard = document.createElement("article");
-            jobCard.className = "p-4 border rounded bg-gray-50 hover:shadow-md";
-            jobCard.setAttribute("itemscope", "");
-            jobCard.setAttribute("itemtype", "https://schema.org/JobPosting");
-
-            jobCard.innerHTML = `
-              <div class="md:flex gap-6">
-                <div class="w-24 h-24 flex-shrink-0">
-                  ${job.logoUrl
-                    ? `<img src="${job.logoUrl}" alt="${job.company || "Company Logo"}" class="w-full h-full object-contain">`
-                    : `<div class="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500">No Logo</div>`}
-                </div>
-                <div class="flex-1">
-                  <h3 class="text-lg font-bold text-blue-700" itemprop="title">
-                    <a href="#" class="job-title hover:underline" data-id="${doc.id}">${job.title || "Untitled Job"}</a>
-                  </h3>
-                  <p class="text-gray-600" itemprop="hiringOrganization" itemscope itemtype="https://schema.org/Organization">
-                    Company: <span itemprop="name">${job.company || "N/A"}</span>
-                  </p>
-                  <p class="text-gray-600" itemprop="jobLocation">Location: ${job.location || "N/A"}</p>
-                  <p class="text-gray-600">Salary: ${job.salary || "Not specified"}</p>
-                  <p class="text-gray-500 text-sm">Posted on: ${postedDate}</p>
-                  <p class="text-gray-500 text-sm">Posted by: ${job.postedBy || "Unknown"}</p>
-                  ${job.applyLink
-                    ? `<a href="#" class="apply-btn mt-2 text-white bg-blue-600 px-3 py-1 rounded hover:bg-blue-700 inline-block" data-link="${job.applyLink}" itemprop="applicationContact">Apply Now</a>`
-                    : ""}
-                </div>
-              </div>
-            `;
-            jobsList.appendChild(jobCard);
-            jobsShown++;
-          }
-        });
-
-        loadMoreBtn.style.display = (snapshot.empty || snapshot.docs.length < pageSize || jobsShown === 0) ? "none" : "block";
-        if (jobsShown === 0 && reset) jobsList.innerHTML = `<p class="text-center text-gray-500">No matching jobs found.</p>`;
-      } catch (error) {
-        console.error("Error loading jobs:", error);
+        if (filterLocation.value && !job.location.toLowerCase().includes(filterLocation.value.toLowerCase())) {
+          match = false;
+        }
       }
-    }
-    loadJobs(true);
-
-    searchBtn.addEventListener("click", () => loadJobs(true));
-    filterKeyword.addEventListener("input", () => loadJobs(true));
-    filterLocation.addEventListener("input", () => loadJobs(true));
-    loadMoreBtn.addEventListener("click", () => loadJobs(false));
-
-    document.addEventListener('click', function (e) {
-      if (e.target.matches('.job-title')) {
-        e.preventDefault();
-        const jobId = e.target.getAttribute('data-id');
-        if (currentUser) window.location.href = `job-detail.html?id=${jobId}`;
-        else window.location.href = `/kardan-job-portal/signin.html?redirect=job-detail.html?id=${jobId}`;
-      }
-      if (e.target.matches('.apply-btn')) {
-        e.preventDefault();
-        const applyUrl = e.target.getAttribute('data-link');
-        if (currentUser) window.open(applyUrl, '_blank');
-        else window.location.href = `/kardan-job-portal/signin.html`;
+      if (match) {
+        const card = document.createElement("div");
+        card.className = "p-4 bg-white rounded-lg shadow hover:shadow-md";
+        card.innerHTML = `
+          <h2 class="text-lg font-bold">${job.title}</h2>
+          <p class="text-gray-600">${job.company}</p>
+          <p class="text-gray-500">${job.location}</p>
+          <a href="job-detail.html?id=${doc.id}" class="text-blue-600 hover:underline">View Details</a>
+        `;
+        jobList.appendChild(card);
       }
     });
+  }
+
+  // Suggestion rendering
+  function renderSuggestions(inputEl, suggestionsEl, dataSet) {
+    const val = inputEl.value.toLowerCase();
+    suggestionsEl.innerHTML = "";
+    if (!val) {
+      suggestionsEl.classList.add("hidden");
+      return;
+    }
+    let matched = [...dataSet].filter(item => item.toLowerCase().includes(val));
+    matched.slice(0, 8).forEach(item => {
+      const option = document.createElement("div");
+      option.className = "px-3 py-2 hover:bg-blue-100 cursor-pointer";
+      option.textContent = item;
+      option.onclick = () => {
+        inputEl.value = item;
+        suggestionsEl.classList.add("hidden");
+        loadJobs(true);
+      };
+      suggestionsEl.appendChild(option);
+    });
+    if (matched.length > 0) {
+      suggestionsEl.classList.remove("hidden");
+    } else {
+      suggestionsEl.classList.add("hidden");
+    }
+  }
+
+  filterKeyword.addEventListener("input", () => renderSuggestions(filterKeyword, keywordSuggestions, jobTitles));
+  filterLocation.addEventListener("input", () => renderSuggestions(filterLocation, locationSuggestions, new Set([...jobLocations, ...defaultCities])));
+
+  document.addEventListener("click", (e) => {
+    if (!keywordSuggestions.contains(e.target) && e.target !== filterKeyword) keywordSuggestions.classList.add("hidden");
+    if (!locationSuggestions.contains(e.target) && e.target !== filterLocation) locationSuggestions.classList.add("hidden");
+  });
+
+  loadJobs();
   </script>
 </body>
 </html>
