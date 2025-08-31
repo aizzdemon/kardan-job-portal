@@ -3,8 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KARDAN - Buy Books</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>KARDAN - Buy Books Online in India</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Buy books online from KARDAN. Browse the latest collection of educational, fiction, non-fiction, and competitive exam books in India.">
+  <meta name="keywords" content="buy books online, books in India, educational books, fiction, non-fiction, KARDAN book store">
+  <meta name="author" content="KARDAN">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="KARDAN - Buy Books Online in India">
+  <meta property="og:description" content="Browse and purchase books online. From academic to fiction, find all genres on KARDAN Book Store.">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/logo.png">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/books.html">
+  <meta property="og:type" content="website">
+
+  <!-- JSON-LD Structured Data for Books -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "BookStore",
+    "name": "KARDAN Book Store",
+    "url": "https://aizzdemon.github.io/kardan-job-portal/books.html",
+    "image": "https://aizzdemon.github.io/kardan-job-portal/assets/logo.png",
+    "description": "Buy books online in India from KARDAN - fiction, non-fiction, exam preparation, and more."
+  }
+  </script>
+
+  <!-- Styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     .logo-box {
@@ -70,20 +95,50 @@
       background-color: #2b6ea8;
     }
 
-    .nav-button i {
-      margin-right: 5px;
-    }
-
     .book-box {
       background-color: #eef2ff;
       border: 2px solid #c3dafe;
       padding: 20px;
       border-radius: 10px;
-      margin-top: 30px;
+      margin: 30px auto;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 900px;
+    }
+
+    .search-box {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #357ABD;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+
+    .suggestions div {
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .suggestions div:hover {
+      background: #f0f0f0;
     }
 
     .book-item {
@@ -97,11 +152,6 @@
     .book-item h3 {
       margin-top: 0;
       color: #3742fa;
-    }
-
-    .book-item p {
-      font-size: 14px;
-      color: #555;
     }
 
     .book-item img {
@@ -144,12 +194,19 @@
   <!-- Books Section -->
   <div class="book-box">
     <h2 style="color:#3742fa"><i class="fas fa-book-open"></i> Books Available for Purchase</h2>
-    <!-- Dynamic book entries will load here -->
+
+    <!-- Search Bar -->
+    <div class="search-box">
+      <input type="text" id="bookSearch" placeholder="Search books by title or author...">
+      <div id="suggestions" class="suggestions"></div>
+    </div>
+
+    <!-- Book list will load here -->
+    <div id="booksContainer"></div>
   </div>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
@@ -165,24 +222,87 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    const booksContainer = document.getElementById("booksContainer");
+    const searchInput = document.getElementById("bookSearch");
+    const suggestionsBox = document.getElementById("suggestions");
+
+    let allBooks = [];
+    let bookTitles = new Set();
+
+    // Load books from Firestore
     db.collection("books").orderBy("timestamp", "desc").onSnapshot(snapshot => {
-      const booksContainer = document.querySelector('.book-box');
-      booksContainer.innerHTML = '<h2 style="color:#3742fa"><i class="fas fa-book-open"></i> Books Available for Purchase</h2>';
+      allBooks = [];
+      bookTitles.clear();
+      booksContainer.innerHTML = "";
 
       snapshot.forEach(doc => {
         const book = doc.data();
-        const bookElement = document.createElement('div');
-        bookElement.classList.add('book-item');
-        bookElement.innerHTML = `
-          <h3>${book.title}</h3>
-          <img src="${book.photo || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${book.title}" />
-          <p><strong>Author:</strong> ${book.author || 'Unknown Author'}</p>
-          <p><strong>Price:</strong> ₹${book.price || 'N/A'}</p>
-          <p>${book.description}</p>
-          <a href="${book.link}" class="buy-button" target="_blank">Buy Now</a>
-        `;
-        booksContainer.appendChild(bookElement);
+        allBooks.push(book);
+        if (book.title) bookTitles.add(book.title);
+        if (book.author) bookTitles.add(book.author);
+
+        renderBook(book);
       });
+    });
+
+    // Render a book
+    function renderBook(book) {
+      const bookElement = document.createElement('div');
+      bookElement.classList.add('book-item');
+      bookElement.innerHTML = `
+        <h3>${book.title}</h3>
+        <img src="${book.photo || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${book.title}" />
+        <p><strong>Author:</strong> ${book.author || 'Unknown Author'}</p>
+        <p><strong>Price:</strong> ₹${book.price || 'N/A'}</p>
+        <p>${book.description || ''}</p>
+        <a href="${book.link || '#'}" class="buy-button" target="_blank">Buy Now</a>
+      `;
+      booksContainer.appendChild(bookElement);
+    }
+
+    // Filter books
+    function filterBooks(query) {
+      booksContainer.innerHTML = "";
+      const lowerQ = query.toLowerCase();
+      allBooks
+        .filter(b => 
+          (b.title && b.title.toLowerCase().includes(lowerQ)) ||
+          (b.author && b.author.toLowerCase().includes(lowerQ))
+        )
+        .forEach(renderBook);
+    }
+
+    // Show suggestions
+    searchInput.addEventListener("input", () => {
+      const val = searchInput.value.toLowerCase();
+      suggestionsBox.innerHTML = "";
+      if (!val) {
+        suggestionsBox.style.display = "none";
+        filterBooks("");
+        return;
+      }
+
+      let matched = [...bookTitles].filter(item => item.toLowerCase().includes(val));
+      matched.slice(0, 8).forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item;
+        div.onclick = () => {
+          searchInput.value = item;
+          suggestionsBox.style.display = "none";
+          filterBooks(item);
+        };
+        suggestionsBox.appendChild(div);
+      });
+
+      suggestionsBox.style.display = matched.length ? "block" : "none";
+      filterBooks(val);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!suggestionsBox.contains(e.target) && e.target !== searchInput) {
+        suggestionsBox.style.display = "none";
+      }
     });
   </script>
 </body>
