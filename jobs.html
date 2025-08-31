@@ -7,15 +7,15 @@
   <meta name="description" content="Discover the latest job opportunities in India. Browse verified job listings, apply directly, and build your career with KARDAN.">
   <meta name="keywords" content="jobs in India, job portal, career, job search, apply jobs, remote jobs, full-time jobs">
   <meta name="author" content="KARDAN">
-  
-  <!-- Open Graph SEO -->
+
+  <!-- Open Graph -->
   <meta property="og:title" content="Find Jobs in India | KARDAN Job Portal">
   <meta property="og:description" content="Browse the latest verified job listings in India and apply directly.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
   <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/kardan-preview.png">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -38,22 +38,34 @@
     </nav>
   </header>
 
-  <!-- Main Section -->
+  <!-- Main -->
   <main class="max-w-6xl mx-auto p-6">
     <h1 class="text-3xl font-bold mb-6 text-gray-800">Latest Jobs in India</h1>
 
     <!-- Search Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-6">
-      <input type="text" id="filterKeyword" placeholder="Search by title or company"
-             class="border rounded-lg px-4 py-2 flex-1">
-      <input type="text" id="filterLocation" placeholder="Location"
-             class="border rounded-lg px-4 py-2 flex-1">
+      <!-- Job title search -->
+      <div class="relative flex-1">
+        <input type="text" id="filterKeyword" placeholder="Search by title or company"
+               class="border rounded-lg px-4 py-2 w-full" autocomplete="off">
+        <div id="keywordSuggestions"
+             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
+      </div>
+
+      <!-- Location search -->
+      <div class="relative flex-1">
+        <input type="text" id="filterLocation" placeholder="Location"
+               class="border rounded-lg px-4 py-2 w-full" autocomplete="off">
+        <div id="locationSuggestions"
+             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
+      </div>
+
       <button onclick="loadJobs(true)" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
         Search
       </button>
     </div>
 
-    <!-- Job List -->
+    <!-- Jobs -->
     <div id="jobList" class="space-y-4"></div>
   </main>
 
@@ -77,8 +89,63 @@
     const db = firebase.firestore();
   </script>
 
-  <!-- Job Loader -->
+  <!-- Jobs + Suggestions -->
   <script>
+    const filterKeyword = document.getElementById("filterKeyword");
+    const filterLocation = document.getElementById("filterLocation");
+    const keywordSuggestions = document.getElementById("keywordSuggestions");
+    const locationSuggestions = document.getElementById("locationSuggestions");
+
+    let jobTitles = new Set();
+    let jobLocations = new Set();
+
+    async function fetchSuggestions() {
+      const snapshot = await db.collection("jobs").get();
+      snapshot.forEach(doc => {
+        const job = doc.data();
+        if (job.title) jobTitles.add(job.title);
+        if (job.company) jobTitles.add(job.company);
+        if (job.location) jobLocations.add(job.location);
+      });
+
+      // preload some major Indian cities if DB doesn’t have them
+      ["Delhi","Mumbai","Bangalore","Hyderabad","Chennai","Kolkata","Pune","Ahmedabad"].forEach(city => jobLocations.add(city));
+    }
+
+    function renderSuggestions(inputEl, suggestionsEl, dataSet) {
+      const val = inputEl.value.toLowerCase();
+      suggestionsEl.innerHTML = "";
+      if (!val) {
+        suggestionsEl.classList.add("hidden");
+        return;
+      }
+      let matched = [...dataSet].filter(item => item.toLowerCase().includes(val));
+      matched.slice(0, 8).forEach(item => {
+        const option = document.createElement("div");
+        option.className = "px-3 py-2 hover:bg-indigo-100 cursor-pointer";
+        option.textContent = item;
+        option.onclick = () => {
+          inputEl.value = item;
+          suggestionsEl.classList.add("hidden");
+          loadJobs(true);
+        };
+        suggestionsEl.appendChild(option);
+      });
+      suggestionsEl.classList.toggle("hidden", matched.length === 0);
+    }
+
+    filterKeyword.addEventListener("input", () => renderSuggestions(filterKeyword, keywordSuggestions, jobTitles));
+    filterLocation.addEventListener("input", () => renderSuggestions(filterLocation, locationSuggestions, jobLocations));
+
+    document.addEventListener("click", (e) => {
+      if (!keywordSuggestions.contains(e.target) && e.target !== filterKeyword) {
+        keywordSuggestions.classList.add("hidden");
+      }
+      if (!locationSuggestions.contains(e.target) && e.target !== filterLocation) {
+        locationSuggestions.classList.add("hidden");
+      }
+    });
+
     async function loadJobs(search = false) {
       const jobList = document.getElementById("jobList");
       jobList.innerHTML = "<p class='text-gray-600'>Loading jobs...</p>";
@@ -89,7 +156,6 @@
       snapshot.forEach(doc => {
         const job = doc.data();
         let match = true;
-
         if (search) {
           if (filterKeyword.value && !job.title.toLowerCase().includes(filterKeyword.value.toLowerCase()) && !job.company.toLowerCase().includes(filterKeyword.value.toLowerCase())) {
             match = false;
@@ -98,11 +164,9 @@
             match = false;
           }
         }
-
         if (match) {
           const card = document.createElement("div");
           card.className = "border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition";
-
           card.innerHTML = `
             <div class="flex justify-between items-start">
               <div>
@@ -118,17 +182,17 @@
                  class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
                  Apply Now
               </a>
-            </div>
-          `;
+            </div>`;
           jobList.appendChild(card);
         }
       });
     }
 
+    fetchSuggestions();
     loadJobs();
   </script>
 
-  <!-- Structured Data for SEO -->
+  <!-- SEO Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org/",
