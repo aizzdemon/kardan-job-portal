@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Jobs in India | KARDAN Job Portal</title>
+  <meta name="description" content="Discover the latest job opportunities in India. Browse verified job listings, apply directly, and build your career with KARDAN.">
+  <meta name="keywords" content="jobs in India, job portal, career, job search, apply jobs, remote jobs, full-time jobs">
+  <meta name="author" content="KARDAN">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Find Jobs in India | KARDAN Job Portal">
+  <meta property="og:description" content="Browse the latest verified job listings in India and apply directly.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/kardan-preview.png">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- Amazon Banner Ad -->
+  <div class="w-full bg-white shadow-md">
+    <a href="https://www.amazon.in?adgrpid=155259813593&hvpone=&hvptwo=&hvadid=674893540034&hvpos=&hvnetw=g&hvrand=13349429144820434714&hvqmt=e&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9302737&hvtargid=kwd-64107830&hydadcr=14452_2316413&gad_source=1&linkCode=ll2&tag=rameejalaam-21&linkId=84b48e77f56a90de97b021aefee26eda&language=en_IN&ref_=as_li_ss_tl" 
+       target="_blank">
+      <img src="https://m.media-amazon.com/images/G/31/IN-hq/2024/img/Events/XCM_Manual_1630457_650x45_2x.jpg" 
+           alt="Amazon Deals Banner" 
+           class="mx-auto w-full max-h-32 object-cover">
+    </a>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <nav class="max-w-7xl mx-auto flex items-center justify-between p-4">
+      <a href="index.html" class="text-2xl font-bold text-indigo-600">KARDAN</a>
+      <div class="space-x-6 text-gray-700">
+        <a href="index.html" class="hover:text-indigo-600"><i class="fa fa-home"></i> Home</a>
+        <a href="jobs.html" class="text-indigo-600 font-semibold"><i class="fa fa-briefcase"></i> Jobs</a>
+        <a href="companies.html" class="hover:text-indigo-600"><i class="fa fa-building"></i> Companies</a>
+        <a href="places-to-hangout.html" class="hover:text-indigo-600"><i class="fa fa-coffee"></i> Hangouts</a>
+        <a href="login.html" class="hover:text-indigo-600"><i class="fa fa-sign-in-alt"></i> Login</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">Latest Jobs in India</h1>
+
+    <!-- Search Filters -->
+    <div class="flex flex-col md:flex-row gap-4 mb-6">
+      <!-- Job title search -->
+      <div class="relative flex-1">
+        <input type="text" id="filterKeyword" placeholder="Search by title or company"
+               class="border rounded-lg px-4 py-2 w-full" autocomplete="off">
+        <div id="keywordSuggestions"
+             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
+      </div>
+
+      <!-- Location search -->
+      <div class="relative flex-1">
+        <input type="text" id="filterLocation" placeholder="Location"
+               class="border rounded-lg px-4 py-2 w-full" autocomplete="off">
+        <div id="locationSuggestions"
+             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
+      </div>
+
+      <button onclick="loadJobs(true)" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+        Search
+      </button>
+    </div>
+
+    <!-- Jobs -->
+    <div id="jobList" class="space-y-4"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white shadow mt-10 p-6 text-center text-gray-600">
+    © 2025 KARDAN. All rights reserved.
+  </footer>
+
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
+  <!-- Jobs + Suggestions -->
+  <script>
+    const filterKeyword = document.getElementById("filterKeyword");
+    const filterLocation = document.getElementById("filterLocation");
+    const keywordSuggestions = document.getElementById("keywordSuggestions");
+    const locationSuggestions = document.getElementById("locationSuggestions");
+
+    let jobTitles = new Set();
+    let jobLocations = new Set();
+
+    async function fetchSuggestions() {
+      const snapshot = await db.collection("jobs").get();
+      snapshot.forEach(doc => {
+        const job = doc.data();
+        if (job.title) jobTitles.add(job.title);
+        if (job.company) jobTitles.add(job.company);
+        if (job.location) jobLocations.add(job.location);
+      });
+
+      // preload some major Indian cities if DB doesn’t have them
+      ["Delhi","Mumbai","Bangalore","Hyderabad","Chennai","Kolkata","Pune","Ahmedabad"].forEach(city => jobLocations.add(city));
+    }
+
+    function renderSuggestions(inputEl, suggestionsEl, dataSet) {
+      const val = inputEl.value.toLowerCase();
+      suggestionsEl.innerHTML = "";
+      if (!val) {
+        suggestionsEl.classList.add("hidden");
+        return;
+      }
+      let matched = [...dataSet].filter(item => item.toLowerCase().includes(val));
+      matched.slice(0, 8).forEach(item => {
+        const option = document.createElement("div");
+        option.className = "px-3 py-2 hover:bg-indigo-100 cursor-pointer";
+        option.textContent = item;
+        option.onclick = () => {
+          inputEl.value = item;
+          suggestionsEl.classList.add("hidden");
+          loadJobs(true);
+        };
+        suggestionsEl.appendChild(option);
+      });
+      suggestionsEl.classList.toggle("hidden", matched.length === 0);
+    }
+
+    filterKeyword.addEventListener("input", () => renderSuggestions(filterKeyword, keywordSuggestions, jobTitles));
+    filterLocation.addEventListener("input", () => renderSuggestions(filterLocation, locationSuggestions, jobLocations));
+
+    document.addEventListener("click", (e) => {
+      if (!keywordSuggestions.contains(e.target) && e.target !== filterKeyword) {
+        keywordSuggestions.classList.add("hidden");
+      }
+      if (!locationSuggestions.contains(e.target) && e.target !== filterLocation) {
+        locationSuggestions.classList.add("hidden");
+      }
+    });
+
+    async function loadJobs(search = false) {
+      const jobList = document.getElementById("jobList");
+      jobList.innerHTML = "<p class='text-gray-600'>Loading jobs...</p>";
+
+      let snapshot = await db.collection("jobs").orderBy("timestamp", "desc").get();
+      jobList.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const job = doc.data();
+        let match = true;
+        if (search) {
+          if (filterKeyword.value && !job.title.toLowerCase().includes(filterKeyword.value.toLowerCase()) && !job.company.toLowerCase().includes(filterKeyword.value.toLowerCase())) {
+            match = false;
+          }
+          if (filterLocation.value && !job.location.toLowerCase().includes(filterLocation.value.toLowerCase())) {
+            match = false;
+          }
+        }
+        if (match) {
+          const card = document.createElement("div");
+          card.className = "border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition";
+          card.innerHTML = `
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <img src="${job.logoUrl || 'assets/default-logo.png'}" 
+                     alt="${job.company}" 
+                     class="w-14 h-14 rounded-lg object-cover border" />
+
+                <div>
+                  <h2 class="text-lg font-bold text-indigo-600">${job.title}</h2>
+                  <p class="text-gray-700">${job.company}</p>
+                  <p class="text-gray-500">${job.location}</p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Full-time</span>
+                    <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Remote</span>
+                  </div>
+                </div>
+              </div>
+              <a href="job-detail.html?id=${doc.id}" 
+                 class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
+                 Apply Now
+              </a>
+            </div>`;
+          jobList.appendChild(card);
+        }
+      });
+    }
+
+    fetchSuggestions();
+    loadJobs();
+  </script>
+
+  <!-- SEO Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": "Inside Sales Executive",
+    "description": "Apply for Inside Sales Executive positions at leading companies in India.",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": "KARDAN",
+      "sameAs": "https://aizzdemon.github.io/kardan-job-portal/"
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "IN"
+      }
+    },
+    "employmentType": "FULL_TIME",
+    "datePosted": "2025-08-31"
+  }
+  </script>
+</body>
+</html>
