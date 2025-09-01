@@ -1,4 +1,4 @@
-<!-- Full Profile Page with Post Job + Navigation Buttons -->
+<!-- Full Profile Page with Updated Navigation + Jobs Pagination -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,14 +17,14 @@
   <!-- Navigation Bar -->
   <nav class="bg-white shadow-md py-3 px-4 flex justify-between items-center">
     <a href="index.html" class="text-orange-500 font-bold text-xl">KARDAN</a>
-    <div class="space-x-4 text-sm md:text-base">
-      <a href="index.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-home"></i> Home</a>
-      <a href="jobs.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-briefcase"></i> Jobs</a>
-      <a href="books.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-book"></i> Buy Books</a>
-      <a href="places-to-hangout.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-map-marker-alt"></i> Hangouts</a>
-      <a href="companies.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-building"></i> Companies</a>
-      <a href="login.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-sign-in-alt"></i> Login</a>
-      <a href="signup.html" class="text-gray-700 hover:text-orange-500"><i class="fas fa-user-plus"></i> Join Now</a>
+    <div class="flex space-x-2 text-sm md:text-base">
+      <a href="index.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-home"></i> Home</a>
+      <a href="jobs.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-briefcase"></i> Jobs</a>
+      <a href="books.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-book"></i> Books</a>
+      <a href="places-to-hangout.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-map-marker-alt"></i> Hangouts</a>
+      <a href="companies.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-building"></i> Companies</a>
+      <a href="login.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-sign-in-alt"></i> Login</a>
+      <a href="signup.html" class="bg-orange-500 text-white px-3 py-1 rounded hover:bg-orange-600 flex items-center gap-1"><i class="fas fa-user-plus"></i> Join</a>
     </div>
   </nav>
 
@@ -59,12 +59,21 @@
     <!-- Listings Section -->
     <div class="md:w-2/3 bg-white p-6 rounded shadow">
       <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
-      <table class="min-w-full text-sm mb-8">
-        <thead><tr class="bg-gray-200"><th class="px-4 py-2">Title</th><th class="px-4 py-2">Location</th><th class="px-4 py-2">Link</th><th class="px-4 py-2">Actions</th></tr></thead>
+      <table class="min-w-full text-sm mb-4">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="px-4 py-2">Title</th>
+            <th class="px-4 py-2">Location</th>
+            <th class="px-4 py-2">Date</th>
+            <th class="px-4 py-2">Link</th>
+            <th class="px-4 py-2">Actions</th>
+          </tr>
+        </thead>
         <tbody id="jobsTableBody"></tbody>
       </table>
+      <button id="loadMoreJobs" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 hidden">Load More</button>
 
-      <h2 class="text-xl font-bold mb-4">Your Posted Books</h2>
+      <h2 class="text-xl font-bold mt-8 mb-4">Your Posted Books</h2>
       <table class="min-w-full text-sm mb-8">
         <thead><tr class="bg-gray-200"><th class="px-4 py-2">Title</th><th class="px-4 py-2">Price</th><th class="px-4 py-2">Actions</th></tr></thead>
         <tbody id="booksTableBody"></tbody>
@@ -96,6 +105,10 @@
     const jobsTableBody = document.getElementById("jobsTableBody");
     const booksTableBody = document.getElementById("booksTableBody");
     const placesTableBody = document.getElementById("placesTableBody");
+    const loadMoreBtn = document.getElementById("loadMoreJobs");
+
+    let lastJobDoc = null;
+    const JOBS_LIMIT = 5;
 
     auth.onAuthStateChanged(async user => {
       if (!user) return location.href = "login.html";
@@ -112,13 +125,7 @@
         document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
       }
 
-      db.collection("jobs").where("uid", "==", user.uid).onSnapshot(snapshot => {
-        jobsTableBody.innerHTML = '';
-        snapshot.forEach(doc => {
-          const job = doc.data();
-          jobsTableBody.innerHTML += `<tr class="border-t"><td class="px-4 py-2">${job.title}</td><td class="px-4 py-2">${job.location}</td><td class="px-4 py-2"><a href="${job.applyLink}" class="text-blue-500 underline">Apply</a></td><td class="px-4 py-2"><button onclick="editJob('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button> <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td></tr>`;
-        });
-      });
+      loadJobs(user.uid);
 
       db.collection("books").where("uid", "==", user.uid).onSnapshot(snapshot => {
         booksTableBody.innerHTML = '';
@@ -135,6 +142,36 @@
           placesTableBody.innerHTML += `<tr class="border-t"><td class="px-4 py-2">${place.name}</td><td class="px-4 py-2">${place.type}</td><td class="px-4 py-2">${place.location}</td><td class="px-4 py-2"><a href="${place.mapLink}" class="text-blue-500 underline">View Map</a></td><td class="px-4 py-2"><button onclick="editPlace('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button> <button onclick="deletePlace('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td></tr>`;
         });
       });
+    });
+
+    function loadJobs(uid) {
+      let query = db.collection("jobs")
+        .where("uid", "==", uid)
+        .orderBy("timestamp", "desc")
+        .limit(JOBS_LIMIT);
+
+      if (lastJobDoc) {
+        query = query.startAfter(lastJobDoc);
+      }
+
+      query.get().then(snapshot => {
+        if (!snapshot.empty) {
+          lastJobDoc = snapshot.docs[snapshot.docs.length - 1];
+          snapshot.forEach(doc => {
+            const job = doc.data();
+            const date = job.timestamp?.toDate().toLocaleDateString() || "N/A";
+            jobsTableBody.innerHTML += `<tr class="border-t"><td class="px-4 py-2">${job.title}</td><td class="px-4 py-2">${job.location}</td><td class="px-4 py-2">${date}</td><td class="px-4 py-2"><a href="${job.applyLink}" class="text-blue-500 underline">Apply</a></td><td class="px-4 py-2"><button onclick="editJob('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button> <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td></tr>`;
+          });
+          loadMoreBtn.classList.remove("hidden");
+        } else {
+          loadMoreBtn.classList.add("hidden");
+        }
+      });
+    }
+
+    loadMoreBtn.addEventListener("click", () => {
+      const user = auth.currentUser;
+      if (user) loadJobs(user.uid);
     });
 
     function uploadResume() {
