@@ -129,6 +129,7 @@
 
   let lastJobDoc = null;
   const JOBS_LIMIT = 5;
+  let firstLoad = true;
 
   auth.onAuthStateChanged(async user => {
     if (!user) return location.href = "login.html";
@@ -145,11 +146,9 @@
       document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
     }
 
-    // Debug: see jobs in console
-    db.collection("jobs").where("uid", "==", user.uid).get().then(snap => {
-      console.log("Jobs for user:", user.uid, snap.docs.map(d => d.data()));
-    });
-
+    // reset pagination
+    lastJobDoc = null;
+    firstLoad = true;
     loadJobs(user.uid);
 
     // Books listener
@@ -190,15 +189,27 @@
   });
 
   function loadJobs(uid) {
-    let query = db.collection("jobs").where("uid", "==", uid).orderBy("timestamp", "desc").limit(JOBS_LIMIT);
-    if (lastJobDoc) query = query.startAfter(lastJobDoc);
+    let query = db.collection("jobs")
+      .where("uid", "==", uid)
+      .orderBy("timestamp", "desc")
+      .limit(JOBS_LIMIT);
+
+    if (lastJobDoc) {
+      query = query.startAfter(lastJobDoc);
+    }
 
     query.get().then(snapshot => {
+      if (firstLoad) {
+        jobsTableBody.innerHTML = "";
+        firstLoad = false;
+      }
+
       if (!snapshot.empty) {
         lastJobDoc = snapshot.docs[snapshot.docs.length - 1];
+
         snapshot.forEach(doc => {
           const job = doc.data();
-          const date = job.timestamp && job.timestamp.toDate ? job.timestamp.toDate().toLocaleDateString() : "N/A";
+          const date = job.timestamp?.toDate ? job.timestamp.toDate().toLocaleDateString() : "N/A";
           jobsTableBody.innerHTML += `
             <tr class="border-t">
               <td class="px-4 py-2">${job.title || "Untitled"}</td>
@@ -211,9 +222,14 @@
               </td>
             </tr>`;
         });
+
         loadMoreBtn.classList.remove("hidden");
       } else {
         loadMoreBtn.classList.add("hidden");
+
+        if (!lastJobDoc && jobsTableBody.innerHTML === "") {
+          jobsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No jobs posted yet</td></tr>`;
+        }
       }
     }).catch(err => console.error("Error loading jobs:", err));
   }
@@ -245,4 +261,3 @@
 </script>
 </body>
 </html>
-
