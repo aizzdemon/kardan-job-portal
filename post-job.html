@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Post a Job - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
   <!-- Firebase SDKs -->
@@ -24,44 +24,23 @@
       font-weight: bold;
       border-radius: 5px;
     }
-
-    nav ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    nav ul li {
-      display: inline;
-      margin: 0 10px;
-    }
-
+    nav ul { list-style: none; padding: 0; }
+    nav ul li { display: inline; margin: 0 10px; }
     .nav-button {
-      background-color: #d3d3d3;
-      border: 1px solid #bbb;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      text-decoration: none;
-      color: #000;
-      font-weight: bold;
-      display: inline-block;
+      background-color: #d3d3d3; border: 1px solid #bbb;
+      padding: 8px 12px; cursor: pointer; border-radius: 5px;
+      font-size: 13px; text-decoration: none; color: #000;
+      font-weight: bold; display: inline-block;
     }
-
-    .nav-button i {
-      margin-right: 5px;
-    }
-
-    .nav-button:hover {
-      background-color: #c0c0c0;
-    }
+    .nav-button i { margin-right: 5px; }
+    .nav-button:hover { background-color: #c0c0c0; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
   <header>
     <div class="logo-box">KARDAN</div>
-    <h1 class="text-3xl font-bold text-center mt-6">Post a Job</h1>
+    <h1 class="text-2xl font-bold text-center mt-6">Post a Job</h1>
     <nav class="mt-4 text-center">
       <ul>
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
@@ -76,44 +55,56 @@
   </header>
 
   <!-- Post Job Form -->
-  <div class="max-w-md mx-auto mt-12 bg-white p-8 rounded shadow">
-    <form id="jobForm" class="space-y-5">
-      <div>
-        <label class="block font-semibold text-gray-700">Job Title</label>
-        <input type="text" id="jobTitle" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+  <div class="max-w-md mx-auto mt-8 bg-white p-6 rounded shadow">
+    <form id="jobForm" class="space-y-4">
+      <!-- Job Title -->
+      <div class="flex items-center gap-2">
+        <i class="fas fa-briefcase text-orange-500 w-5"></i>
+        <input type="text" id="jobTitle" placeholder="Job Title" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700">Company Name</label>
-        <input type="text" id="companyName" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      <!-- Company Name -->
+      <div class="flex items-center gap-2">
+        <i class="fas fa-building text-blue-500 w-5"></i>
+        <input type="text" id="companyName" placeholder="Company Name" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400" required>
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700">Location</label>
-        <input type="text" id="jobPlace" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      <!-- Company Logo (Optional) -->
+      <div class="flex items-center gap-2">
+        <i class="fas fa-image text-purple-500 w-5"></i>
+        <input type="url" id="companyLogo" placeholder="Company Logo URL (Optional)" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-purple-400">
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700">Salary (Optional)</label>
-        <input type="text" id="salary" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400">
+      <!-- Location -->
+      <div class="flex items-center gap-2">
+        <i class="fas fa-map-marker-alt text-red-500 w-5"></i>
+        <input type="text" id="jobPlace" placeholder="Location" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-red-400" required>
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700">Application Link</label>
-        <input type="url" id="jobLink" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+      <!-- Salary -->
+      <div class="flex items-center gap-2">
+        <i class="fas fa-money-bill-wave text-green-500 w-5"></i>
+        <input type="text" id="salary" placeholder="Salary (Optional)" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400">
       </div>
 
-      <div>
-        <label class="block font-semibold text-gray-700">About the Job</label>
-        <textarea id="jobDescription" class="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-orange-400" rows="4" placeholder="Provide a detailed description of the job and responsibilities..." required></textarea>
+      <!-- Application Link -->
+      <div class="flex items-center gap-2">
+        <i class="fas fa-link text-indigo-500 w-5"></i>
+        <input type="url" id="jobLink" placeholder="Application Link" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-400" required>
+      </div>
+
+      <!-- Job Description -->
+      <div class="flex items-start gap-2">
+        <i class="fas fa-align-left text-gray-500 mt-2 w-5"></i>
+        <textarea id="jobDescription" placeholder="About the Job" rows="3" class="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-gray-400" required></textarea>
       </div>
     </form>
 
-    <button id="publishBtn" class="w-full mt-6 bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700 transition">
+    <button id="publishBtn" class="w-full mt-4 bg-green-600 text-white font-bold py-2 rounded hover:bg-green-700 transition">
       Publish Job
     </button>
 
-    <p id="successMessage" class="mt-4 text-green-600 font-semibold hidden">✅ Job successfully posted!</p>
+    <p id="successMessage" class="mt-3 text-green-600 font-semibold hidden">✅ Job successfully posted!</p>
   </div>
 
   <script>
@@ -134,28 +125,23 @@
 
     let currentUser = null;
 
-    // Detect login state
     auth.onAuthStateChanged(user => {
       if (user) {
         currentUser = user;
-        console.log("Logged in as:", user.email);
       } else {
-        currentUser = null;
         alert("⚠️ You must be logged in to post a job.");
-        window.location.href = "login.html"; // redirect if not logged in
+        window.location.href = "login.html";
       }
     });
 
     document.getElementById("publishBtn").addEventListener("click", async function () {
-      if (!currentUser) {
-        alert("You need to log in to post a job.");
-        return;
-      }
+      if (!currentUser) return;
 
       const jobTitle = document.getElementById("jobTitle").value.trim();
       const companyName = document.getElementById("companyName").value.trim();
+      const companyLogo = document.getElementById("companyLogo").value.trim() || null;
       const jobPlace = document.getElementById("jobPlace").value.trim();
-      const salary = document.getElementById("salary").value.trim();
+      const salary = document.getElementById("salary").value.trim() || null;
       const jobLink = document.getElementById("jobLink").value.trim();
       const jobDescription = document.getElementById("jobDescription").value.trim();
 
@@ -169,8 +155,9 @@
           uid: currentUser.uid,
           title: jobTitle,
           company: companyName,
+          logoUrl: companyLogo,
           location: jobPlace,
-          salary: salary || null,
+          salary: salary,
           applyLink: jobLink,
           about: jobDescription,
           postedBy: currentUser.email || "Anonymous",
@@ -183,10 +170,9 @@
         document.getElementById("jobForm").reset();
       } catch (error) {
         console.error("Error posting job:", error);
-        alert("Failed to post job. Check console for more info.");
+        alert("Failed to post job. Check console for details.");
       }
     });
   </script>
 </body>
 </html>
-
