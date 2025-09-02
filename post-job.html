@@ -67,7 +67,7 @@
         <li><a href="index.html" class="nav-button"><i class="fas fa-home"></i> Home</a></li>
         <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase"></i> Jobs</a></li>
         <li><a href="books.html" class="nav-button"><i class="fas fa-book"></i> Buy Books</a></li>
-        <li><a href="hangouts.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
+        <li><a href="places-to-hangout.html" class="nav-button"><i class="fas fa-coffee"></i> Places to Hangout</a></li>
         <li><a href="companies.html" class="nav-button"><i class="fas fa-building"></i> Companies</a></li>
         <li><a href="profile.html" class="nav-button"><i class="fas fa-user"></i> Profile</a></li>
         <li><a href="post-job.html" class="nav-button"><i class="fas fa-plus"></i> Post a Job</a></li>
@@ -144,15 +144,22 @@
         return;
       }
 
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("You need to log in to post a job.");
+        return;
+      }
+
       try {
         await db.collection("jobs").add({
+          uid: user.uid, // 🔑 store user ID
           title: jobTitle,
           company: companyName,
           location: jobPlace,
           salary: salary || null,
           applyLink: jobLink,
           about: jobDescription,
-          postedBy: firebase.auth().currentUser?.email || "Anonymous",
+          postedBy: user.email || "Anonymous",
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           likes: 0,
           dislikes: 0
