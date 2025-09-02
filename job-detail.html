@@ -8,8 +8,8 @@
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 
-  <!-- Font Awesome -->
-  <script src="https://kit.fontawesome.com/your-kit-id.js" crossorigin="anonymous"></script>
+  <!-- Font Awesome (Free CDN) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -21,7 +21,7 @@
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
       projectId: "kar-kardan",
-      storageBucket: "kar-kardan.firebasestorage.app",
+      storageBucket: "kar-kardan.appspot.com", // ✅ fixed
       messagingSenderId: "554147696994",
       appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
       measurementId: "G-RRC3X485KQ"
@@ -55,7 +55,7 @@
                       </div>`
                 }
                 <div>
-                  <h2 class="text-2xl font-bold">${job.title}</h2>
+                  <h2 class="text-2xl font-bold">${job.title || "Untitled Job"}</h2>
                   <p class="text-gray-600">${job.company || "Unknown Company"}</p>
                 </div>
               </div>
@@ -65,7 +65,10 @@
               <p><i class="fas fa-money-bill-wave text-green-500"></i> ${
                 job.salary || "Not specified"
               }</p>
-              <p class="mt-4">${job.description || "No description available."}</p>
+              <div class="mt-4">
+                <h3 class="font-semibold text-lg mb-2">Job Description</h3>
+                <p>${job.description || "No description available."}</p>
+              </div>
               ${
                 job.applyLink
                   ? `<a href="${job.applyLink}" target="_blank"
@@ -112,7 +115,7 @@
           <a href="companies.html" class="flex items-center space-x-1 hover:text-gray-200">
             <i class="fas fa-building"></i><span>Companies</span>
           </a>
-          <a href="places-to-hangout.html" class="flex items-center space-x-1 hover:text-gray-200">
+          <a href="pro.html" class="flex items-center space-x-1 hover:text-gray-200">
             <i class="fas fa-coffee"></i><span>Hangout Places</span>
           </a>
           <a href="profile.html" class="flex items-center space-x-1 hover:text-gray-200">
