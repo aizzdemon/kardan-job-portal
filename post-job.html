@@ -129,9 +129,29 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
+    let currentUser = null;
+
+    // Detect login state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        console.log("Logged in as:", user.email);
+      } else {
+        currentUser = null;
+        alert("⚠️ You must be logged in to post a job.");
+        window.location.href = "login.html"; // redirect if not logged in
+      }
+    });
+
     document.getElementById("publishBtn").addEventListener("click", async function () {
+      if (!currentUser) {
+        alert("You need to log in to post a job.");
+        return;
+      }
+
       const jobTitle = document.getElementById("jobTitle").value.trim();
       const companyName = document.getElementById("companyName").value.trim();
       const jobPlace = document.getElementById("jobPlace").value.trim();
@@ -144,22 +164,16 @@
         return;
       }
 
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        alert("You need to log in to post a job.");
-        return;
-      }
-
       try {
         await db.collection("jobs").add({
-          uid: user.uid, // 🔑 store user ID
+          uid: currentUser.uid,
           title: jobTitle,
           company: companyName,
           location: jobPlace,
           salary: salary || null,
           applyLink: jobLink,
           about: jobDescription,
-          postedBy: user.email || "Anonymous",
+          postedBy: currentUser.email || "Anonymous",
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           likes: 0,
           dislikes: 0
@@ -175,3 +189,4 @@
   </script>
 </body>
 </html>
+
