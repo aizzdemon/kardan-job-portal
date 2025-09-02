@@ -1,276 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Find Jobs in India | KARDAN Job Portal</title>
-  <meta name="description" content="Discover the latest job opportunities in India. Browse verified job listings, apply directly, and build your career with KARDAN.">
-  <meta name="keywords" content="jobs in India, job portal, career, job search, apply jobs, remote jobs, full-time jobs">
-  <meta name="author" content="KARDAN">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Jobs in India | KARDAN Job Portal</title>
+  <meta name="description" content="Discover the latest job opportunities in India. Browse verified job listings, apply directly, and build your career with KARDAN.">
+  <meta name="keywords" content="jobs in India, job portal, career, job search, apply jobs, remote jobs, full-time jobs">
+  <meta name="author" content="KARDAN">
 
-    <meta property="og:title" content="Find Jobs in India | KARDAN Job Portal">
-  <meta property="og:description" content="Browse the latest verified job listings in India and apply directly.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
-  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/kardan-preview.png">
+  <!-- Social Meta -->
+  <meta property="og:title" content="Find Jobs in India | KARDAN Job Portal">
+  <meta property="og:description" content="Browse the latest verified job listings in India and apply directly.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/kardan-preview.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 font-sans">
 
-    <nav class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3 p-4">
-      <a href="index.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-home mr-2"></i> Home
-      </a>
-      <a href="jobs.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-briefcase mr-2"></i> Jobs
-      </a>
-      <a href="books.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-book mr-2"></i> Buy Books
-      </a>
-      <a href="profile.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-user mr-2"></i> Profile
-      </a>
-      <a href="companies.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-building mr-2"></i> Companies
-      </a>
-      <a href="contact.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-envelope mr-2"></i> Contact
-      </a>
-    </div>
-  </nav>
+  <!-- Navbar -->
+  <nav class="bg-white border-b shadow-sm sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3 p-4">
+      <a href="index.html" class="flex items-center px-4 py-2 text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow hover:shadow-md transition">
+        <i class="fas fa-home mr-2"></i> Home
+      </a>
+      <a href="jobs.html" class="flex items-center px-4 py-2 text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow hover:shadow-md transition">
+        <i class="fas fa-briefcase mr-2"></i> Jobs
+      </a>
+      <a href="books.html" class="flex items-center px-4 py-2 text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow hover:shadow-md transition">
+        <i class="fas fa-book mr-2"></i> Buy Books
+      </a>
+      <a href="profile.html" class="flex items-center px-4 py-2 text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow hover:shadow-md transition">
+        <i class="fas fa-user mr-2"></i> Profile
+      </a>
+      <a href="companies.html" class="flex items-center px-4 py-2 text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow hover:shadow-md transition">
+        <i class="fas fa-building mr-2"></i> Companies
+      </a>
+      <a href="contact.html" class="flex items-center px-4 py-2 text-sm bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow hover:shadow-md transition">
+        <i class="fas fa-envelope mr-2"></i> Contact
+      </a>
+    </div>
+  </nav>
 
-    <div class="w-full bg-white shadow-md">
-    <a href="https://www.amazon.in?adgrpid=155259813593&hvpone=&hvptwo=&hvadid=674893540034&hvpos=&hvnetw=g&hvrand=13349429144820434714&hvqmt=e&hvdev=c&hvdvcmdl=&hvlocint=&hvlocphy=9302737&hvtargid=kwd-64107830&hydadcr=14452_2316413&gad_source=1&linkCode=ll2&tag=rameejalaam-21&linkId=84b48e77f56a90de97b021aefee26eda&language=en_IN&ref_=as_li_ss_tl" target="_blank">
-      <img src="https://m.media-amazon.com/images/G/31/IN-hq/2024/img/Events/XCM_Manual_1630457_650x45_2x.jpg" alt="Amazon Deals Banner" class="mx-auto w-full max-h-32 object-cover">
-    </a>
-  </div>
-    <main class="max-w-6xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6 text-gray-800">Latest Jobs in India</h1>
+  <!-- Search Section -->
+  <main class="max-w-6xl mx-auto p-6">
+    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Latest Jobs in India</h1>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <div class="relative flex-1">
-        <input type="text" id="filterKeyword" placeholder="Search by title or company"
-               class="border rounded-lg px-4 py-2 w-full" autocomplete="off">
-        <div id="keywordSuggestions"
-             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
-      </div>
+    <div class="flex flex-col md:flex-row gap-3 mb-6">
+      <div class="relative flex-1">
+        <input type="text" id="filterKeyword" placeholder="Search by title or company"
+               class="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-indigo-500 outline-none" autocomplete="off">
+        <div id="keywordSuggestions"
+             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
+      </div>
+      <div class="relative flex-1">
+        <input type="text" id="filterLocation" placeholder="Location"
+               class="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-indigo-500 outline-none" autocomplete="off">
+        <div id="locationSuggestions"
+             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
+      </div>
+      <button onclick="loadJobs(true)" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm hover:bg-indigo-700 transition">
+        Search
+      </button>
+    </div>
 
-            <div class="relative flex-1">
-        <input type="text" id="filterLocation" placeholder="Location"
-               class="border rounded-lg px-4 py-2 w-full" autocomplete="off">
-        <div id="locationSuggestions"
-             class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
-      </div>
+    <!-- Job List -->
+    <div id="jobList" class="space-y-3"></div>
 
-      <button onclick="loadJobs(true)" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
-        Search
-      </button>
-    </div>
+    <!-- Load More -->
+    <div id="loadMoreContainer" class="text-center mt-6 hidden">
+      <button id="loadMoreBtn" class="bg-gray-100 border px-6 py-2 rounded-lg text-sm hover:bg-gray-200 transition">
+        Show More Jobs
+      </button>
+    </div>
+  </main>
 
-        <div id="jobList" class="space-y-4"></div>
+  <!-- Footer -->
+  <footer class="bg-white border-t mt-10 p-6 text-center text-gray-600 text-sm">
+    © 2025 KARDAN. All rights reserved.
+  </footer>
 
-        <div id="loadMoreContainer" class="text-center mt-6 hidden">
-      <button id="loadMoreBtn" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition">
-        Show More Jobs
-      </button>
-    </div>
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 
-  </main>
+  <!-- Job Listing Logic -->
+  <script>
+    const filterKeyword = document.getElementById("filterKeyword");
+    const filterLocation = document.getElementById("filterLocation");
+    const jobList = document.getElementById("jobList");
+    const loadMoreContainer = document.getElementById("loadMoreContainer");
+    const loadMoreBtn = document.getElementById("loadMoreBtn");
 
-    <footer class="bg-white shadow mt-10 p-6 text-center text-gray-600">
-    © 2025 KARDAN. All rights reserved.
-  </footer>
+    let lastVisible = null;
+    const jobsPerPage = 10;
 
-    <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-      authDomain: "kar-kardan.firebaseapp.com",
-      projectId: "kar-kardan",
-      storageBucket: "kar-kardan.firebasestorage.app",
-      messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-      measurementId: "G-RRC3X485KQ"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+    async function loadJobs(isNewSearch = false) {
+      if (isNewSearch) {
+        jobList.innerHTML = "<p class='text-gray-500 text-sm'>Searching...</p>";
+        lastVisible = null;
+        loadMoreContainer.classList.add("hidden");
+      }
 
-    <script>
-    const filterKeyword = document.getElementById("filterKeyword");
-    const filterLocation = document.getElementById("filterLocation");
-    const keywordSuggestions = document.getElementById("keywordSuggestions");
-    const locationSuggestions = document.getElementById("locationSuggestions");
-    const jobList = document.getElementById("jobList");
-    const loadMoreContainer = document.getElementById("loadMoreContainer");
-    const loadMoreBtn = document.getElementById("loadMoreBtn");
+      let query = db.collection("jobs").orderBy("timestamp", "desc").limit(jobsPerPage);
+      if (lastVisible && !isNewSearch) {
+        query = query.startAfter(lastVisible);
+      }
 
-    let jobTitles = new Set();
-    let jobLocations = new Set();
-    let lastVisible = null; // Used for pagination
-    const jobsPerPage = 10;
+      const snapshot = await query.get();
+      if (isNewSearch) jobList.innerHTML = "";
 
-    async function fetchSuggestions() {
-      const snapshot = await db.collection("jobs").get();
-      snapshot.forEach(doc => {
-        const job = doc.data();
-        if (job.title) jobTitles.add(job.title);
-        if (job.company) jobTitles.add(job.company);
-        if (job.location) jobLocations.add(job.location);
-      });
+      if (snapshot.empty && isNewSearch) {
+        jobList.innerHTML = "<p class='text-gray-500 text-sm'>No jobs found.</p>";
+        return;
+      }
 
-      ["Delhi", "Mumbai", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad"].forEach(city => jobLocations.add(city));
-    }
+      lastVisible = snapshot.docs[snapshot.docs.length - 1];
 
-    function renderSuggestions(inputEl, suggestionsEl, dataSet) {
-      const val = inputEl.value.toLowerCase();
-      suggestionsEl.innerHTML = "";
-      if (!val) {
-        suggestionsEl.classList.add("hidden");
-        return;
-      }
-      let matched = [...dataSet].filter(item => item.toLowerCase().includes(val));
-      matched.slice(0, 8).forEach(item => {
-        const option = document.createElement("div");
-        option.className = "px-3 py-2 hover:bg-indigo-100 cursor-pointer";
-        option.textContent = item;
-        option.onclick = () => {
-          inputEl.value = item;
-          suggestionsEl.classList.add("hidden");
-          loadJobs(true);
-        };
-        suggestionsEl.appendChild(option);
-      });
-      suggestionsEl.classList.toggle("hidden", matched.length === 0);
-    }
+      snapshot.forEach(doc => {
+        const job = doc.data();
 
-    filterKeyword.addEventListener("input", () => renderSuggestions(filterKeyword, keywordSuggestions, jobTitles));
-    filterLocation.addEventListener("input", () => renderSuggestions(filterLocation, locationSuggestions, jobLocations));
+        // Convert Firestore timestamp to readable date
+        let postedDate = "";
+        if (job.timestamp && job.timestamp.toDate) {
+          const date = job.timestamp.toDate();
+          postedDate = date.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+          });
+        }
 
-    document.addEventListener("click", (e) => {
-      if (!keywordSuggestions.contains(e.target) && e.target !== filterKeyword) {
-        keywordSuggestions.classList.add("hidden");
-      }
-      if (!locationSuggestions.contains(e.target) && e.target !== filterLocation) {
-        locationSuggestions.classList.add("hidden");
-      }
-    });
+        const card = document.createElement("div");
+        card.className = "flex items-center justify-between border rounded-lg p-4 bg-white shadow-sm hover:shadow transition";
+        card.innerHTML = `
+          <div class="flex items-center gap-4">
+            <img src="${job.logoUrl || 'assets/default-logo.png'}" alt="${job.company}"
+                 class="w-12 h-12 rounded object-cover border" />
+            <div>
+              <h2 class="text-base font-semibold text-indigo-600">${job.title}</h2>
+              <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
+              <p class="text-xs text-gray-500">${job.location || "Location not specified"}</p>
+              ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate}</p>` : ""}
+            </div>
+          </div>
+          <a href="job-detail.html?id=${doc.id}"
+             class="bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-700 transition">
+             Apply
+          </a>
+        `;
+        jobList.appendChild(card);
+      });
 
-    async function loadJobs(isNewSearch = false) {
-      if (isNewSearch) {
-        jobList.innerHTML = "<p class='text-gray-600'>Searching...</p>";
-        lastVisible = null; // Reset pagination for a new search
-        loadMoreContainer.classList.add("hidden");
-      } else if (lastVisible === null && jobList.innerHTML !== "<p class='text-gray-600'>Searching...</p>") {
-        // Initial load
-        jobList.innerHTML = "<p class='text-gray-600'>Loading jobs...</p>";
-      }
+      if (snapshot.docs.length === jobsPerPage) {
+        loadMoreContainer.classList.remove("hidden");
+      } else {
+        loadMoreContainer.classList.add("hidden");
+      }
+    }
 
-      let query = db.collection("jobs").orderBy("timestamp", "desc");
-      const keyword = filterKeyword.value.toLowerCase();
-      const location = filterLocation.value.toLowerCase();
-
-      // Apply filters if keywords exist. Note: Firebase Firestore has limitations on
-      // complex queries (e.g., cannot do full-text search directly without a
-      // dedicated search index like Algolia or a specific `where` clause).
-      // For this code, the filtering is done client-side after fetching all data.
-      // If you have a large dataset, a dedicated search solution is better.
-
-      query = query.limit(jobsPerPage);
-      if (lastVisible && !isNewSearch) {
-        query = query.startAfter(lastVisible);
-      }
-      
-      const snapshot = await query.get();
-      
-      if (isNewSearch) {
-        jobList.innerHTML = ""; // Clear list for new search
-      }
-      
-      if (snapshot.empty && isNewSearch) {
-        jobList.innerHTML = "<p class='text-gray-600'>No jobs found.</p>";
-        return;
-      }
-
-      if (!snapshot.empty) {
-        lastVisible = snapshot.docs[snapshot.docs.length - 1];
-        snapshot.forEach(doc => {
-          const job = doc.data();
-          // Client-side filtering
-          const matchesKeyword = !keyword || (job.title.toLowerCase().includes(keyword) || (job.company && job.company.toLowerCase().includes(keyword)));
-          const matchesLocation = !location || (job.location && job.location.toLowerCase().includes(location));
-
-          if (matchesKeyword && matchesLocation) {
-            const card = document.createElement("div");
-            card.className = "border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition";
-            card.innerHTML = `
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex items-start gap-4">
-                  <img src="${job.logoUrl || 'assets/default-logo.png'}"
-                       alt="${job.company}"
-                       class="w-14 h-14 rounded-lg object-cover border" />
-                  <div>
-                    <h2 class="text-lg font-bold text-indigo-600">${job.title}</h2>
-                    <p class="text-gray-700">${job.company}</p>
-                    <p class="text-gray-500">${job.location}</p>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                      <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Full-time</span>
-                      <span class="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">Remote</span>
-                    </div>
-                  </div>
-                </div>
-                <a href="job-detail.html?id=${doc.id}"
-                   class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">
-                    Apply Now
-                </a>
-              </div>`;
-            jobList.appendChild(card);
-          }
-        });
-      }
-
-      if (snapshot.docs.length === jobsPerPage) {
-        loadMoreContainer.classList.remove("hidden");
-      } else {
-        loadMoreContainer.classList.add("hidden");
-      }
-    }
-
-    loadMoreBtn.addEventListener("click", () => {
-      loadJobs();
-    });
-
-    fetchSuggestions();
-    loadJobs(); // Initial call
-  </script>
-
-    <script type="application/ld+json">
-  {
-    "@context": "https://schema.org/",
-    "@type": "JobPosting",
-    "title": "Inside Sales Executive",
-    "description": "Apply for Inside Sales Executive positions at leading companies in India.",
-    "hiringOrganization": {
-      "@type": "Organization",
-      "name": "KARDAN",
-      "sameAs": "https://aizzdemon.github.io/kardan-job-portal/"
-    },
-    "jobLocation": {
-      "@type": "Place",
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "IN"
-      }
-    },
-    "employmentType": "FULL_TIME",
-    "datePosted": "2025-08-31"
-  }
-  </script>
+    loadMoreBtn.addEventListener("click", () => loadJobs());
+    loadJobs();
+  </script>
 </body>
 </html>
