@@ -1,15 +1,21 @@
-<!-- Full Profile Page with Updated Navigation + Jobs Pagination -->
+<!-- Full Profile Page with Fixed Navigation + Job Debug -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>User Profile - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  <!-- Font Awesome (working CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
 <body class="bg-gray-100">
@@ -51,10 +57,11 @@
     <p id="userUniversity" class="mb-1 text-gray-700"></p>
     <p id="userYear" class="mb-4 text-gray-700"></p>
 
+    <!-- Resume Upload -->
     <input type="file" id="resumeInput" accept=".pdf" class="mb-2" />
     <button onclick="uploadResume()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Upload Resume</button>
 
-    <!-- Action Buttons -->
+    <!-- Actions -->
     <div class="mt-4 space-y-2">
       <a href="post-job.html" class="block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"><i class="fas fa-plus-circle"></i> Post a Job</a>
       <a href="post-a-book.html" class="block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"><i class="fas fa-book"></i> Post a Book</a>
@@ -66,6 +73,7 @@
 
   <!-- Listings Section -->
   <div class="md:w-2/3 bg-white p-6 rounded shadow">
+    <!-- Jobs -->
     <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
     <table class="min-w-full text-sm mb-4">
       <thead>
@@ -81,12 +89,14 @@
     </table>
     <button id="loadMoreJobs" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 hidden">Load More</button>
 
+    <!-- Books -->
     <h2 class="text-xl font-bold mt-8 mb-4">Your Posted Books</h2>
     <table class="min-w-full text-sm mb-8">
       <thead><tr class="bg-gray-200"><th class="px-4 py-2">Title</th><th class="px-4 py-2">Price</th><th class="px-4 py-2">Actions</th></tr></thead>
       <tbody id="booksTableBody"></tbody>
     </table>
 
+    <!-- Places -->
     <h2 class="text-xl font-bold mb-4">Your Posted Places</h2>
     <table class="min-w-full text-sm">
       <thead><tr class="bg-gray-200"><th class="px-4 py-2">Name</th><th class="px-4 py-2">Type</th><th class="px-4 py-2">Location</th><th class="px-4 py-2">Map</th><th class="px-4 py-2">Actions</th></tr></thead>
@@ -132,6 +142,11 @@
       document.getElementById("userUniversity").textContent = "University: " + (data.university || "N/A");
       document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
     }
+
+    // Debug: see jobs in console
+    db.collection("jobs").where("uid", "==", user.uid).get().then(snap => {
+      console.log("Jobs for user:", user.uid, snap.docs.map(d => d.data()));
+    });
 
     loadJobs(user.uid);
 
@@ -228,4 +243,3 @@
 </script>
 </body>
 </html>
-
