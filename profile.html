@@ -1,76 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>User Profile - KARDAN</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- TailwindCSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
-
-  <!-- FontAwesome for Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- FontAwesome for icons -->
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-
 </head>
 <body class="bg-gray-100">
 
   <!-- Navbar -->
-  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-    <a href="home.html" class="text-2xl font-bold text-green-600">KARDAN</a>
-    <div class="flex space-x-4">
-      <a href="home.html" class="flex items-center text-gray-700 hover:text-green-600">
-        <i class="fas fa-home mr-1"></i> Home
-      </a>
-      <a href="jobs.html" class="flex items-center text-gray-700 hover:text-green-600">
-        <i class="fas fa-briefcase mr-1"></i> Jobs
-      </a>
-      <a href="companies.html" class="flex items-center text-gray-700 hover:text-green-600">
-        <i class="fas fa-building mr-1"></i> Companies
-      </a>
-      <a href="places-to-hangout.html" class="flex items-center text-gray-700 hover:text-green-600">
-        <i class="fas fa-map-marker-alt mr-1"></i> Places
-      </a>
-      <a href="profile.html" class="flex items-center text-gray-700 hover:text-green-600">
-        <i class="fas fa-user mr-1"></i> Profile
-      </a>
-      <button id="logoutBtn" class="flex items-center text-red-600 hover:text-red-800">
-        <i class="fas fa-sign-out-alt mr-1"></i> Logout
-      </button>
+  <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold text-green-600">KARDAN</a>
+    <div class="flex gap-4">
+      <a href="home.html" class="flex items-center text-gray-700 hover:text-green-600"><i class="fas fa-home mr-1"></i> Home</a>
+      <a href="jobs.html" class="flex items-center text-gray-700 hover:text-green-600"><i class="fas fa-briefcase mr-1"></i> Jobs</a>
+      <a href="companies.html" class="flex items-center text-gray-700 hover:text-green-600"><i class="fas fa-building mr-1"></i> Companies</a>
+      <a href="places-to-hangout.html" class="flex items-center text-gray-700 hover:text-green-600"><i class="fas fa-map-marker-alt mr-1"></i> Hangout Places</a>
+      <a href="profile.html" class="flex items-center text-gray-700 hover:text-green-600"><i class="fas fa-user mr-1"></i> Profile</a>
+      <button id="logoutBtn" class="flex items-center text-red-500 hover:text-red-700"><i class="fas fa-sign-out-alt mr-1"></i> Logout</button>
     </div>
   </nav>
 
   <!-- Profile Layout -->
   <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
 
-    <!-- Left: User Info -->
-    <div class="bg-white p-6 rounded-lg shadow">
-      <div class="text-center">
-        <img id="profilePic" class="w-24 h-24 rounded-full mx-auto mb-4" src="https://via.placeholder.com/100" alt="Profile Picture">
-        <h2 id="username" class="text-xl font-bold">User Name</h2>
-        <p id="email" class="text-gray-600">user@example.com</p>
-      </div>
-      <hr class="my-4">
-      <div>
-        <h3 class="font-semibold mb-2">Details</h3>
-        <p id="experience" class="text-gray-700">Experience: N/A</p>
-        <p id="education" class="text-gray-700">Education: N/A</p>
-        <p id="university" class="text-gray-700">University: N/A</p>
-        <p id="passingYear" class="text-gray-700">Passing Year: N/A</p>
-        <a id="resumeLink" href="#" target="_blank" class="text-green-600 underline hidden">View Resume</a>
-      </div>
+    <!-- Left Column -->
+    <div class="bg-white p-6 rounded shadow">
+      <h2 class="text-xl font-bold mb-4">User Info</h2>
+      <p id="userEmail" class="text-gray-700"></p>
     </div>
 
-    <!-- Right: Actions + User Posts -->
-    <div class="md:col-span-2 space-y-6">
+    <!-- Right Column -->
+    <div class="md:col-span-2 flex flex-col gap-6">
 
       <!-- Quick Actions -->
-      <div class="bg-white p-4 rounded shadow mb-6">
+      <div class="bg-white p-4 rounded shadow">
         <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
         <div class="flex flex-wrap gap-4">
           <a href="post-job.html" class="flex items-center bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition">
@@ -85,20 +54,17 @@
         </div>
       </div>
 
-      <!-- User Posted Jobs -->
-      <div class="bg-white p-6 rounded-lg shadow">
+      <!-- Posted Jobs -->
+      <div class="bg-white p-4 rounded shadow">
         <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
-        <div id="jobsList" class="space-y-4">
-          <!-- Jobs will load here -->
-        </div>
-        <button id="loadMoreBtn" class="mt-4 bg-gray-200 px-4 py-2 rounded hover:bg-gray-300 hidden">Show More</button>
+        <ul id="jobsList" class="space-y-4"></ul>
       </div>
 
     </div>
   </div>
 
   <script>
-    // Firebase config
+    // Firebase config (already set in your project)
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
@@ -112,83 +78,63 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Logout
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      auth.signOut().then(() => {
-        window.location.href = "login.html";
-      });
-    });
-
-    // Load Profile
-    auth.onAuthStateChanged(async (user) => {
+    // Show user email
+    auth.onAuthStateChanged(user => {
       if (user) {
-        document.getElementById("username").innerText = user.displayName || "No Name";
-        document.getElementById("email").innerText = user.email;
-        if (user.photoURL) document.getElementById("profilePic").src = user.photoURL;
-
-        // Load Jobs
+        document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
         loadJobs(user.uid);
       } else {
         window.location.href = "login.html";
       }
     });
 
-    let lastVisible = null;
-    const jobsList = document.getElementById("jobsList");
-    const loadMoreBtn = document.getElementById("loadMoreBtn");
+    // Load user's jobs with date
+    function loadJobs(uid) {
+      const jobsList = document.getElementById("jobsList");
+      jobsList.innerHTML = "<p class='text-gray-500'>Loading...</p>";
 
-    function loadJobs(uid, nextPage = false) {
-      let query = db.collection("jobs")
+      db.collection("jobs")
         .where("uid", "==", uid)
         .orderBy("timestamp", "desc")
-        .limit(5);
-
-      if (nextPage && lastVisible) {
-        query = query.startAfter(lastVisible);
-      }
-
-      query.get().then((snapshot) => {
-        if (!snapshot.empty) {
-          lastVisible = snapshot.docs[snapshot.docs.length - 1];
-          snapshot.forEach((doc) => {
-            const job = doc.data();
-            const div = document.createElement("div");
-            div.className = "p-4 border rounded flex justify-between items-center";
-            div.innerHTML = `
-              <div>
-                <h3 class="font-bold">${job.title}</h3>
-                <p class="text-gray-600">${job.location}</p>
-              </div>
-              <div class="flex space-x-2">
-                <a href="edit-job.html?id=${doc.id}" class="text-blue-600 hover:underline">Edit</a>
-                <button onclick="deleteJob('${doc.id}')" class="text-red-600 hover:underline">Delete</button>
-              </div>
-            `;
-            jobsList.appendChild(div);
-          });
-          loadMoreBtn.classList.remove("hidden");
-        } else if (!nextPage) {
-          jobsList.innerHTML = "<p class='text-gray-500'>No jobs posted yet.</p>";
-        } else {
-          loadMoreBtn.classList.add("hidden");
-        }
-      });
-    }
-
-    loadMoreBtn.addEventListener("click", () => {
-      const user = auth.currentUser;
-      if (user) loadJobs(user.uid, true);
-    });
-
-    function deleteJob(id) {
-      if (confirm("Delete this job?")) {
-        db.collection("jobs").doc(id).delete().then(() => {
-          alert("Job deleted!");
+        .get()
+        .then(snapshot => {
           jobsList.innerHTML = "";
-          loadJobs(auth.currentUser.uid);
+          if (snapshot.empty) {
+            jobsList.innerHTML = "<p class='text-gray-500'>No jobs posted yet.</p>";
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const job = doc.data();
+            const datePosted = job.timestamp 
+              ? job.timestamp.toDate().toLocaleDateString()
+              : "Date not available";
+
+            const li = document.createElement("li");
+            li.className = "p-4 border rounded flex justify-between items-center";
+            li.innerHTML = `
+              <div>
+                <h3 class="text-lg font-semibold">${job.title || "Untitled Job"}</h3>
+                <p class="text-gray-600">${job.location || "No location"}</p>
+                <p class="text-sm text-gray-500">Posted on: ${datePosted}</p>
+              </div>
+              <a href="${job.applyLink || '#'}" target="_blank" class="text-green-600 hover:underline">Apply</a>
+            `;
+            jobsList.appendChild(li);
+          });
+        })
+        .catch(err => {
+          console.error("Error loading jobs: ", err);
+          jobsList.innerHTML = "<p class='text-red-500'>Error loading jobs.</p>";
         });
-      }
     }
+
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    });
   </script>
 </body>
 </html>
