@@ -14,7 +14,7 @@
 </head>
 <body class="bg-gray-100">
 
- <!-- Navigation Bar -->
+<!-- Navigation Bar -->
 <nav class="bg-white shadow-md py-3 px-4 flex flex-wrap justify-between items-center">
   <a href="index.html" class="text-orange-500 font-bold text-xl">KARDAN</a>
   <div class="flex flex-wrap gap-2 mt-2 md:mt-0">
@@ -42,172 +42,195 @@
   </div>
 </nav>
 
+<header>
+  <h1 class="text-3xl font-bold text-center mt-6">Your Profile</h1>
+</header>
 
-  <header>
-    <h1 class="text-3xl font-bold text-center mt-6">Your Profile</h1>
-  </header>
+<div class="flex flex-col md:flex-row max-w-6xl mx-auto mt-10 gap-6">
+  <!-- Profile Info -->
+  <div class="md:w-1/3 bg-white p-6 rounded shadow text-center">
+    <p id="userName" class="text-xl font-semibold text-gray-700 mb-2"></p>
+    <p id="userEmail" class="mb-2 text-gray-600"></p>
+    <p id="userRole" class="mb-2 text-blue-600 font-semibold"></p>
+    <p id="userExperience" class="mb-1 text-gray-700"></p>
+    <p id="userEducation" class="mb-1 text-gray-700"></p>
+    <p id="userUniversity" class="mb-1 text-gray-700"></p>
+    <p id="userYear" class="mb-4 text-gray-700"></p>
 
-  <div class="flex flex-col md:flex-row max-w-6xl mx-auto mt-10 gap-6">
-    <!-- Profile Info -->
-    <div class="md:w-1/3 bg-white p-6 rounded shadow text-center">
-      <p id="userName" class="text-xl font-semibold text-gray-700 mb-2"></p>
-      <p id="userEmail" class="mb-2 text-gray-600"></p>
-      <p id="userRole" class="mb-2 text-blue-600 font-semibold"></p>
-      <p id="userExperience" class="mb-1 text-gray-700"></p>
-      <p id="userEducation" class="mb-1 text-gray-700"></p>
-      <p id="userUniversity" class="mb-1 text-gray-700"></p>
-      <p id="userYear" class="mb-4 text-gray-700"></p>
+    <input type="file" id="resumeInput" accept=".pdf" class="mb-2" />
+    <button onclick="uploadResume()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Upload Resume</button>
 
-      <input type="file" id="resumeInput" accept=".pdf" class="mb-2" />
-      <button onclick="uploadResume()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Upload Resume</button>
-
-      <!-- Action Buttons -->
-      <div class="mt-4 space-y-2">
-        <a href="post-job.html" class="block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"><i class="fas fa-plus-circle"></i> Post a Job</a>
-        <a href="post-a-book.html" class="block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"><i class="fas fa-book"></i> Post a Book</a>
-        <a href="post-a-place.html" class="block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"><i class="fas fa-map-marker-alt"></i> Post a Place</a>
-      </div>
-
-      <button onclick="logout()" class="block mt-6 text-red-500 underline">Logout</button>
+    <!-- Action Buttons -->
+    <div class="mt-4 space-y-2">
+      <a href="post-job.html" class="block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"><i class="fas fa-plus-circle"></i> Post a Job</a>
+      <a href="post-a-book.html" class="block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"><i class="fas fa-book"></i> Post a Book</a>
+      <a href="post-a-place.html" class="block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600"><i class="fas fa-map-marker-alt"></i> Post a Place</a>
     </div>
 
-    <!-- Listings Section -->
-    <div class="md:w-2/3 bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
-      <table class="min-w-full text-sm mb-4">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="px-4 py-2">Title</th>
-            <th class="px-4 py-2">Location</th>
-            <th class="px-4 py-2">Date</th>
-            <th class="px-4 py-2">Link</th>
-            <th class="px-4 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="jobsTableBody"></tbody>
-      </table>
-      <button id="loadMoreJobs" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 hidden">Load More</button>
-
-      <h2 class="text-xl font-bold mt-8 mb-4">Your Posted Books</h2>
-      <table class="min-w-full text-sm mb-8">
-        <thead><tr class="bg-gray-200"><th class="px-4 py-2">Title</th><th class="px-4 py-2">Price</th><th class="px-4 py-2">Actions</th></tr></thead>
-        <tbody id="booksTableBody"></tbody>
-      </table>
-
-      <h2 class="text-xl font-bold mb-4">Your Posted Places</h2>
-      <table class="min-w-full text-sm">
-        <thead><tr class="bg-gray-200"><th class="px-4 py-2">Name</th><th class="px-4 py-2">Type</th><th class="px-4 py-2">Location</th><th class="px-4 py-2">Map</th><th class="px-4 py-2">Actions</th></tr></thead>
-        <tbody id="placesTableBody"></tbody>
-      </table>
-    </div>
+    <button onclick="logout()" class="block mt-6 text-red-500 underline">Logout</button>
   </div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-      authDomain: "kar-kardan.firebaseapp.com",
-      projectId: "kar-kardan",
-      storageBucket: "kar-kardan.appspot.com",
-      messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-    };
+  <!-- Listings Section -->
+  <div class="md:w-2/3 bg-white p-6 rounded shadow">
+    <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
+    <table class="min-w-full text-sm mb-4">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2">Title</th>
+          <th class="px-4 py-2">Location</th>
+          <th class="px-4 py-2">Date</th>
+          <th class="px-4 py-2">Link</th>
+          <th class="px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="jobsTableBody"></tbody>
+    </table>
+    <button id="loadMoreJobs" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 hidden">Load More</button>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
+    <h2 class="text-xl font-bold mt-8 mb-4">Your Posted Books</h2>
+    <table class="min-w-full text-sm mb-8">
+      <thead><tr class="bg-gray-200"><th class="px-4 py-2">Title</th><th class="px-4 py-2">Price</th><th class="px-4 py-2">Actions</th></tr></thead>
+      <tbody id="booksTableBody"></tbody>
+    </table>
 
-    const jobsTableBody = document.getElementById("jobsTableBody");
-    const booksTableBody = document.getElementById("booksTableBody");
-    const placesTableBody = document.getElementById("placesTableBody");
-    const loadMoreBtn = document.getElementById("loadMoreJobs");
+    <h2 class="text-xl font-bold mb-4">Your Posted Places</h2>
+    <table class="min-w-full text-sm">
+      <thead><tr class="bg-gray-200"><th class="px-4 py-2">Name</th><th class="px-4 py-2">Type</th><th class="px-4 py-2">Location</th><th class="px-4 py-2">Map</th><th class="px-4 py-2">Actions</th></tr></thead>
+      <tbody id="placesTableBody"></tbody>
+    </table>
+  </div>
+</div>
 
-    let lastJobDoc = null;
-    const JOBS_LIMIT = 5;
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan",
+    storageBucket: "kar-kardan.appspot.com",
+    messagingSenderId: "554147696994",
+    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  };
 
-    auth.onAuthStateChanged(async user => {
-      if (!user) return location.href = "login.html";
-      document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
 
-      const doc = await db.collection("users").doc(user.uid).get();
-      if (doc.exists) {
-        const data = doc.data();
-        document.getElementById("userRole").textContent = "Role: " + (data.role || "employee");
-        document.getElementById("userName").textContent = data.name || "";
-        document.getElementById("userExperience").textContent = "Experience: " + (data.experience || "N/A");
-        document.getElementById("userEducation").textContent = "Education: " + (data.education || "N/A");
-        document.getElementById("userUniversity").textContent = "University: " + (data.university || "N/A");
-        document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
-      }
+  const jobsTableBody = document.getElementById("jobsTableBody");
+  const booksTableBody = document.getElementById("booksTableBody");
+  const placesTableBody = document.getElementById("placesTableBody");
+  const loadMoreBtn = document.getElementById("loadMoreJobs");
 
-      loadJobs(user.uid);
+  let lastJobDoc = null;
+  const JOBS_LIMIT = 5;
 
-      db.collection("books").where("uid", "==", user.uid).onSnapshot(snapshot => {
-        booksTableBody.innerHTML = '';
-        snapshot.forEach(doc => {
-          const book = doc.data();
-          booksTableBody.innerHTML += `<tr class="border-t"><td class="px-4 py-2">${book.title}</td><td class="px-4 py-2">₹${book.price}</td><td class="px-4 py-2"><button onclick="editBook('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button> <button onclick="deleteBook('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td></tr>`;
-        });
-      });
+  auth.onAuthStateChanged(async user => {
+    if (!user) return location.href = "login.html";
+    document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
 
-      db.collection("places").where("uid", "==", user.uid).onSnapshot(snapshot => {
-        placesTableBody.innerHTML = '';
-        snapshot.forEach(doc => {
-          const place = doc.data();
-          placesTableBody.innerHTML += `<tr class="border-t"><td class="px-4 py-2">${place.name}</td><td class="px-4 py-2">${place.type}</td><td class="px-4 py-2">${place.location}</td><td class="px-4 py-2"><a href="${place.mapLink}" class="text-blue-500 underline">View Map</a></td><td class="px-4 py-2"><button onclick="editPlace('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button> <button onclick="deletePlace('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td></tr>`;
-        });
+    const docSnap = await db.collection("users").doc(user.uid).get();
+    if (docSnap.exists) {
+      const data = docSnap.data();
+      document.getElementById("userRole").textContent = "Role: " + (data.role || "employee");
+      document.getElementById("userName").textContent = data.name || "";
+      document.getElementById("userExperience").textContent = "Experience: " + (data.experience || "N/A");
+      document.getElementById("userEducation").textContent = "Education: " + (data.education || "N/A");
+      document.getElementById("userUniversity").textContent = "University: " + (data.university || "N/A");
+      document.getElementById("userYear").textContent = "Passing Year: " + (data.passingYear || "N/A");
+    }
+
+    loadJobs(user.uid);
+
+    // Books listener
+    db.collection("books").where("uid", "==", user.uid).onSnapshot(snapshot => {
+      booksTableBody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const book = doc.data();
+        booksTableBody.innerHTML += `
+          <tr class="border-t">
+            <td class="px-4 py-2">${book.title}</td>
+            <td class="px-4 py-2">₹${book.price}</td>
+            <td class="px-4 py-2">
+              <button onclick="editBook('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button>
+              <button onclick="deleteBook('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+            </td>
+          </tr>`;
       });
     });
 
-    function loadJobs(uid) {
-      let query = db.collection("jobs")
-        .where("uid", "==", uid)
-        .orderBy("timestamp", "desc")
-        .limit(JOBS_LIMIT);
-
-      if (lastJobDoc) {
-        query = query.startAfter(lastJobDoc);
-      }
-
-      query.get().then(snapshot => {
-        if (!snapshot.empty) {
-          lastJobDoc = snapshot.docs[snapshot.docs.length - 1];
-          snapshot.forEach(doc => {
-            const job = doc.data();
-            const date = job.timestamp?.toDate().toLocaleDateString() || "N/A";
-            jobsTableBody.innerHTML += `<tr class="border-t"><td class="px-4 py-2">${job.title}</td><td class="px-4 py-2">${job.location}</td><td class="px-4 py-2">${date}</td><td class="px-4 py-2"><a href="${job.applyLink}" class="text-blue-500 underline">Apply</a></td><td class="px-4 py-2"><button onclick="editJob('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button> <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button></td></tr>`;
-          });
-          loadMoreBtn.classList.remove("hidden");
-        } else {
-          loadMoreBtn.classList.add("hidden");
-        }
+    // Places listener
+    db.collection("places").where("uid", "==", user.uid).onSnapshot(snapshot => {
+      placesTableBody.innerHTML = '';
+      snapshot.forEach(doc => {
+        const place = doc.data();
+        placesTableBody.innerHTML += `
+          <tr class="border-t">
+            <td class="px-4 py-2">${place.name}</td>
+            <td class="px-4 py-2">${place.type}</td>
+            <td class="px-4 py-2">${place.location}</td>
+            <td class="px-4 py-2"><a href="${place.mapLink}" class="text-blue-500 underline" target="_blank">View Map</a></td>
+            <td class="px-4 py-2">
+              <button onclick="editPlace('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button>
+              <button onclick="deletePlace('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+            </td>
+          </tr>`;
       });
-    }
-
-    loadMoreBtn.addEventListener("click", () => {
-      const user = auth.currentUser;
-      if (user) loadJobs(user.uid);
     });
+  });
 
-    function uploadResume() {
-      const file = document.getElementById("resumeInput").files[0];
-      if (!file) return alert("Select a file");
-      const user = auth.currentUser;
-      const ref = storage.ref(`resumes/${user.uid}/${file.name}`);
-      ref.put(file).then(() => alert("Resume uploaded"));
-    }
+  function loadJobs(uid) {
+    let query = db.collection("jobs").where("uid", "==", uid).orderBy("timestamp", "desc").limit(JOBS_LIMIT);
+    if (lastJobDoc) query = query.startAfter(lastJobDoc);
 
-    function logout() {
-      auth.signOut().then(() => location.href = "login.html");
-    }
+    query.get().then(snapshot => {
+      if (!snapshot.empty) {
+        lastJobDoc = snapshot.docs[snapshot.docs.length - 1];
+        snapshot.forEach(doc => {
+          const job = doc.data();
+          const date = job.timestamp && job.timestamp.toDate ? job.timestamp.toDate().toLocaleDateString() : "N/A";
+          jobsTableBody.innerHTML += `
+            <tr class="border-t">
+              <td class="px-4 py-2">${job.title || "Untitled"}</td>
+              <td class="px-4 py-2">${job.location || "N/A"}</td>
+              <td class="px-4 py-2">${date}</td>
+              <td class="px-4 py-2"><a href="${job.applyLink || "#"}" class="text-blue-500 underline" target="_blank">Apply</a></td>
+              <td class="px-4 py-2">
+                <button onclick="editJob('${doc.id}')" class="bg-yellow-400 text-white px-2 py-1 rounded">Edit</button>
+                <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+              </td>
+            </tr>`;
+        });
+        loadMoreBtn.classList.remove("hidden");
+      } else {
+        loadMoreBtn.classList.add("hidden");
+      }
+    }).catch(err => console.error("Error loading jobs:", err));
+  }
 
-    function editJob(id) { location.href = `edit-job.html?id=${id}`; }
-    function deleteJob(id) { if (confirm("Delete this job?")) db.collection("jobs").doc(id).delete(); }
-    function editBook(id) { location.href = `edit-book.html?id=${id}`; }
-    function deleteBook(id) { if (confirm("Delete this book?")) db.collection("books").doc(id).delete(); }
-    function editPlace(id) { location.href = `edit-place.html?id=${id}`; }
-    function deletePlace(id) { if (confirm("Delete this place?")) db.collection("places").doc(id).delete(); }
-  </script>
+  loadMoreBtn.addEventListener("click", () => {
+    const user = auth.currentUser;
+    if (user) loadJobs(user.uid);
+  });
+
+  function uploadResume() {
+    const file = document.getElementById("resumeInput").files[0];
+    if (!file) return alert("Select a file");
+    const user = auth.currentUser;
+    const ref = storage.ref(`resumes/${user.uid}/${file.name}`);
+    ref.put(file).then(() => alert("Resume uploaded"));
+  }
+
+  function logout() {
+    auth.signOut().then(() => location.href = "login.html");
+  }
+
+  // Edit/Delete helpers
+  function editJob(id) { location.href = `edit-job.html?id=${id}`; }
+  function deleteJob(id) { if (confirm("Delete this job?")) db.collection("jobs").doc(id).delete(); }
+  function editBook(id) { location.href = `edit-book.html?id=${id}`; }
+  function deleteBook(id) { if (confirm("Delete this book?")) db.collection("books").doc(id).delete(); }
+  function editPlace(id) { location.href = `edit-place.html?id=${id}`; }
+  function deletePlace(id) { if (confirm("Delete this place?")) db.collection("places").doc(id).delete(); }
+</script>
 </body>
 </html>
-
