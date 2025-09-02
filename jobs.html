@@ -53,12 +53,14 @@
     <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Latest Jobs in India</h1>
 
     <div class="flex flex-col md:flex-row gap-3 mb-6">
+      <!-- Title/Company Search -->
       <div class="relative flex-1">
         <input type="text" id="filterKeyword" placeholder="Search by title or company"
                class="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-indigo-500 outline-none" autocomplete="off">
         <div id="keywordSuggestions"
              class="absolute bg-white border rounded-lg w-full mt-1 shadow hidden max-h-48 overflow-y-auto z-20"></div>
       </div>
+      <!-- Location Search -->
       <div class="relative flex-1">
         <input type="text" id="filterLocation" placeholder="Location"
                class="border rounded-lg px-4 py-2 w-full text-sm focus:ring-2 focus:ring-indigo-500 outline-none" autocomplete="off">
@@ -101,22 +103,26 @@
     const db = firebase.firestore();
   </script>
 
-  <!-- Job Listing Logic -->
+  <!-- Job Listing Logic with Search + Suggestions -->
   <script>
     const filterKeyword = document.getElementById("filterKeyword");
     const filterLocation = document.getElementById("filterLocation");
+    const keywordSuggestions = document.getElementById("keywordSuggestions");
+    const locationSuggestions = document.getElementById("locationSuggestions");
     const jobList = document.getElementById("jobList");
     const loadMoreContainer = document.getElementById("loadMoreContainer");
     const loadMoreBtn = document.getElementById("loadMoreBtn");
 
     let lastVisible = null;
     const jobsPerPage = 10;
+    let allJobsCache = []; // keep all jobs for filtering
 
     async function loadJobs(isNewSearch = false) {
       if (isNewSearch) {
         jobList.innerHTML = "<p class='text-gray-500 text-sm'>Searching...</p>";
         lastVisible = null;
         loadMoreContainer.classList.add("hidden");
+        allJobsCache = [];
       }
 
       let query = db.collection("jobs").orderBy("timestamp", "desc").limit(jobsPerPage);
@@ -136,37 +142,8 @@
 
       snapshot.forEach(doc => {
         const job = doc.data();
-
-        // Convert Firestore timestamp to readable date
-        let postedDate = "";
-        if (job.timestamp && job.timestamp.toDate) {
-          const date = job.timestamp.toDate();
-          postedDate = date.toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric"
-          });
-        }
-
-        const card = document.createElement("div");
-        card.className = "flex items-center justify-between border rounded-lg p-4 bg-white shadow-sm hover:shadow transition";
-        card.innerHTML = `
-          <div class="flex items-center gap-4">
-            <img src="${job.logoUrl || 'assets/default-logo.png'}" alt="${job.company}"
-                 class="w-12 h-12 rounded object-cover border" />
-            <div>
-              <h2 class="text-base font-semibold text-indigo-600">${job.title}</h2>
-              <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
-              <p class="text-xs text-gray-500">${job.location || "Location not specified"}</p>
-              ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate}</p>` : ""}
-            </div>
-          </div>
-          <a href="job-detail.html?id=${doc.id}"
-             class="bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-700 transition">
-             Apply
-          </a>
-        `;
-        jobList.appendChild(card);
+        allJobsCache.push({ id: doc.id, ...job });
+        renderJobCard(doc.id, job);
       });
 
       if (snapshot.docs.length === jobsPerPage) {
@@ -174,6 +151,75 @@
       } else {
         loadMoreContainer.classList.add("hidden");
       }
+
+      updateSuggestions();
+    }
+
+    function renderJobCard(id, job) {
+      let postedDate = "";
+      if (job.timestamp && job.timestamp.toDate) {
+        const date = job.timestamp.toDate();
+        postedDate = date.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        });
+      }
+
+      const card = document.createElement("div");
+      card.className = "flex items-center justify-between border rounded-lg p-4 bg-white shadow-sm hover:shadow transition";
+      card.innerHTML = `
+        <div class="flex items-center gap-4">
+          <img src="${job.logoUrl || 'assets/default-logo.png'}" alt="${job.company}"
+               class="w-12 h-12 rounded object-cover border" />
+          <div>
+            <h2 class="text-base font-semibold text-indigo-600">${job.title}</h2>
+            <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
+            <p class="text-xs text-gray-500">${job.location || "Location not specified"}</p>
+            ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate}</p>` : ""}
+          </div>
+        </div>
+        <a href="job-detail.html?id=${id}"
+           class="bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-700 transition">
+           Apply
+        </a>
+      `;
+      jobList.appendChild(card);
+    }
+
+    // Update suggestions for keyword + location
+    function updateSuggestions() {
+      const keywords = [...new Set(allJobsCache.map(job => job.title).concat(allJobsCache.map(job => job.company)))];
+      const locations = [...new Set(allJobsCache.map(job => job.location).filter(Boolean))];
+
+      function showSuggestions(input, suggestions, container) {
+        container.innerHTML = "";
+        const value = input.value.toLowerCase();
+        if (!value) {
+          container.classList.add("hidden");
+          return;
+        }
+        const filtered = suggestions.filter(s => s && s.toLowerCase().includes(value)).slice(0, 10);
+        if (filtered.length === 0) {
+          container.classList.add("hidden");
+          return;
+        }
+        filtered.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "px-3 py-2 text-sm hover:bg-indigo-50 cursor-pointer";
+          div.textContent = item;
+          div.onclick = () => {
+            input.value = item;
+            container.classList.add("hidden");
+            loadJobs(true);
+          };
+          container.appendChild(div);
+        });
+        container.classList.remove("hidden");
+      }
+
+      filterKeyword.addEventListener("input", () => showSuggestions(filterKeyword, keywords, keywordSuggestions));
+      filterLocation.addEventListener("input", () => showSuggestions(filterLocation, locations, locationSuggestions));
     }
 
     loadMoreBtn.addEventListener("click", () => loadJobs());
