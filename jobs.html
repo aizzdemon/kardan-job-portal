@@ -8,6 +8,14 @@
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
+  <!-- ✅ ACLIB Script (placed right after first library script) -->
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+  <script type="text/javascript">
+      aclib.runAutoTag({
+          zoneId: 'alhhhy9moj',
+      });
+  </script>
+
   <!-- FontAwesome for icons -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
@@ -56,7 +64,7 @@
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
       projectId: "kar-kardan",
-      storageBucket: "kar-kardan.appspot.com",  // ✅ fixed
+      storageBucket: "kar-kardan.appspot.com",
       messagingSenderId: "554147696994",
       appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
       measurementId: "G-RRC3X485KQ"
@@ -122,7 +130,7 @@
         "@context": "https://schema.org/",
         "@type": "JobPosting",
         "title": job.title || "Job Opening",
-        "description": job.about || "Exciting job opportunity.",  // ✅ fixed field
+        "description": job.about || "Exciting job opportunity.",
         "datePosted": postedDate || new Date().toISOString(),
         "employmentType": job.type || "FULL_TIME",
         "hiringOrganization": {
@@ -145,7 +153,7 @@
             "@type": "QuantitativeValue",
             "value": job.salary && /\d/.test(job.salary) 
               ? job.salary.replace(/[^0-9]/g, "") 
-              : "0",   // ✅ improved
+              : "0",
             "unitText": "MONTH"
           }
         },
