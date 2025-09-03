@@ -4,18 +4,92 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KARDAN - Job Portal</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="KARDAN Job Portal - Find jobs, buy books, explore companies, and connect with career opportunities.">
+  <meta name="keywords" content="KARDAN, job portal, jobs, careers, companies, books, hiring, employment">
+  <meta name="author" content="KARDAN">
+  <link rel="canonical" href="https://your-domain.com/">
+
+  <!-- Open Graph for Social Sharing -->
+  <meta property="og:title" content="KARDAN - Job Portal">
+  <meta property="og:description" content="Discover jobs, companies, and career opportunities at KARDAN.">
+  <meta property="og:image" content="https://your-domain.com/preview-image.jpg">
+  <meta property="og:url" content="https://your-domain.com/">
+  <meta property="og:type" content="website">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="KARDAN - Job Portal">
+  <meta name="twitter:description" content="Discover jobs, companies, and career opportunities at KARDAN.">
+  <meta name="twitter:image" content="https://your-domain.com/preview-image.jpg">
+
+  <!-- Structured Data (Example Job Posting) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": "Inside Sales Executive",
+    "description": "We are looking for an Inside Sales Executive to join our dynamic team at Indeed. The candidate will be responsible for handling inbound sales inquiries and generating leads.",
+    "identifier": {
+      "@type": "PropertyValue",
+      "name": "Indeed",
+      "value": "123456"
+    },
+    "datePosted": "2025-09-01",
+    "validThrough": "2025-10-01T23:59",
+    "employmentType": "FULL_TIME",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": "Indeed",
+      "sameAs": "https://www.indeed.com",
+      "logo": "https://your-domain.com/logo.png"
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "123 Business Street",
+        "addressLocality": "Bangalore",
+        "addressRegion": "KA",
+        "postalCode": "560001",
+        "addressCountry": "IN"
+      }
+    },
+    "baseSalary": {
+      "@type": "MonetaryAmount",
+      "currency": "INR",
+      "value": {
+        "@type": "QuantitativeValue",
+        "value": 30000,
+        "unitText": "MONTH"
+      }
+    }
+  }
+  </script>
+
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 text-gray-800">
 
   <!-- Navigation Bar -->
-  <nav class="flex items-center justify-between px-6 py-4 bg-white shadow-md">
+  <nav class="flex flex-wrap items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-50">
     <!-- Logo -->
-    <a href="index.html" class="text-xl font-bold text-white px-4 py-2 rounded-lg shadow-md bg-gradient-to-r from-orange-400 to-red-500">KARDAN</a>
+    <a href="index.html" class="text-xl font-bold text-white px-4 py-2 rounded-lg shadow-md bg-gradient-to-r from-orange-400 to-red-500">
+      KARDAN
+    </a>
     
+    <!-- Hamburger Menu (Mobile) -->
+    <button id="menu-btn" class="block lg:hidden text-gray-700 focus:outline-none">
+      <i class="fas fa-bars text-2xl"></i>
+    </button>
+
     <!-- Navigation Links -->
-    <div class="flex gap-3">
+    <div id="menu" class="hidden w-full lg:flex lg:w-auto flex-col lg:flex-row mt-3 lg:mt-0 gap-2 lg:gap-3">
       <a href="index.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
         <i class="fas fa-home mr-2"></i> Home
       </a>
@@ -38,13 +112,12 @@
   </nav>
 
   <!-- Amazon Ad Card -->
-<div class="flex justify-center mt-6">
+  <div class="flex justify-center mt-6 px-4">
     <a href="https://www.amazon.in/b?node=50916365031&linkCode=ll2&tag=rameejalaam-21&linkId=532c066827192b7fb2b80bcea884c27f&language=en_IN&ref_=as_li_ss_tl" 
-       target="_blank" 
-       class="flex items-center bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition p-2 w-11/12 md:w-3/4 lg:w-1/2">
-      <!-- Replace this image with any Amazon CDN image -->
+       target="_blank" rel="nofollow noopener noreferrer"
+       class="flex items-center bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition p-2 w-full sm:w-11/12 md:w-3/4 lg:w-1/2">
       <img src="https://m.media-amazon.com/images/I/71zkI-t5dWL._AC_UL480_.jpg" 
-           alt="Amazon Ad" 
+           alt="Amazon Product Ad" 
            class="rounded-xl w-full object-cover">
     </a>
   </div>
@@ -52,14 +125,22 @@
   <!-- Example Content -->
   <div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-md">
     <h2 class="text-xl font-semibold mb-4">Create a Post</h2>
-    <textarea placeholder="What's on your mind?" class="w-full p-3 border rounded-lg mb-3"></textarea>
-    <input type="file" class="mb-3 block">
-    <button class="px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600">
-      <i class="fas fa-paper-plane mr-2"></i> Post
-    </button>
+    <form action="#" method="POST" class="space-y-3">
+      <textarea placeholder="What's on your mind?" class="w-full p-3 border rounded-lg" rows="4"></textarea>
+      <input type="file" class="block w-full text-sm text-gray-600">
+      <button type="submit" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600">
+        <i class="fas fa-paper-plane mr-2"></i> Post
+      </button>
+    </form>
   </div>
 
+  <!-- Mobile Menu Toggle Script -->
+  <script>
+    const menuBtn = document.getElementById("menu-btn");
+    const menu = document.getElementById("menu");
+    menuBtn.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
+    });
+  </script>
 </body>
 </html>
-
-
