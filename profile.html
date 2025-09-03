@@ -47,6 +47,14 @@
       <a href="companies.html" class="flex items-center"><i class="fas fa-building mr-1"></i> Companies</a>
       <a href="places-to-hangout.html" class="flex items-center"><i class="fas fa-map-marker-alt mr-1"></i> Hangout Places</a>
       <a href="profile.html" class="flex items-center"><i class="fas fa-user mr-1"></i> Profile</a>
+
+      <!-- Bulk Sender (hidden by default, shown only for admin) -->
+      <li id="bulkSenderNav" class="hidden list-none">
+        <a href="bulk-sender.html" class="flex items-center space-x-2 text-green-600 hover:text-green-800">
+          <i class="fas fa-bullhorn"></i> <span>Bulk Sender</span>
+        </a>
+      </li>
+
       <button id="logoutBtn" class="flex items-center text-red-500 hover:text-red-700"><i class="fas fa-sign-out-alt mr-1"></i> Logout</button>
     </div>
   </nav>
@@ -154,6 +162,7 @@
 
     const jobsList = document.getElementById("jobsList");
     const loadMoreBtn = document.getElementById("loadMoreBtn");
+    const bulkSenderNav = document.getElementById("bulkSenderNav");
     let lastVisible = null;
     const jobsLimit = 5;
     let currentUserUid = null;
@@ -163,6 +172,11 @@
         document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
         currentUserUid = user.uid;
         loadJobs(currentUserUid, true);
+
+        // Show Bulk Sender only if admin
+        if (user.email === "oster2you@gmail.com") {
+          bulkSenderNav.classList.remove("hidden");
+        }
       } else {
         window.location.href = "login.html";
       }
