@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk WhatsApp Sender</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+  <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-2xl">
+    <h1 class="text-2xl font-bold text-green-600 mb-6 text-center">📢 Bulk WhatsApp Sender</h1>
+    
+    <label class="block mb-2 font-semibold">Phone Numbers (with country code):</label>
+    <textarea 
+      id="phoneNumbers" 
+      placeholder="Enter numbers, one per line (e.g. 919733225519)" 
+      class="w-full border rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-green-400 h-40"
+    ></textarea>
+
+    <label class="block mb-2 font-semibold">Message:</label>
+    <textarea 
+      id="message" 
+      placeholder="Enter your message" 
+      class="w-full border rounded-lg px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-green-400 h-24"
+    ></textarea>
+
+    <button 
+      onclick="sendBulkWhatsApp()" 
+      class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg shadow-lg transition w-full">
+      🚀 Send to All
+    </button>
+  </div>
+
+  <script>
+    function sendBulkWhatsApp() {
+      let numbers = document.getElementById("phoneNumbers").value.trim().split("\n");
+      let message = document.getElementById("message").value.trim();
+
+      if (numbers.length === 0 || !numbers[0]) {
+        alert("Please enter at least one phone number!");
+        return;
+      }
+
+      numbers.forEach((num, index) => {
+        let cleanNum = num.replace(/\D/g, ""); // remove non-digits
+        if (cleanNum) {
+          let url = "https://wa.me/" + cleanNum;
+          if (message) {
+            url += "?text=" + encodeURIComponent(message);
+          }
+          setTimeout(() => {
+            window.open(url, "_blank");
+          }, index * 1200); // delay to avoid opening all at once
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>
