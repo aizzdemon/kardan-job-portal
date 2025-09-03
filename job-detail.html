@@ -36,12 +36,9 @@
   <nav class="bg-blue-600 text-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4">
       <div class="flex justify-between items-center py-3">
-        <!-- Logo -->
         <a href="index.html" class="flex items-center space-x-2">
           <span class="bg-red-500 text-white px-3 py-1 rounded font-bold">KARDAN</span>
         </a>
-
-        <!-- Links -->
         <div class="flex space-x-6">
           <a href="index.html" class="flex items-center space-x-1 hover:text-gray-200">
             <i class="fas fa-home"></i><span>Home</span>
@@ -67,7 +64,7 @@
   <main class="max-w-4xl mx-auto mt-10 p-6">
     <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Job Details</h1>
 
-    <!-- AI Image -->
+    <!-- Company Logo as Main Photo -->
     <div id="job-image" class="mb-6 w-full h-64 flex items-center justify-center bg-gray-100 rounded-lg shadow-md">
       Loading image...
     </div>
@@ -78,7 +75,6 @@
   </main>
 
   <script>
-    // Fetch job details and display AI image
     async function loadJobDetail() {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("id");
@@ -94,12 +90,15 @@
         if (docSnap.exists) {
           const job = docSnap.data();
 
-          // Display AI image (Unsplash placeholder based on job title)
-          const imgUrl = `https://source.unsplash.com/512x512/?${encodeURIComponent(job.title)}`;
-          document.getElementById("job-image").innerHTML =
-            `<img src="${imgUrl}" alt="Job Image" class="w-full h-full object-cover rounded-lg shadow-lg">`;
+          // Show company logo as main photo (or placeholder if missing)
+          let imgUrl = job.logoUrl
+            ? job.logoUrl
+            : "https://via.placeholder.com/600x300?text=No+Logo+Available";
 
-          // Display job details
+          document.getElementById("job-image").innerHTML =
+            `<img src="${imgUrl}" alt="Company Logo" class="w-full h-full object-cover rounded-lg shadow-lg">`;
+
+          // Show job details
           document.getElementById("jobDetail").innerHTML = `
             <div class="bg-white shadow-lg rounded-lg p-6">
               <div class="flex items-center space-x-4 mb-4">
@@ -143,6 +142,5 @@
 
     window.onload = loadJobDetail;
   </script>
-
 </body>
 </html>
