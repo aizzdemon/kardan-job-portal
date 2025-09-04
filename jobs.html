@@ -54,7 +54,7 @@
     <!-- ✅ Search Filters -->
     <div class="flex flex-col md:flex-row gap-3 mb-6">
       <div class="flex-1">
-        <input id="filter-type" list="type-list" placeholder="Job Type" 
+        <input id="filter-type" list="type-list" placeholder="Job Title" 
                class="p-2 border rounded-lg w-full" />
         <datalist id="type-list"></datalist>
       </div>
@@ -118,7 +118,7 @@
       const locations = new Set();
 
       jobsData.forEach(job => {
-        if (job.type) types.add(job.type);
+        if (job.title) types.add(job.title);   // 🔥 changed from job.type → job.title
         if (job.location) locations.add(job.location);
       });
 
@@ -195,7 +195,7 @@
       const selectedLoc = filterLocation.value.trim().toLowerCase();
 
       const filteredJobs = jobsData.filter(job => {
-        const matchType = selectedType ? job.type?.toLowerCase().includes(selectedType) : true;
+        const matchType = selectedType ? job.title?.toLowerCase().includes(selectedType) : true; // 🔥 updated
         const matchLoc = selectedLoc ? job.location?.toLowerCase().includes(selectedLoc) : true;
         return matchType && matchLoc;
       });
