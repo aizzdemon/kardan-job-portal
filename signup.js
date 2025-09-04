@@ -36,9 +36,6 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-// Google Form link
-const googleFormLink = "https://docs.google.com/forms/d/e/1FAIpQLScr7ECYKkCqGkm6tb6uNmaYrzDZNKl_GoZuWC2aC8iU2VE-/viewform";
-
 window.onload = function () {
   const form = document.getElementById("signup-form");
   const googleBtn = document.getElementById("googleSignInBtn");
@@ -77,8 +74,8 @@ window.onload = function () {
         timestamp: new Date()
       });
 
-      alert("Sign-up successful! ✅ Redirecting to profile form...");
-      window.location.href = googleFormLink;
+      alert("Sign-up successful! ✅ Redirecting to your home page...");
+      window.location.href = "home.html"; // ⬅️ redirect here
 
     } catch (error) {
       console.error("Signup Error:", error);
@@ -100,8 +97,8 @@ window.onload = function () {
         timestamp: new Date()
       });
 
-      alert(`Welcome, ${user.displayName}! ✅ Redirecting to profile form...`);
-      window.location.href = googleFormLink;
+      alert(`Welcome, ${user.displayName}! ✅ Redirecting to your home page...`);
+      window.location.href = "home.html"; // ⬅️ redirect here
 
     } catch (error) {
       console.error("Google Sign-In Error:", error);
