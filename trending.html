@@ -22,7 +22,7 @@
   <main class="max-w-5xl mx-auto p-6">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-3xl font-bold">🔥 Trending Topics</h1>
-      <button id="openModal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Add Topic</button>
+      <button id="openModal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hidden">+ Add Topic</button>
     </div>
     <div id="topicsList" class="space-y-6"></div>
   </main>
@@ -30,24 +30,25 @@
   <!-- Modal -->
   <div id="topicModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
     <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg">
-      <h2 class="text-xl font-semibold mb-4">📝 Add New Topic</h2>
+      <h2 class="text-xl font-semibold mb-4">📝 Add / Edit Topic</h2>
       <form id="topicForm" class="space-y-4">
         <input type="text" id="title" placeholder="Title" class="w-full p-3 border rounded" required>
         <input type="text" id="subDetails" placeholder="Sub Details" class="w-full p-3 border rounded">
         <textarea id="story" placeholder="Full Story" class="w-full p-3 border rounded" rows="5" required></textarea>
         <input type="file" id="image" accept="image/*" class="w-full p-2 border rounded">
-        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Publish</button>
+        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Save</button>
       </form>
       <button id="closeModal" class="mt-4 text-red-600 hover:underline">Cancel</button>
-      <p id="msg" class="mt-2 text-green-600 hidden">✅ Topic added successfully!</p>
+      <p id="msg" class="mt-2 text-green-600 hidden">✅ Saved successfully!</p>
     </div>
   </div>
 
   <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -63,6 +64,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    const auth = getAuth(app);
 
     // Elements
     const modal = document.getElementById("topicModal");
@@ -72,8 +74,27 @@
     const msg = document.getElementById("msg");
     const topicsList = document.getElementById("topicsList");
 
+    let editingId = null;
+    let isAdmin = false;
+
+    // Check user auth
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.email === "oster2you@gmail.com") {
+        isAdmin = true;
+        openModalBtn.classList.remove("hidden");
+      } else {
+        isAdmin = false;
+        openModalBtn.classList.add("hidden");
+      }
+      loadTopics();
+    });
+
     // Modal toggle
-    openModalBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+    openModalBtn.addEventListener("click", () => {
+      editingId = null;
+      form.reset();
+      modal.classList.remove("hidden");
+    });
     closeModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
 
     // Load topics
@@ -82,8 +103,10 @@
       const querySnapshot = await getDocs(q);
 
       topicsList.innerHTML = "";
-      querySnapshot.forEach((doc) => {
-        const t = doc.data();
+      querySnapshot.forEach((docSnap) => {
+        const t = docSnap.data();
+        const id = docSnap.id;
+
         const post = document.createElement("article");
         post.className = "bg-white shadow rounded-xl p-6";
         post.innerHTML = `
@@ -92,14 +115,59 @@
           <p class="text-gray-600 italic">${t.subDetails || ""}</p>
           <p class="mt-2 text-gray-700">${t.story}</p>
           <p class="text-sm text-gray-500 mt-3">Posted on: ${t.timestamp?.toDate ? new Date(t.timestamp.toDate()).toDateString() : "Just now"}</p>
+          ${isAdmin ? `
+            <div class="mt-4 flex space-x-3">
+              <button class="editBtn bg-yellow-500 text-white px-3 py-1 rounded" data-id="${id}">✏️ Edit</button>
+              <button class="deleteBtn bg-red-600 text-white px-3 py-1 rounded" data-id="${id}" data-img="${t.imageUrl || ""}">🗑️ Delete</button>
+            </div>
+          ` : ""}
         `;
         topicsList.appendChild(post);
       });
+
+      if (isAdmin) {
+        document.querySelectorAll(".editBtn").forEach(btn => {
+          btn.addEventListener("click", (e) => openEdit(e.target.dataset.id));
+        });
+        document.querySelectorAll(".deleteBtn").forEach(btn => {
+          btn.addEventListener("click", (e) => deleteTopic(e.target.dataset.id, e.target.dataset.img));
+        });
+      }
     }
 
-    loadTopics();
+    // Open edit modal
+    async function openEdit(id) {
+      const q = await getDocs(collection(db, "trendingTopics"));
+      const docSnap = q.docs.find(d => d.id === id);
+      if (!docSnap) return;
+      const t = docSnap.data();
 
-    // Add new topic
+      document.getElementById("title").value = t.title;
+      document.getElementById("subDetails").value = t.subDetails;
+      document.getElementById("story").value = t.story;
+      editingId = id;
+
+      modal.classList.remove("hidden");
+    }
+
+    // Delete topic
+    async function deleteTopic(id, imgUrl) {
+      if (!confirm("Are you sure you want to delete this topic?")) return;
+      await deleteDoc(doc(db, "trendingTopics", id));
+
+      if (imgUrl) {
+        try {
+          const imgRef = ref(storage, imgUrl);
+          await deleteObject(imgRef);
+        } catch (err) {
+          console.warn("Image not deleted:", err.message);
+        }
+      }
+
+      loadTopics();
+    }
+
+    // Add/Edit topic
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -115,13 +183,24 @@
         imageUrl = await getDownloadURL(storageRef);
       }
 
-      await addDoc(collection(db, "trendingTopics"), {
-        title,
-        subDetails,
-        story,
-        imageUrl,
-        timestamp: serverTimestamp()
-      });
+      if (editingId) {
+        const docRef = doc(db, "trendingTopics", editingId);
+        await updateDoc(docRef, {
+          title,
+          subDetails,
+          story,
+          ...(imageUrl && { imageUrl }),
+          timestamp: serverTimestamp()
+        });
+      } else {
+        await addDoc(collection(db, "trendingTopics"), {
+          title,
+          subDetails,
+          story,
+          imageUrl,
+          timestamp: serverTimestamp()
+        });
+      }
 
       msg.classList.remove("hidden");
       form.reset();
