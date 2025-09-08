@@ -43,9 +43,8 @@
         <input type="text" id="title" placeholder="Title" class="w-full p-2 border rounded" required>
         <input type="text" id="subDetails" placeholder="Sub Details" class="w-full p-2 border rounded">
         <textarea id="story" placeholder="Full Story" class="w-full p-2 border rounded" rows="4" required></textarea>
-
-        <input type="text" id="imageUrl" placeholder="Image URL (optional)" class="w-full p-2 border rounded">
-        <img id="previewImg" class="h-24 w-full object-cover rounded hidden mt-2" alt="preview">
+        <input type="text" id="imageUrl" placeholder="Image URL" class="w-full p-2 border rounded" required>
+        <input type="text" id="photoLink" placeholder="Photo Link (optional)" class="w-full p-2 border rounded">
 
         <div class="flex space-x-2">
           <button type="submit" id="saveBtn" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Save</button>
@@ -65,7 +64,6 @@
       GoogleAuthProvider,
       signOut
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
     import {
       getFirestore,
       collection,
@@ -95,15 +93,13 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // elements
+    // Elements
     const topicsList = document.getElementById('topicsList');
     const openModalBtn = document.getElementById('openModal');
     const topicModal = document.getElementById('topicModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const topicForm = document.getElementById('topicForm');
     const statusMsg = document.getElementById('statusMsg');
-    const previewImg = document.getElementById('previewImg');
-    const imageInput = document.getElementById('imageUrl');
 
     const signInBtn = document.getElementById('signInBtn');
     const signOutBtn = document.getElementById('signOutBtn');
@@ -113,25 +109,12 @@
     let isAdmin = false;
     let editingId = null;
 
-    // Preview image from URL
-    imageInput.addEventListener('input', () => {
-      const url = imageInput.value.trim();
-      if (url) {
-        previewImg.src = url;
-        previewImg.classList.remove('hidden');
-      } else {
-        previewImg.src = '';
-        previewImg.classList.add('hidden');
-      }
-    });
-
     // Auth - Google Sign-in
     const provider = new GoogleAuthProvider();
     signInBtn.addEventListener('click', async () => {
       try { await signInWithPopup(auth, provider); }
       catch (err) { console.error(err); alert("Sign-in failed: " + err.message); }
     });
-
     signOutBtn.addEventListener('click', async () => { await signOut(auth); });
 
     onAuthStateChanged(auth, (user) => {
@@ -155,8 +138,6 @@
     openModalBtn.addEventListener('click', () => {
       editingId = null;
       topicForm.reset();
-      previewImg.src = '';
-      previewImg.classList.add('hidden');
       statusMsg.textContent = '';
       topicModal.classList.remove('hidden');
     });
@@ -178,18 +159,19 @@
         snap.forEach(docSnap => {
           const t = docSnap.data();
           const id = docSnap.id;
-
           const wrapper = document.createElement('article');
           wrapper.className = "bg-white shadow rounded-xl p-4";
 
           const imgHtml = t.imageUrl ? `<img src="${t.imageUrl}" class="w-full h-64 object-cover rounded mb-3" alt="topic image">` : '';
           const postedOn = t.timestamp && t.timestamp.toDate ? new Date(t.timestamp.toDate()).toDateString() : "Just now";
+          const photoLinkHtml = t.photoLink ? `<p class="mt-2"><a href="${t.photoLink}" target="_blank" class="text-blue-600 hover:underline">View Photo Link</a></p>` : '';
 
           wrapper.innerHTML = `
             ${imgHtml}
             <h2 class="text-xl font-bold">${escapeHtml(t.title)}</h2>
             <p class="text-gray-600 italic">${escapeHtml(t.subDetails || '')}</p>
             <p class="mt-2 text-gray-700">${escapeHtml(t.story)}</p>
+            ${photoLinkHtml}
             <p class="text-sm text-gray-500 mt-2">Posted on: ${postedOn}</p>
           `;
 
@@ -240,13 +222,7 @@
         document.getElementById('subDetails').value = t.subDetails || '';
         document.getElementById('story').value = t.story || '';
         document.getElementById('imageUrl').value = t.imageUrl || '';
-        if (t.imageUrl) {
-          previewImg.src = t.imageUrl;
-          previewImg.classList.remove('hidden');
-        } else {
-          previewImg.src = '';
-          previewImg.classList.add('hidden');
-        }
+        document.getElementById('photoLink').value = t.photoLink || '';
 
         editingId = id;
         statusMsg.textContent = '';
@@ -271,26 +247,25 @@
       const title = document.getElementById('title').value.trim();
       const subDetails = document.getElementById('subDetails').value.trim();
       const story = document.getElementById('story').value.trim();
-      const imageUrl = document.getElementById('imageUrl').value.trim() || null;
+      const imageUrl = document.getElementById('imageUrl').value.trim();
+      const photoLink = document.getElementById('photoLink').value.trim() || null;
 
-      if (!title || !story) return alert("Title and story are required.");
+      if (!title || !story || !imageUrl) return alert("Title, story, and image URL are required.");
 
       statusMsg.textContent = 'Saving...';
       try {
         if (editingId) {
           await updateDoc(doc(db, 'trendingTopics', editingId), {
-            title, subDetails, story, imageUrl, timestamp: serverTimestamp()
+            title, subDetails, story, imageUrl, photoLink, timestamp: serverTimestamp()
           });
         } else {
           await addDoc(collection(db, 'trendingTopics'), {
-            title, subDetails, story, imageUrl, timestamp: serverTimestamp()
+            title, subDetails, story, imageUrl, photoLink, timestamp: serverTimestamp()
           });
         }
 
         statusMsg.textContent = '✅ Saved successfully!';
         topicForm.reset();
-        previewImg.src = '';
-        previewImg.classList.add('hidden');
         setTimeout(() => {
           topicModal.classList.add('hidden');
           statusMsg.textContent = '';
