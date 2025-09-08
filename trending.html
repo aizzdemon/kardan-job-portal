@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trending Topics - Booter</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <!-- Navbar -->
+  <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold text-blue-600">KARDAN</a>
+    <div class="space-x-4">
+      <a href="index.html" class="hover:text-blue-600">Home</a>
+      <a href="jobs.html" class="hover:text-blue-600">Jobs</a>
+      <a href="places-to-hangout.html" class="hover:text-blue-600">Hangouts</a>
+      <a href="trending.html" class="text-blue-600 font-semibold">Trending</a>
+    </div>
+  </nav>
+
+  <!-- Header + Add Button -->
+  <main class="max-w-5xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">🔥 Trending Topics</h1>
+      <button id="openModal" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Add Topic</button>
+    </div>
+    <div id="topicsList" class="space-y-6"></div>
+  </main>
+
+  <!-- Modal -->
+  <div id="topicModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg">
+      <h2 class="text-xl font-semibold mb-4">📝 Add New Topic</h2>
+      <form id="topicForm" class="space-y-4">
+        <input type="text" id="title" placeholder="Title" class="w-full p-3 border rounded" required>
+        <input type="text" id="subDetails" placeholder="Sub Details" class="w-full p-3 border rounded">
+        <textarea id="story" placeholder="Full Story" class="w-full p-3 border rounded" rows="5" required></textarea>
+        <input type="file" id="image" accept="image/*" class="w-full p-2 border rounded">
+        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">Publish</button>
+      </form>
+      <button id="closeModal" class="mt-4 text-red-600 hover:underline">Cancel</button>
+      <p id="msg" class="mt-2 text-green-600 hidden">✅ Topic added successfully!</p>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // Elements
+    const modal = document.getElementById("topicModal");
+    const openModalBtn = document.getElementById("openModal");
+    const closeModalBtn = document.getElementById("closeModal");
+    const form = document.getElementById("topicForm");
+    const msg = document.getElementById("msg");
+    const topicsList = document.getElementById("topicsList");
+
+    // Modal toggle
+    openModalBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+    closeModalBtn.addEventListener("click", () => modal.classList.add("hidden"));
+
+    // Load topics
+    async function loadTopics() {
+      const q = query(collection(db, "trendingTopics"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      topicsList.innerHTML = "";
+      querySnapshot.forEach((doc) => {
+        const t = doc.data();
+        const post = document.createElement("article");
+        post.className = "bg-white shadow rounded-xl p-6";
+        post.innerHTML = `
+          ${t.imageUrl ? `<img src="${t.imageUrl}" alt="Topic image" class="w-full h-64 object-cover rounded mb-4">` : ""}
+          <h2 class="text-xl font-bold">${t.title}</h2>
+          <p class="text-gray-600 italic">${t.subDetails || ""}</p>
+          <p class="mt-2 text-gray-700">${t.story}</p>
+          <p class="text-sm text-gray-500 mt-3">Posted on: ${t.timestamp?.toDate ? new Date(t.timestamp.toDate()).toDateString() : "Just now"}</p>
+        `;
+        topicsList.appendChild(post);
+      });
+    }
+
+    loadTopics();
+
+    // Add new topic
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById("title").value;
+      const subDetails = document.getElementById("subDetails").value;
+      const story = document.getElementById("story").value;
+      const imageFile = document.getElementById("image").files[0];
+
+      let imageUrl = "";
+      if (imageFile) {
+        const storageRef = ref(storage, "trendingImages/" + Date.now() + "-" + imageFile.name);
+        await uploadBytes(storageRef, imageFile);
+        imageUrl = await getDownloadURL(storageRef);
+      }
+
+      await addDoc(collection(db, "trendingTopics"), {
+        title,
+        subDetails,
+        story,
+        imageUrl,
+        timestamp: serverTimestamp()
+      });
+
+      msg.classList.remove("hidden");
+      form.reset();
+      setTimeout(() => {
+        modal.classList.add("hidden");
+        msg.classList.add("hidden");
+        loadTopics();
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
