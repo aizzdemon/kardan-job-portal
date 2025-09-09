@@ -5,21 +5,18 @@
   <title>Jobs - KARDAN</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-  <!-- ✅ ACLIB Script -->
+  <!-- ✅ ACLIB Script (placed high in head) -->
   <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <script type="text/javascript">
       aclib.runAutoTag({ zoneId: 'alhhhy9moj' });
+      aclib.runAutoTag({ zoneId: 'c8b4utucsc' });
   </script>
+
+  <!-- Tailwind CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
   <!-- FontAwesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
 </head>
 <body class="bg-gray-100">
 
@@ -72,6 +69,7 @@
     <div id="job-list" class="space-y-4"></div>
   </main>
 
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -118,7 +116,7 @@
       const locations = new Set();
 
       jobsData.forEach(job => {
-        if (job.title) types.add(job.title);   // 🔥 changed from job.type → job.title
+        if (job.title) types.add(job.title);
         if (job.location) locations.add(job.location);
       });
 
@@ -149,8 +147,8 @@
 
       data.forEach(job => {
         let postedDate = "";
-        if (job.timestamp && job.timestamp.toDate) {
-          postedDate = job.timestamp.toDate().toISOString();
+        if (job.timestamp?.toDate) {
+          postedDate = job.timestamp.toDate();
         }
 
         const card = document.createElement("article");
@@ -174,7 +172,7 @@
               <p class="text-xs text-gray-500 flex items-center gap-1">
                 <i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || "Salary not specified"}
               </p>
-              ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${new Date(postedDate).toLocaleDateString("en-IN")}</p>` : ""}
+              ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate.toLocaleDateString("en-IN")}</p>` : ""}
             </div>
           </div>
           <div class="mt-3 md:mt-0">
@@ -195,7 +193,7 @@
       const selectedLoc = filterLocation.value.trim().toLowerCase();
 
       const filteredJobs = jobsData.filter(job => {
-        const matchType = selectedType ? job.title?.toLowerCase().includes(selectedType) : true; // 🔥 updated
+        const matchType = selectedType ? job.title?.toLowerCase().includes(selectedType) : true;
         const matchLoc = selectedLoc ? job.location?.toLowerCase().includes(selectedLoc) : true;
         return matchType && matchLoc;
       });
