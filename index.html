@@ -3,70 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KARDAN - Job Portal</title>
-  
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="KARDAN Job Portal - Find jobs, buy books, explore companies, and connect with career opportunities.">
-  <meta name="keywords" content="KARDAN, job portal, jobs, careers, companies, books, hiring, employment">
+  <title>KARDAN Job Portal | Find Jobs, Companies & Career Opportunities</title>
+
+  <!-- ✅ SEO Meta Tags -->
+  <meta name="description" content="KARDAN Job Portal - Discover jobs, companies, books, and career opportunities. Apply to top roles, buy resources, and grow your career with KARDAN.">
+  <meta name="keywords" content="KARDAN, job portal, jobs in India, careers, employment, companies, hiring, buy books">
   <meta name="author" content="KARDAN">
   <link rel="canonical" href="https://booterspace.gt.tc/">
 
-  <!-- Open Graph for Social Sharing -->
-  <meta property="og:title" content="KARDAN - Job Portal">
-  <meta property="og:description" content="Discover jobs, companies, and career opportunities at KARDAN.">
+  <!-- ✅ Favicon -->
+  <link rel="icon" type="image/png" href="https://booterspace.gt.tc/favicon.png">
+
+  <!-- ✅ Open Graph -->
+  <meta property="og:title" content="KARDAN Job Portal">
+  <meta property="og:description" content="Find jobs, explore companies, and boost your career with KARDAN Job Portal.">
   <meta property="og:image" content="https://booterspace.gt.tc/preview-image.jpg">
   <meta property="og:url" content="https://booterspace.gt.tc/">
   <meta property="og:type" content="website">
 
-  <!-- Twitter Card -->
+  <!-- ✅ Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="KARDAN - Job Portal">
-  <meta name="twitter:description" content="Discover jobs, companies, and career opportunities at KARDAN.">
+  <meta name="twitter:title" content="KARDAN Job Portal">
+  <meta name="twitter:description" content="Find jobs, explore companies, and boost your career with KARDAN Job Portal.">
   <meta name="twitter:image" content="https://booterspace.gt.tc/preview-image.jpg">
 
-  <!-- Structured Data (Example Job Posting) -->
+  <!-- ✅ Structured Data (Website Schema) -->
   <script type="application/ld+json">
   {
-    "@context": "https://schema.org/",
-    "@type": "JobPosting",
-    "title": "Inside Sales Executive",
-    "description": "We are looking for an Inside Sales Executive to join our dynamic team at Indeed. The candidate will be responsible for handling inbound sales inquiries and generating leads.",
-    "identifier": {
-      "@type": "PropertyValue",
-      "name": "Indeed",
-      "value": "123456"
-    },
-    "datePosted": "2025-09-01",
-    "validThrough": "2025-10-01T23:59+05:30",
-    "employmentType": "FULL_TIME",
-    "hiringOrganization": {
-      "@type": "Organization",
-      "name": "Indeed",
-      "sameAs": "https://www.indeed.com",
-      "logo": "https://booterspace.gt.tc/logo.png"
-    },
-    "jobLocation": {
-      "@type": "Place",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "123 Business Street",
-        "addressLocality": "Bangalore",
-        "addressRegion": "KA",
-        "postalCode": "560001",
-        "addressCountry": "IN"
-      }
-    },
-    "baseSalary": {
-      "@type": "MonetaryAmount",
-      "currency": "INR",
-      "value": {
-        "@type": "QuantitativeValue",
-        "value": 30000,
-        "unitText": "MONTH"
-      }
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "KARDAN Job Portal",
+    "url": "https://booterspace.gt.tc/",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://booterspace.gt.tc/jobs.html?search={search_term_string}",
+      "query-input": "required name=search_term_string"
     }
   }
   </script>
+
+  <!-- Preload performance -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style">
+  <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -76,15 +54,15 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <!-- Navigation Bar -->
-  <nav class="flex flex-wrap items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-50">
+  <!-- ✅ Navigation Bar -->
+  <nav aria-label="Main navigation" class="flex flex-wrap items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-50">
     <!-- Logo -->
-    <a href="index.html" class="text-xl font-bold text-white px-4 py-2 rounded-lg shadow-md bg-gradient-to-r from-orange-400 to-red-500">
+    <a href="index.html" class="text-xl font-bold text-white px-4 py-2 rounded-lg shadow-md bg-gradient-to-r from-orange-400 to-red-500" aria-label="KARDAN Home">
       KARDAN
     </a>
     
     <!-- Hamburger Menu (Mobile) -->
-    <button id="menu-btn" class="block lg:hidden text-gray-700 focus:outline-none">
+    <button id="menu-btn" class="block lg:hidden text-gray-700 focus:outline-none" aria-label="Toggle menu">
       <i class="fas fa-bars text-2xl"></i>
     </button>
 
@@ -114,19 +92,22 @@
     </div>
   </nav>
 
-  <!-- Example Content -->
-  <div class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-md">
+  <!-- ✅ Main Content -->
+  <main class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-md">
+    <h1 class="text-2xl font-bold mb-4 text-gray-900">Welcome to KARDAN Job Portal</h1>
+    <p class="text-gray-700 mb-6">Find your dream job, explore top companies, and build your career with KARDAN. Post your thoughts, share resources, and stay connected.</p>
+
     <h2 class="text-xl font-semibold mb-4">Create a Post</h2>
     <form action="#" method="POST" class="space-y-3">
       <textarea placeholder="What's on your mind?" class="w-full p-3 border rounded-lg" rows="4"></textarea>
-      <input type="url" placeholder="Paste photo link here" class="w-full p-3 border rounded-lg">
+      <input type="url" placeholder="Paste photo link here" class="w-full p-3 border rounded-lg" aria-label="Photo URL">
       <button type="submit" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600">
         <i class="fas fa-paper-plane mr-2"></i> Post
       </button>
     </form>
-  </div>
+  </main>
 
-  <!-- Mobile Menu Toggle Script -->
+  <!-- ✅ Mobile Menu Toggle Script -->
   <script>
     const menuBtn = document.getElementById("menu-btn");
     const menu = document.getElementById("menu");
@@ -142,6 +123,5 @@
         zoneId: 'y0vwfbbxfo',
     });
   </script>
-
 </body>
 </html>
