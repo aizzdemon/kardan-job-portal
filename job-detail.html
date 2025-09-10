@@ -2,8 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Job Detail - KARDAN</title>
+  <title>Kardan Jobs - Find Your Next Career Opportunity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Discover the latest job opportunities on Kardan Job Portal. Browse roles, companies, and apply with ease.">
+  <meta name="keywords" content="jobs, careers, hiring, employment, Kardan Job Portal">
+
+  <!-- Open Graph (fallback) -->
+  <meta property="og:title" content="Kardan Jobs - Career Opportunities">
+  <meta property="og:description" content="Explore jobs across top companies and apply on Kardan Job Portal.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/job-detail.html">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kardan Jobs - Career Opportunities">
+  <meta name="twitter:description" content="Find the latest job opportunities and apply easily.">
+  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
+
+  <!-- Structured Data (fallback) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": "Job Opportunity",
+    "description": "Explore and apply for jobs on Kardan Job Portal.",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": "Kardan Job Portal",
+      "sameAs": "https://aizzdemon.github.io/kardan-job-portal/"
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "India",
+        "addressCountry": "IN"
+      }
+    },
+    "employmentType": "FULL_TIME"
+  }
+  </script>
 
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
@@ -30,7 +69,7 @@
     const db = firebase.firestore();
   </script>
 
-  <!-- Ad Library Script (placed high in head) -->
+  <!-- Ad Library Script -->
   <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <script type="text/javascript">
     aclib.runAutoTag({
@@ -83,6 +122,60 @@
   </main>
 
   <script>
+    // 🔹 SEO updater function
+    function updateSEOTags(job) {
+      // Update <title>
+      document.title = `${job.title || "Job Opportunity"} - ${job.company || "Kardan Job Portal"}`;
+
+      // Update meta description
+      let desc = job.about ? job.about.substring(0, 150) : "Explore and apply for jobs on Kardan Job Portal.";
+      document.querySelector('meta[name="description"]')
+        ?.setAttribute("content", desc);
+
+      // Update Open Graph
+      document.querySelector('meta[property="og:title"]')
+        ?.setAttribute("content", `${job.title || "Job Opportunity"} at ${job.company || "Kardan"}`);
+      document.querySelector('meta[property="og:description"]')
+        ?.setAttribute("content", desc);
+      document.querySelector('meta[property="og:image"]')
+        ?.setAttribute("content", job.logoUrl || "https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png");
+
+      // Update Twitter
+      document.querySelector('meta[name="twitter:title"]')
+        ?.setAttribute("content", `${job.title || "Job Opportunity"} - ${job.company || "Kardan"}`);
+      document.querySelector('meta[name="twitter:description"]')
+        ?.setAttribute("content", desc);
+      document.querySelector('meta[name="twitter:image"]')
+        ?.setAttribute("content", job.logoUrl || "https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png");
+
+      // Update JSON-LD
+      let schema = {
+        "@context": "https://schema.org/",
+        "@type": "JobPosting",
+        "title": job.title || "Job Opportunity",
+        "description": job.about || "Apply now at Kardan Job Portal.",
+        "hiringOrganization": {
+          "@type": "Organization",
+          "name": job.company || "Unknown Company",
+          "sameAs": "https://aizzdemon.github.io/kardan-job-portal/"
+        },
+        "jobLocation": {
+          "@type": "Place",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": job.location || "India",
+            "addressCountry": "IN"
+          }
+        },
+        "employmentType": "FULL_TIME"
+      };
+      let scriptTag = document.querySelector('script[type="application/ld+json"]');
+      if (scriptTag) {
+        scriptTag.textContent = JSON.stringify(schema, null, 2);
+      }
+    }
+
+    // 🔹 Job Loader
     async function loadJobDetail() {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("id");
@@ -98,7 +191,10 @@
         if (docSnap.exists) {
           const job = docSnap.data();
 
-          // Show company logo as main photo (or placeholder if missing)
+          // 🔥 Update SEO dynamically
+          updateSEOTags(job);
+
+          // Show company logo
           let imgUrl = job.logoUrl
             ? job.logoUrl
             : "https://via.placeholder.com/600x300?text=No+Logo+Available";
