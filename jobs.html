@@ -14,30 +14,11 @@
   <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
   <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Find Jobs - Kardan Job Portal">
-  <meta name="twitter:description" content="Search for jobs across industries and apply in one click.">
-  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
-
-  <!-- JSON-LD ItemList Schema -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "name": "Kardan Job Listings",
-    "description": "Latest job opportunities available on Kardan Job Portal.",
-    "itemListElement": []
-  }
-  </script>
-
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-
-  <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-  <!-- Firebase -->
+  <!-- Firebase (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
@@ -65,21 +46,11 @@
           <span class="bg-red-500 text-white px-3 py-1 rounded font-bold">KARDAN</span>
         </a>
         <div class="flex space-x-6">
-          <a href="index.html" class="flex items-center space-x-1 hover:text-gray-200">
-            <i class="fas fa-home"></i><span>Home</span>
-          </a>
-          <a href="jobs.html" class="flex items-center space-x-1 hover:text-gray-200">
-            <i class="fas fa-briefcase"></i><span>Jobs</span>
-          </a>
-          <a href="companies.html" class="flex items-center space-x-1 hover:text-gray-200">
-            <i class="fas fa-building"></i><span>Companies</span>
-          </a>
-          <a href="pro.html" class="flex items-center space-x-1 hover:text-gray-200">
-            <i class="fas fa-coffee"></i><span>Hangout Places</span>
-          </a>
-          <a href="profile.html" class="flex items-center space-x-1 hover:text-gray-200">
-            <i class="fas fa-user"></i><span>Profile</span>
-          </a>
+          <a href="index.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-home"></i><span>Home</span></a>
+          <a href="jobs.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-briefcase"></i><span>Jobs</span></a>
+          <a href="companies.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-building"></i><span>Companies</span></a>
+          <a href="pro.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-coffee"></i><span>Hangout Places</span></a>
+          <a href="profile.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-user"></i><span>Profile</span></a>
         </div>
       </div>
     </div>
@@ -89,166 +60,106 @@
   <main class="max-w-6xl mx-auto mt-10 p-6">
     <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Available Jobs</h1>
 
-    <!-- Search Bar -->
+    <!-- Search Bar (aligned grid) -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <!-- Keyword Search -->
-      <div class="relative">
-        <input 
-          type="text" 
-          id="job-search" 
-          placeholder="Search jobs by title or company..." 
-          class="w-full border rounded-lg px-4 py-2 shadow focus:outline-none focus:ring focus:border-blue-300"
-          oninput="showSuggestions()"
-        >
-        <ul id="suggestions" class="absolute z-10 w-full bg-white border rounded-lg mt-1 hidden shadow"></ul>
-      </div>
-
-      <!-- Location Search -->
-      <div>
-        <input 
-          type="text" 
-          id="location-search" 
-          placeholder="Search by location..." 
-          class="w-full border rounded-lg px-4 py-2 shadow focus:outline-none focus:ring focus:border-blue-300"
-        >
-      </div>
-
-      <!-- Search Button -->
-      <div>
-        <button 
-          onclick="applySearch()" 
-          class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
-          <i class="fas fa-search"></i> Search
-        </button>
-      </div>
+      <input id="job-search" type="text" placeholder="Search jobs by title or company..." class="w-full border rounded-lg px-4 py-2 shadow focus:outline-none focus:ring focus:border-blue-300">
+      <input id="location-search" type="text" placeholder="Search by location..." class="w-full border rounded-lg px-4 py-2 shadow focus:outline-none focus:ring focus:border-blue-300">
+      <button onclick="applySearch()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"><i class="fas fa-search"></i> Search</button>
     </div>
 
     <!-- Job Listings -->
     <div id="jobs-list" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <p>Loading jobs...</p>
     </div>
+
+    <!-- Load More -->
+    <div class="text-center mt-6">
+      <button id="load-more" onclick="loadMoreJobs()" class="hidden bg-gray-700 text-white px-6 py-2 rounded-lg hover:bg-gray-900">Load More Jobs</button>
+    </div>
   </main>
 
   <script>
     let allJobs = [];
+    let lastVisible = null;
+    const jobsPerPage = 10;
+    let isSearching = false;
 
-    async function loadJobs() {
+    async function loadJobs(initial = true) {
+      const jobsList = document.getElementById("jobs-list");
+      if (initial) jobsList.innerHTML = "<p>Loading jobs...</p>";
+
+      let queryRef = db.collection("jobs").orderBy("timestamp", "desc").limit(jobsPerPage);
+      if (lastVisible && !initial) {
+        queryRef = queryRef.startAfter(lastVisible);
+      }
+
       try {
-        const jobsSnapshot = await db.collection("jobs").orderBy("timestamp", "desc").get();
-        const jobListContainer = document.getElementById("jobs-list");
-        jobListContainer.innerHTML = "";
-        let itemListSchema = [];
-        allJobs = [];
+        const snapshot = await queryRef.get();
+        if (snapshot.empty && initial) {
+          jobsList.innerHTML = "<p>No jobs found.</p>";
+          return;
+        }
 
-        jobsSnapshot.forEach((doc, index) => {
+        if (initial) jobsList.innerHTML = "";
+
+        lastVisible = snapshot.docs[snapshot.docs.length - 1];
+        snapshot.forEach(doc => {
           const job = doc.data();
-          const jobId = doc.id;
-          allJobs.push({ ...job, id: jobId });
-
-          renderJob(job, jobId);
-
-          itemListSchema.push({
-            "@type": "ListItem",
-            "position": index + 1,
-            "url": `https://aizzdemon.github.io/kardan-job-portal/job-detail.html?id=${jobId}`,
-            "item": {
-              "@type": "JobPosting",
-              "title": job.title || "Job Opportunity",
-              "description": job.about || "Apply now at Kardan Job Portal.",
-              "hiringOrganization": { "@type": "Organization", "name": job.company || "Unknown Company" },
-              "jobLocation": { "@type": "Place", "address": { "@type": "PostalAddress", "addressLocality": job.location || "India", "addressCountry": "IN" } }
-            }
-          });
+          renderJob(job, doc.id);
+          allJobs.push({ ...job, id: doc.id });
         });
 
-        let schemaTag = document.querySelector('script[type="application/ld+json"]');
-        schemaTag.textContent = JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          "name": "Kardan Job Listings",
-          "description": "Latest job opportunities available on Kardan Job Portal.",
-          "itemListElement": itemListSchema
-        }, null, 2);
-
-      } catch (error) {
-        console.error("Error loading jobs:", error);
-        document.getElementById("jobs-list").innerHTML = "<p class='text-red-500'>Error loading jobs.</p>";
+        document.getElementById("load-more").classList.toggle("hidden", snapshot.size < jobsPerPage);
+      } catch (err) {
+        console.error("Error loading jobs:", err);
+        jobsList.innerHTML = "<p class='text-red-500'>Error loading jobs.</p>";
       }
     }
 
     function renderJob(job, jobId) {
-      const jobListContainer = document.getElementById("jobs-list");
+      const jobsList = document.getElementById("jobs-list");
       let imgUrl = job.logoUrl || "https://via.placeholder.com/150?text=No+Logo";
-
-      jobListContainer.innerHTML += `
-        <div class="bg-white shadow-lg rounded-lg p-6 hover:shadow-xl transition job-card">
+      jobsList.innerHTML += `
+        <div class="bg-white shadow-lg rounded-lg p-6 hover:shadow-xl transition">
           <div class="flex items-center space-x-4 mb-4">
             <img src="${imgUrl}" alt="${job.company || "Company"} Logo" class="w-16 h-16 rounded-full object-cover">
             <div>
-              <h2 class="text-xl font-bold job-title">${job.title || "Untitled Job"}</h2>
-              <p class="text-gray-600 job-company">${job.company || "Unknown Company"}</p>
+              <h2 class="text-xl font-bold">${job.title || "Untitled Job"}</h2>
+              <p class="text-gray-600">${job.company || "Unknown Company"}</p>
             </div>
           </div>
-          <p><i class="fas fa-map-marker-alt text-blue-500"></i> <span class="job-location">${job.location || "Not specified"}</span></p>
+          <p><i class="fas fa-map-marker-alt text-blue-500"></i> ${job.location || "Not specified"}</p>
           <p><i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || "Not specified"}</p>
           <p class="mt-2 text-gray-700">${job.about ? job.about.substring(0,100) + "..." : "No description available."}</p>
           <a href="job-detail.html?id=${jobId}" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
-        </div>
-      `;
-    }
-
-    function showSuggestions() {
-      const query = document.getElementById("job-search").value.toLowerCase();
-      const suggestions = document.getElementById("suggestions");
-      suggestions.innerHTML = "";
-      suggestions.classList.add("hidden");
-
-      if (query) {
-        const matchedJobs = allJobs.filter(job => 
-          (job.title && job.title.toLowerCase().includes(query)) || 
-          (job.company && job.company.toLowerCase().includes(query))
-        );
-
-        if (matchedJobs.length) {
-          suggestions.classList.remove("hidden");
-          matchedJobs.slice(0, 5).forEach(job => {
-            const li = document.createElement("li");
-            li.className = "px-4 py-2 cursor-pointer hover:bg-blue-100";
-            li.textContent = `${job.title} at ${job.company}`;
-            li.onclick = () => {
-              document.getElementById("job-search").value = job.title;
-              suggestions.classList.add("hidden");
-              window.location.href = `job-detail.html?id=${job.id}`;
-            };
-            suggestions.appendChild(li);
-          });
-        }
-      }
+        </div>`;
     }
 
     function applySearch() {
       const keyword = document.getElementById("job-search").value.toLowerCase();
       const location = document.getElementById("location-search").value.toLowerCase();
-      const jobListContainer = document.getElementById("jobs-list");
-      jobListContainer.innerHTML = "";
+      const jobsList = document.getElementById("jobs-list");
+      jobsList.innerHTML = "";
 
       const filteredJobs = allJobs.filter(job => {
-        const matchesKeyword = !keyword || 
-          (job.title && job.title.toLowerCase().includes(keyword)) || 
-          (job.company && job.company.toLowerCase().includes(keyword));
-        const matchesLocation = !location || 
-          (job.location && job.location.toLowerCase().includes(location));
+        const matchesKeyword = !keyword || (job.title?.toLowerCase().includes(keyword) || job.company?.toLowerCase().includes(keyword));
+        const matchesLocation = !location || job.location?.toLowerCase().includes(location);
         return matchesKeyword && matchesLocation;
       });
 
       if (filteredJobs.length) {
         filteredJobs.forEach(job => renderJob(job, job.id));
+        document.getElementById("load-more").classList.add("hidden"); // hide load more in search
       } else {
-        jobListContainer.innerHTML = "<p class='text-red-500 col-span-full'>No jobs found.</p>";
+        jobsList.innerHTML = "<p class='text-red-500 col-span-full'>No jobs found.</p>";
       }
     }
 
-    window.onload = loadJobs;
+    function loadMoreJobs() {
+      if (!isSearching) loadJobs(false);
+    }
+
+    window.onload = () => loadJobs(true);
   </script>
 </body>
 </html>
