@@ -1,80 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Jobs - KARDAN</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Find Jobs - Kardan Job Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Browse the latest job opportunities on Kardan Job Portal. Apply for top roles and grow your career today.">
+  <meta name="keywords" content="jobs, careers, hiring, employment, Kardan Job Portal">
 
-  <!-- ✅ ACLIB Script (placed high in head) -->
-  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-  <script type="text/javascript">
-      aclib.runAutoTag({ zoneId: 'alhhhy9moj' });
-      aclib.runAutoTag({ zoneId: 'c8b4utucsc' });
+  <!-- Open Graph -->
+  <meta property="og:title" content="Find Jobs - Kardan Job Portal">
+  <meta property="og:description" content="Explore jobs across top companies and apply easily on Kardan Job Portal.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Find Jobs - Kardan Job Portal">
+  <meta name="twitter:description" content="Search for jobs across industries and apply in one click.">
+  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
+
+  <!-- JSON-LD ItemList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Kardan Job Listings",
+    "description": "Latest job opportunities available on Kardan Job Portal.",
+    "itemListElement": []
+  }
   </script>
 
   <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 
-  <!-- FontAwesome -->
+  <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100">
 
-  <!-- Navbar -->
-  <nav class="shadow-sm sticky top-0 z-30 bg-white">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3 p-4">
-      <a href="index.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-home mr-2"></i> Home
-      </a>
-      <a href="jobs.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-briefcase mr-2"></i> Jobs
-      </a>
-      <a href="books.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-book mr-2"></i> Buy Books
-      </a>
-      <a href="profile.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-user mr-2"></i> Profile
-      </a>
-      <a href="companies.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-building mr-2"></i> Companies
-      </a>
-      <a href="contact.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-envelope mr-2"></i> Contact
-      </a>
-    </div>
-  </nav>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
-  <!-- Jobs Section -->
-  <main class="max-w-5xl mx-auto p-6">
-    <h1 class="text-2xl font-bold mb-6 text-gray-800">Latest Job Listings</h1>
-
-    <!-- ✅ Search Filters -->
-    <div class="flex flex-col md:flex-row gap-3 mb-6">
-      <div class="flex-1">
-        <input id="filter-type" list="type-list" placeholder="Job Title" 
-               class="p-2 border rounded-lg w-full" />
-        <datalist id="type-list"></datalist>
-      </div>
-      <div class="flex-1">
-        <input id="filter-location" list="location-list" placeholder="Location" 
-               class="p-2 border rounded-lg w-full" />
-        <datalist id="location-list"></datalist>
-      </div>
-      <button id="search-btn" 
-              class="bg-green-600 text-white px-4 py-2 rounded-lg shadow hover:bg-green-700 transition">
-        <i class="fas fa-search mr-1"></i> Search
-      </button>
-    </div>
-
-    <div id="job-list" class="space-y-4"></div>
-  </main>
-
-  <!-- Firebase Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-
-    // ✅ Firebase config
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
@@ -84,124 +51,204 @@
       appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
       measurementId: "G-RRC3X485KQ"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+</head>
+<body class="bg-gray-100 font-sans">
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  <!-- Navbar -->
+  <nav class="bg-blue-600 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex justify-between items-center py-3">
+        <a href="index.html" class="flex items-center space-x-2">
+          <span class="bg-red-500 text-white px-3 py-1 rounded font-bold">KARDAN</span>
+        </a>
+        <div class="flex space-x-6">
+          <a href="index.html" class="flex items-center space-x-1 hover:text-gray-200">
+            <i class="fas fa-home"></i><span>Home</span>
+          </a>
+          <a href="jobs.html" class="flex items-center space-x-1 hover:text-gray-200">
+            <i class="fas fa-briefcase"></i><span>Jobs</span>
+          </a>
+          <a href="companies.html" class="flex items-center space-x-1 hover:text-gray-200">
+            <i class="fas fa-building"></i><span>Companies</span>
+          </a>
+          <a href="pro.html" class="flex items-center space-x-1 hover:text-gray-200">
+            <i class="fas fa-coffee"></i><span>Hangout Places</span>
+          </a>
+          <a href="profile.html" class="flex items-center space-x-1 hover:text-gray-200">
+            <i class="fas fa-user"></i><span>Profile</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
 
-    const jobList = document.getElementById("job-list");
-    const filterType = document.getElementById("filter-type");
-    const filterLocation = document.getElementById("filter-location");
-    const searchBtn = document.getElementById("search-btn");
-    const typeList = document.getElementById("type-list");
-    const locationList = document.getElementById("location-list");
+  <!-- Jobs Section -->
+  <main class="max-w-6xl mx-auto mt-10 p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Available Jobs</h1>
 
-    let jobsData = []; // store all jobs
+    <!-- Search Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <!-- Keyword Search -->
+      <div class="relative">
+        <input 
+          type="text" 
+          id="job-search" 
+          placeholder="Search jobs by title or company..." 
+          class="w-full border rounded-lg px-4 py-2 shadow focus:outline-none focus:ring focus:border-blue-300"
+          oninput="showSuggestions()"
+        >
+        <ul id="suggestions" class="absolute z-10 w-full bg-white border rounded-lg mt-1 hidden shadow"></ul>
+      </div>
+
+      <!-- Location Search -->
+      <div>
+        <input 
+          type="text" 
+          id="location-search" 
+          placeholder="Search by location..." 
+          class="w-full border rounded-lg px-4 py-2 shadow focus:outline-none focus:ring focus:border-blue-300"
+        >
+      </div>
+
+      <!-- Search Button -->
+      <div>
+        <button 
+          onclick="applySearch()" 
+          class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700">
+          <i class="fas fa-search"></i> Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Job Listings -->
+    <div id="jobs-list" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <p>Loading jobs...</p>
+    </div>
+  </main>
+
+  <script>
+    let allJobs = [];
 
     async function loadJobs() {
-      const q = query(collection(db, "jobs"), orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
+      try {
+        const jobsSnapshot = await db.collection("jobs").orderBy("timestamp", "desc").get();
+        const jobListContainer = document.getElementById("jobs-list");
+        jobListContainer.innerHTML = "";
+        let itemListSchema = [];
+        allJobs = [];
 
-      jobsData = [];
-      querySnapshot.forEach((doc) => {
-        jobsData.push({ id: doc.id, ...doc.data() });
-      });
+        jobsSnapshot.forEach((doc, index) => {
+          const job = doc.data();
+          const jobId = doc.id;
+          allJobs.push({ ...job, id: jobId });
 
-      populateSuggestions();
-      renderJobs(jobsData);
-    }
+          renderJob(job, jobId);
 
-    // ✅ Populate datalist suggestions
-    function populateSuggestions() {
-      const types = new Set();
-      const locations = new Set();
+          itemListSchema.push({
+            "@type": "ListItem",
+            "position": index + 1,
+            "url": `https://aizzdemon.github.io/kardan-job-portal/job-detail.html?id=${jobId}`,
+            "item": {
+              "@type": "JobPosting",
+              "title": job.title || "Job Opportunity",
+              "description": job.about || "Apply now at Kardan Job Portal.",
+              "hiringOrganization": { "@type": "Organization", "name": job.company || "Unknown Company" },
+              "jobLocation": { "@type": "Place", "address": { "@type": "PostalAddress", "addressLocality": job.location || "India", "addressCountry": "IN" } }
+            }
+          });
+        });
 
-      jobsData.forEach(job => {
-        if (job.title) types.add(job.title);
-        if (job.location) locations.add(job.location);
-      });
+        let schemaTag = document.querySelector('script[type="application/ld+json"]');
+        schemaTag.textContent = JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "name": "Kardan Job Listings",
+          "description": "Latest job opportunities available on Kardan Job Portal.",
+          "itemListElement": itemListSchema
+        }, null, 2);
 
-      typeList.innerHTML = "";
-      locationList.innerHTML = "";
-
-      types.forEach(type => {
-        const option = document.createElement("option");
-        option.value = type;
-        typeList.appendChild(option);
-      });
-
-      locations.forEach(loc => {
-        const option = document.createElement("option");
-        option.value = loc;
-        locationList.appendChild(option);
-      });
-    }
-
-    // ✅ Render job list
-    function renderJobs(data) {
-      jobList.innerHTML = "";
-
-      if (data.length === 0) {
-        jobList.innerHTML = `<p class="text-gray-600">No jobs found matching your filters.</p>`;
-        return;
+      } catch (error) {
+        console.error("Error loading jobs:", error);
+        document.getElementById("jobs-list").innerHTML = "<p class='text-red-500'>Error loading jobs.</p>";
       }
+    }
 
-      data.forEach(job => {
-        let postedDate = "";
-        if (job.timestamp?.toDate) {
-          postedDate = job.timestamp.toDate();
-        }
+    function renderJob(job, jobId) {
+      const jobListContainer = document.getElementById("jobs-list");
+      let imgUrl = job.logoUrl || "https://via.placeholder.com/150?text=No+Logo";
 
-        const card = document.createElement("article");
-        card.className = "flex flex-col md:flex-row items-start md:items-center justify-between border rounded-lg p-4 bg-white shadow-sm hover:shadow transition";
-
-        const logoHTML = job.logoUrl 
-          ? `<img src="${job.logoUrl}" alt="${job.company || 'Company Logo'}" class="w-14 h-14 rounded object-cover border" />`
-          : `<div class="w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg">
-               <i class="fas fa-building"></i>
-             </div>`;
-
-        card.innerHTML = `
-          <div class="flex items-center gap-4 w-full">
-            ${logoHTML}
+      jobListContainer.innerHTML += `
+        <div class="bg-white shadow-lg rounded-lg p-6 hover:shadow-xl transition job-card">
+          <div class="flex items-center space-x-4 mb-4">
+            <img src="${imgUrl}" alt="${job.company || "Company"} Logo" class="w-16 h-16 rounded-full object-cover">
             <div>
-              <h2 class="text-base font-semibold text-indigo-600">${job.title}</h2>
-              <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
-              <p class="text-xs text-gray-500 flex items-center gap-1">
-                <i class="fas fa-map-marker-alt text-red-500"></i> ${job.location || "Location not specified"}
-              </p>
-              <p class="text-xs text-gray-500 flex items-center gap-1">
-                <i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || "Salary not specified"}
-              </p>
-              ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate.toLocaleDateString("en-IN")}</p>` : ""}
+              <h2 class="text-xl font-bold job-title">${job.title || "Untitled Job"}</h2>
+              <p class="text-gray-600 job-company">${job.company || "Unknown Company"}</p>
             </div>
           </div>
-          <div class="mt-3 md:mt-0">
-            <a href="job-detail.html?id=${job.id}"
-               class="bg-green-600 text-white text-sm px-3 py-1.5 rounded hover:bg-green-700 transition">
-               Apply
-            </a>
-          </div>
-        `;
-
-        jobList.appendChild(card);
-      });
+          <p><i class="fas fa-map-marker-alt text-blue-500"></i> <span class="job-location">${job.location || "Not specified"}</span></p>
+          <p><i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || "Not specified"}</p>
+          <p class="mt-2 text-gray-700">${job.about ? job.about.substring(0,100) + "..." : "No description available."}</p>
+          <a href="job-detail.html?id=${jobId}" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
+        </div>
+      `;
     }
 
-    // ✅ Filter when clicking search
-    searchBtn.addEventListener("click", () => {
-      const selectedType = filterType.value.trim().toLowerCase();
-      const selectedLoc = filterLocation.value.trim().toLowerCase();
+    function showSuggestions() {
+      const query = document.getElementById("job-search").value.toLowerCase();
+      const suggestions = document.getElementById("suggestions");
+      suggestions.innerHTML = "";
+      suggestions.classList.add("hidden");
 
-      const filteredJobs = jobsData.filter(job => {
-        const matchType = selectedType ? job.title?.toLowerCase().includes(selectedType) : true;
-        const matchLoc = selectedLoc ? job.location?.toLowerCase().includes(selectedLoc) : true;
-        return matchType && matchLoc;
+      if (query) {
+        const matchedJobs = allJobs.filter(job => 
+          (job.title && job.title.toLowerCase().includes(query)) || 
+          (job.company && job.company.toLowerCase().includes(query))
+        );
+
+        if (matchedJobs.length) {
+          suggestions.classList.remove("hidden");
+          matchedJobs.slice(0, 5).forEach(job => {
+            const li = document.createElement("li");
+            li.className = "px-4 py-2 cursor-pointer hover:bg-blue-100";
+            li.textContent = `${job.title} at ${job.company}`;
+            li.onclick = () => {
+              document.getElementById("job-search").value = job.title;
+              suggestions.classList.add("hidden");
+              window.location.href = `job-detail.html?id=${job.id}`;
+            };
+            suggestions.appendChild(li);
+          });
+        }
+      }
+    }
+
+    function applySearch() {
+      const keyword = document.getElementById("job-search").value.toLowerCase();
+      const location = document.getElementById("location-search").value.toLowerCase();
+      const jobListContainer = document.getElementById("jobs-list");
+      jobListContainer.innerHTML = "";
+
+      const filteredJobs = allJobs.filter(job => {
+        const matchesKeyword = !keyword || 
+          (job.title && job.title.toLowerCase().includes(keyword)) || 
+          (job.company && job.company.toLowerCase().includes(keyword));
+        const matchesLocation = !location || 
+          (job.location && job.location.toLowerCase().includes(location));
+        return matchesKeyword && matchesLocation;
       });
 
-      renderJobs(filteredJobs);
-    });
+      if (filteredJobs.length) {
+        filteredJobs.forEach(job => renderJob(job, job.id));
+      } else {
+        jobListContainer.innerHTML = "<p class='text-red-500 col-span-full'>No jobs found.</p>";
+      }
+    }
 
-    loadJobs();
+    window.onload = loadJobs;
   </script>
 </body>
 </html>
