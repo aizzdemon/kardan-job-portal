@@ -2,167 +2,158 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Kardan Jobs - Find Your Next Career Opportunity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Discover the latest job opportunities on Kardan Job Portal. Browse roles, companies, and apply with ease.">
-  <meta name="keywords" content="jobs, careers, hiring, employment, Kardan Job Portal">
+  <title>KARDAN Job Details</title>
+  <meta name="description" content="Find detailed job descriptions, company information, requirements, perks, and apply directly on KARDAN Job Portal." />
+  <meta name="keywords" content="jobs, careers, inside sales, marathi jobs, healthcare jobs, work from home, kardan job portal" />
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6 my-10">
+    
+    <!-- Logo -->
+    <div class="flex justify-center mb-6">
+      <img id="companyLogo" src="" alt="Company Logo" class="w-28 h-28 object-contain rounded-lg shadow">
+    </div>
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="Kardan Jobs - Career Opportunities">
-  <meta property="og:description" content="Explore jobs across top companies and apply on Kardan Job Portal.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/job-detail.html">
-  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
+    <!-- Job Title -->
+    <h1 id="jobTitle" class="text-3xl font-bold text-center mb-2">Loading...</h1>
+    <p id="companyName" class="text-center text-gray-600 mb-6"></p>
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Kardan Jobs - Career Opportunities">
-  <meta name="twitter:description" content="Find the latest job opportunities and apply easily.">
-  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
+    <!-- Published Date -->
+    <p id="publishedDate" class="text-sm text-gray-500 text-center mb-8"></p>
 
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <!-- About the Company -->
+    <div id="aboutCompanySection" class="mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">About the Company</h2>
+      <p id="aboutCompany" class="text-gray-700"></p>
+    </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Job Summary -->
+    <div id="jobSummarySection" class="mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Job Summary</h2>
+      <p id="jobSummary" class="text-gray-700"></p>
+    </div>
 
-  <script>
+    <!-- Key Responsibilities -->
+    <div id="responsibilitiesSection" class="mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Key Responsibilities</h2>
+      <ul id="responsibilitiesList" class="list-disc pl-6 text-gray-700"></ul>
+    </div>
+
+    <!-- Requirements -->
+    <div id="requirementsSection" class="mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Requirements</h2>
+      <ul id="requirementsList" class="list-disc pl-6 text-gray-700"></ul>
+    </div>
+
+    <!-- Perks & Benefits -->
+    <div id="benefitsSection" class="mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Perks & Benefits</h2>
+      <ul id="benefitsList" class="list-disc pl-6 text-gray-700"></ul>
+    </div>
+
+    <!-- Timings & Additional Info -->
+    <div id="timingsSection" class="mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Timings & Additional Info</h2>
+      <p id="timingsInfo" class="text-gray-700"></p>
+    </div>
+
+    <!-- Apply Button -->
+    <div class="text-center mt-8">
+      <a id="applyLink" href="#" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Apply Now</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
       projectId: "kar-kardan",
-      storageBucket: "kar-kardan.appspot.com",
+      storageBucket: "kar-kardan.firebasestorage.app",
       messagingSenderId: "554147696994",
       appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
       measurementId: "G-RRC3X485KQ"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
-</head>
-<body class="bg-gray-100 font-sans">
 
-  <!-- Navbar -->
-  <nav class="bg-blue-600 text-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex justify-between items-center py-3">
-        <a href="index.html" class="flex items-center space-x-2">
-          <img src="assets/kardan-logo.png" alt="Kardan Logo" class="h-8 w-8">
-          <span class="font-bold text-lg">KARDAN</span>
-        </a>
-        <div class="flex space-x-6">
-          <a href="index.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-home"></i><span>Home</span></a>
-          <a href="jobs.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-briefcase"></i><span>Jobs</span></a>
-          <a href="companies.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-building"></i><span>Companies</span></a>
-          <a href="places-to-hangout.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-coffee"></i><span>Hangout Places</span></a>
-          <a href="profile.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-user"></i><span>Profile</span></a>
-        </div>
-      </div>
-    </div>
-  </nav>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  <!-- Job Detail -->
-  <main class="max-w-3xl mx-auto mt-8 bg-white p-8 shadow-lg rounded-lg">
-    <!-- Logo -->
-    <div id="job-image" class="flex justify-center mb-6">
-      <img src="https://via.placeholder.com/150" alt="Company Logo" class="h-28 w-28 object-cover rounded-full shadow-md">
-    </div>
-
-    <!-- Title -->
-    <h1 id="job-title" class="text-3xl font-bold text-gray-900 text-center mb-4">Loading...</h1>
-    <p id="job-meta" class="text-center text-gray-600 mb-6">
-      <i class="fas fa-building"></i> Company | 
-      <i class="fas fa-map-marker-alt"></i> Location | 
-      <i class="fas fa-calendar"></i> Posted Date
-    </p>
-
-    <!-- Sections -->
-    <section class="space-y-6 text-gray-800 leading-relaxed">
-      <div>
-        <h2 class="text-xl font-semibold mb-2">About the Company</h2>
-        <p id="job-company-info">Loading company info...</p>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold mb-2">Job Summary</h2>
-        <p id="job-summary">Loading summary...</p>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold mb-2">Key Responsibilities</h2>
-        <ul id="job-responsibilities" class="list-disc list-inside"></ul>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold mb-2">Requirements</h2>
-        <ul id="job-requirements" class="list-disc list-inside"></ul>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold mb-2">Perks & Benefits</h2>
-        <ul id="job-benefits" class="list-disc list-inside"></ul>
-      </div>
-
-      <div>
-        <h2 class="text-xl font-semibold mb-2">Timings & Additional Info</h2>
-        <p id="job-timings">Loading timings...</p>
-      </div>
-    </section>
-
-    <!-- Apply -->
-    <div class="mt-8 text-center">
-      <a id="apply-link" href="#" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition">Apply Now</a>
-    </div>
-  </main>
-
-  <script>
-    async function loadJobDetail() {
+    async function loadJobDetails() {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("id");
       if (!jobId) return;
 
-      try {
-        const docSnap = await db.collection("jobs").doc(jobId).get();
-        if (docSnap.exists) {
-          const job = docSnap.data();
+      const docRef = doc(db, "jobs", jobId);
+      const docSnap = await getDoc(docRef);
 
-          // Logo
-          document.getElementById("job-image").innerHTML =
-            `<img src="${job.logoUrl || 'https://via.placeholder.com/150'}" class="h-28 w-28 object-cover rounded-full shadow-md">`;
+      if (docSnap.exists()) {
+        const job = docSnap.data();
 
-          // Title
-          document.getElementById("job-title").textContent = job.title || "Untitled Job";
+        document.getElementById("jobTitle").textContent = job.title || "Job Title";
+        document.getElementById("companyName").textContent = `${job.company || "Company"} • ${job.location || "Location"}`;
+        document.getElementById("publishedDate").textContent = job.timestamp ? `Posted on ${new Date(job.timestamp.toDate()).toDateString()}` : "";
 
-          // Meta
-          document.getElementById("job-meta").innerHTML =
-            `<i class="fas fa-building"></i> ${job.company || "Unknown"} | 
-             <i class="fas fa-map-marker-alt"></i> ${job.location || "Not specified"} | 
-             <i class="fas fa-calendar"></i> ${job.postedDate || "Recently"}`;
+        if (job.logo) document.getElementById("companyLogo").src = job.logo;
 
-          // Sections
-          document.getElementById("job-company-info").textContent = job.companyInfo || "No company info available.";
-          document.getElementById("job-summary").textContent = job.summary || "No summary available.";
-          
-          if (job.responsibilities) {
-            document.getElementById("job-responsibilities").innerHTML = job.responsibilities.map(r => `<li>${r}</li>`).join("");
-          }
-          if (job.requirements) {
-            document.getElementById("job-requirements").innerHTML = job.requirements.map(r => `<li>${r}</li>`).join("");
-          }
-          if (job.benefits) {
-            document.getElementById("job-benefits").innerHTML = job.benefits.map(b => `<li>${b}</li>`).join("");
-          }
-
-          document.getElementById("job-timings").textContent = job.timings || "Not specified";
-          if (job.applyLink) document.getElementById("apply-link").href = job.applyLink;
+        if (job.aboutCompany) {
+          document.getElementById("aboutCompany").textContent = job.aboutCompany;
+          document.getElementById("aboutCompanySection").classList.remove("hidden");
         }
-      } catch (e) {
-        console.error("Error loading job:", e);
+
+        if (job.summary) {
+          document.getElementById("jobSummary").textContent = job.summary;
+          document.getElementById("jobSummarySection").classList.remove("hidden");
+        }
+
+        if (job.responsibilities && job.responsibilities.length) {
+          job.responsibilities.forEach(r => {
+            const li = document.createElement("li");
+            li.textContent = r;
+            document.getElementById("responsibilitiesList").appendChild(li);
+          });
+          document.getElementById("responsibilitiesSection").classList.remove("hidden");
+        }
+
+        if (job.requirements && job.requirements.length) {
+          job.requirements.forEach(r => {
+            const li = document.createElement("li");
+            li.textContent = r;
+            document.getElementById("requirementsList").appendChild(li);
+          });
+          document.getElementById("requirementsSection").classList.remove("hidden");
+        }
+
+        if (job.benefits && job.benefits.length) {
+          job.benefits.forEach(b => {
+            const li = document.createElement("li");
+            li.textContent = b;
+            document.getElementById("benefitsList").appendChild(li);
+          });
+          document.getElementById("benefitsSection").classList.remove("hidden");
+        }
+
+        if (job.timings) {
+          document.getElementById("timingsInfo").textContent = job.timings;
+          document.getElementById("timingsSection").classList.remove("hidden");
+        }
+
+        if (job.applyLink) {
+          document.getElementById("applyLink").href = job.applyLink;
+        }
+
+        // Update SEO dynamically
+        document.title = `${job.title} at ${job.company} - KARDAN Job Portal`;
+        document.querySelector('meta[name="description"]').setAttribute("content", `${job.title} role at ${job.company}. ${job.summary || "Apply now on KARDAN."}`);
       }
     }
-    window.onload = loadJobDetail;
+
+    loadJobDetails();
   </script>
 </body>
 </html>
