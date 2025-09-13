@@ -1,64 +1,224 @@
-<!-- EDIT JOB MODAL -->
-<div id="editJobModal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <h2 class="text-xl font-bold mb-4">Edit Job</h2>
-    
-    <form id="editJobForm" class="space-y-4">
-      <input type="hidden" id="editJobId">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile - KARDAN</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body class="bg-gray-100">
 
-      <div>
-        <label class="block font-semibold">Job Title</label>
-        <input type="text" id="editJobTitle" class="w-full border rounded px-3 py-2" required>
+  <!-- NAV -->
+  <nav class="bg-white shadow p-4 flex justify-between items-center">
+    <a href="index.html" class="text-2xl font-bold text-green-600">KARDAN</a>
+    <div class="flex gap-4">
+      <a href="index.html" class="flex items-center"><i class="fas fa-home mr-1"></i> Home</a>
+      <a href="jobs.html" class="flex items-center"><i class="fas fa-briefcase mr-1"></i> Jobs</a>
+      <a href="companies.html" class="flex items-center"><i class="fas fa-building mr-1"></i> Companies</a>
+      <a href="places-to-hangout.html" class="flex items-center"><i class="fas fa-map-marker-alt mr-1"></i> Hangout Places</a>
+      <a href="profile.html" class="flex items-center"><i class="fas fa-user mr-1"></i> Profile</a>
+
+      <!-- Bulk Sender (only for admin) -->
+      <li id="bulkSenderNav" class="hidden list-none">
+        <a href="bulk-sender.html" class="flex items-center space-x-2 text-green-600 hover:text-green-800">
+          <i class="fas fa-bullhorn"></i> <span>Bulk Sender</span>
+        </a>
+      </li>
+
+      <button id="logoutBtn" class="flex items-center text-red-500 hover:text-red-700"><i class="fas fa-sign-out-alt mr-1"></i> Logout</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white p-6 rounded shadow">
+      <h2 class="text-xl font-bold mb-4">User Info</h2>
+      <p id="userEmail" class="text-gray-700"></p>
+    </div>
+
+    <div class="md:col-span-2 flex flex-col gap-6">
+
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
+        <div class="flex flex-wrap gap-4">
+          <a href="post-job.html" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow">+ Post a Job</a>
+          <a href="post-book.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow">+ Post a Book</a>
+          <a href="post-place.html" class="bg-purple-500 text-white px-4 py-2 rounded-lg shadow">+ Post a Place</a>
+        </div>
       </div>
 
-      <div>
-        <label class="block font-semibold">Company Name</label>
-        <input type="text" id="editCompanyName" class="w-full border rounded px-3 py-2">
+      <div class="bg-white p-4 rounded shadow">
+        <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
+        <ul id="jobsList" class="space-y-4"></ul>
+        <div class="text-center mt-6">
+          <button id="loadMoreBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow hidden">Load More</button>
+        </div>
       </div>
+    </div>
+  </div>
 
-      <div>
-        <label class="block font-semibold">Location</label>
-        <input type="text" id="editJobLocation" class="w-full border rounded px-3 py-2">
-      </div>
+  <!-- EDIT JOB POPUP -->
+  <div id="editPopup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
+      <button id="closePopup" class="absolute top-3 right-3 text-gray-500 hover:text-black text-2xl">&times;</button>
+      <h2 class="text-xl font-bold mb-4 text-center">Edit Job</h2>
+      <form id="editJobForm" class="space-y-3">
+        <input type="hidden" id="editJobId">
 
-      <div>
-        <label class="block font-semibold">Salary</label>
-        <input type="text" id="editSalary" class="w-full border rounded px-3 py-2">
-      </div>
-
-      <div>
-        <label class="block font-semibold">Job Type</label>
-        <select id="editJobType" class="w-full border rounded px-3 py-2">
+        <input type="text" id="editJobTitle" class="w-full p-2 border rounded" placeholder="Job Title" required />
+        <input type="text" id="editCompanyName" class="w-full p-2 border rounded" placeholder="Company" />
+        <input type="text" id="editJobLocation" class="w-full p-2 border rounded" placeholder="Location" />
+        <input type="text" id="editSalary" class="w-full p-2 border rounded" placeholder="Salary" />
+        <select id="editJobType" class="w-full p-2 border rounded">
           <option value="Full-Time">Full-Time</option>
           <option value="Part-Time">Part-Time</option>
           <option value="Internship">Internship</option>
           <option value="Contract">Contract</option>
         </select>
-      </div>
+        <textarea id="editDescription" class="w-full p-2 border rounded" placeholder="Description"></textarea>
+        <input type="url" id="editJobApplyLink" class="w-full p-2 border rounded" placeholder="Apply Link" />
+        <input type="url" id="editCompanyLogo" class="w-full p-2 border rounded" placeholder="Company Logo URL" />
 
-      <div>
-        <label class="block font-semibold">Description</label>
-        <textarea id="editDescription" rows="4" class="w-full border rounded px-3 py-2"></textarea>
-      </div>
-
-      <div>
-        <label class="block font-semibold">Apply Link</label>
-        <input type="url" id="editJobApplyLink" class="w-full border rounded px-3 py-2">
-      </div>
-
-      <div>
-        <label class="block font-semibold">Company Logo URL</label>
-        <input type="url" id="editCompanyLogo" class="w-full border rounded px-3 py-2">
-      </div>
-
-      <!-- Buttons at bottom -->
-      <div class="flex justify-end gap-3 pt-4">
-        <button type="button" class="close-button bg-gray-300 px-4 py-2 rounded">Cancel</button>
-        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded shadow hover:bg-green-700">
-          Update Job
-        </button>
-      </div>
-    </form>
+        <!-- Update Button -->
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg shadow hover:bg-green-700">Update Job</button>
+      </form>
+    </div>
   </div>
-</div>
+
+  <script>
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const jobsList = document.getElementById("jobsList");
+    const bulkSenderNav = document.getElementById("bulkSenderNav");
+    const editPopup = document.getElementById("editPopup");
+    const closePopup = document.getElementById("closePopup");
+    const editJobForm = document.getElementById("editJobForm");
+    const fields = {
+      id: document.getElementById("editJobId"),
+      title: document.getElementById("editJobTitle"),
+      companyName: document.getElementById("editCompanyName"),
+      location: document.getElementById("editJobLocation"),
+      salary: document.getElementById("editSalary"),
+      type: document.getElementById("editJobType"),
+      description: document.getElementById("editDescription"),
+      applyLink: document.getElementById("editJobApplyLink"),
+      companyLogo: document.getElementById("editCompanyLogo")
+    };
+
+    let lastVisible = null;
+    const jobsLimit = 5;
+    let currentUserUid = null;
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
+        currentUserUid = user.uid;
+        loadJobs(currentUserUid, true);
+
+        // Admin check
+        if (user.email === "oster2you@gmail.com") {
+          bulkSenderNav.classList.remove("hidden");
+        }
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    async function loadJobs(uid, isInitialLoad = false) {
+      let query = db.collection("jobs").where("uid","==",uid).orderBy("timestamp","desc").limit(jobsLimit);
+      if (lastVisible) query = query.startAfter(lastVisible);
+
+      const snapshot = await query.get();
+      if (isInitialLoad) { jobsList.innerHTML = ""; }
+
+      if (snapshot.empty && isInitialLoad) {
+        jobsList.innerHTML = "<p>No jobs posted yet.</p>";
+        return;
+      }
+
+      lastVisible = snapshot.docs[snapshot.docs.length-1];
+      snapshot.forEach(doc=>{
+        const job = doc.data();
+        const li = document.createElement("li");
+        li.className = "p-4 border rounded flex justify-between";
+        li.innerHTML = `
+          <div>
+            <h3 class="font-bold">${job.title||"Untitled"}</h3>
+            <p>${job.companyName||""} - ${job.location||""}</p>
+          </div>
+          <div class="flex gap-2">
+            <button data-id="${doc.id}" class="edit-btn bg-blue-500 text-white px-2 py-1 rounded">Edit</button>
+            <button data-id="${doc.id}" class="delete-btn bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+          </div>`;
+        jobsList.appendChild(li);
+      });
+    }
+
+    jobsList.addEventListener('click', e=>{
+      if (e.target.classList.contains('edit-btn')) openEditPopup(e.target.dataset.id);
+      if (e.target.classList.contains('delete-btn')) deleteJob(e.target.dataset.id);
+    });
+
+    async function deleteJob(id){
+      await db.collection("jobs").doc(id).delete();
+      loadJobs(currentUserUid,true);
+    }
+
+    function openEditPopup(jobId){
+      db.collection("jobs").doc(jobId).get().then(doc=>{
+        if(doc.exists){
+          const job=doc.data();
+          fields.id.value=jobId;
+          fields.title.value=job.title||"";
+          fields.companyName.value=job.companyName||"";
+          fields.location.value=job.location||"";
+          fields.salary.value=job.salary||"";
+          fields.type.value=job.type||"";
+          fields.description.value=job.description||"";
+          fields.applyLink.value=job.applyLink||"";
+          fields.companyLogo.value=job.companyLogo||"";
+          editPopup.classList.remove("hidden");
+        }
+      });
+    }
+
+    closePopup.addEventListener("click",()=>editPopup.classList.add("hidden"));
+
+    editJobForm.addEventListener("submit",async e=>{
+      e.preventDefault();
+      const jobId=fields.id.value;
+      const updated={
+        title:fields.title.value,
+        companyName:fields.companyName.value,
+        location:fields.location.value,
+        salary:fields.salary.value,
+        type:fields.type.value,
+        description:fields.description.value,
+        applyLink:fields.applyLink.value,
+        companyLogo:fields.companyLogo.value,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection("jobs").doc(jobId).update(updated);
+      editPopup.classList.add("hidden");
+      loadJobs(currentUserUid,true);
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click",()=>auth.signOut().then(()=>window.location="login.html"));
+  </script>
+</body>
+</html>
