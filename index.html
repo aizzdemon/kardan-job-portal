@@ -2,126 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title>KARDAN Job Portal - Find Jobs</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KARDAN Job Portal | Find Jobs, Companies & Career Opportunities</title>
 
-  <!-- ✅ SEO Meta Tags -->
-  <meta name="description" content="KARDAN Job Portal - Discover jobs, companies, books, and career opportunities. Apply to top roles, buy resources, and grow your career with KARDAN.">
-  <meta name="keywords" content="KARDAN, job portal, jobs in India, careers, employment, companies, hiring, buy books">
-  <meta name="author" content="KARDAN">
-  <link rel="canonical" href="https://booterspace.gt.tc/">
-
-  <!-- ✅ Favicon -->
-  <link rel="icon" type="image/png" href="https://booterspace.gt.tc/favicon.png">
-
-  <!-- ✅ Open Graph -->
-  <meta property="og:title" content="KARDAN Job Portal">
-  <meta property="og:description" content="Find jobs, explore companies, and boost your career with KARDAN Job Portal.">
-  <meta property="og:image" content="https://booterspace.gt.tc/preview-image.jpg">
-  <meta property="og:url" content="https://booterspace.gt.tc/">
-  <meta property="og:type" content="website">
-
-  <!-- ✅ Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="KARDAN Job Portal">
-  <meta name="twitter:description" content="Find jobs, explore companies, and boost your career with KARDAN Job Portal.">
-  <meta name="twitter:image" content="https://booterspace.gt.tc/preview-image.jpg">
-
-  <!-- ✅ Structured Data (Website Schema) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "KARDAN Job Portal",
-    "url": "https://booterspace.gt.tc/",
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://booterspace.gt.tc/jobs.html?search={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
-  }
-  </script>
-
-  <!-- Preload performance -->
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style">
-  <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
+  <!-- SEO -->
+  <meta name="description" content="Find the latest jobs in India. Work from home jobs, online jobs, Amazon jobs, and more on KARDAN Job Portal. Apply now!">
+  <meta name="keywords" content="work from home jobs india, online jobs in india, amazon work from home jobs, part time jobs india, data entry jobs india, freelance jobs india, government jobs india, remote jobs india, freshers jobs india, online teaching jobs india, IT jobs india, WFH jobs india, online marketing jobs india, private jobs india, online typing jobs india, HR jobs india">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <!-- ✅ Navigation Bar -->
-  <nav aria-label="Main navigation" class="flex flex-wrap items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-50">
-    <!-- Logo -->
-    <a href="index.html" class="text-xl font-bold text-white px-4 py-2 rounded-lg shadow-md bg-gradient-to-r from-orange-400 to-red-500" aria-label="KARDAN Home">
-      KARDAN
-    </a>
-    
-    <!-- Hamburger Menu (Mobile) -->
-    <button id="menu-btn" class="block lg:hidden text-gray-700 focus:outline-none" aria-label="Toggle menu">
-      <i class="fas fa-bars text-2xl"></i>
-    </button>
-
-    <!-- Navigation Links -->
-    <div id="menu" class="hidden w-full lg:flex lg:w-auto flex-col lg:flex-row mt-3 lg:mt-0 gap-2 lg:gap-3">
-      <a href="index.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-home mr-2"></i> Home
-      </a>
-      <a href="jobs.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-briefcase mr-2"></i> Jobs
-      </a>
-      <a href="trending.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-fire mr-2"></i> Trending
-      </a>
-      <a href="books.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-book mr-2"></i> Buy Books
-      </a>
-      <a href="profile.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-user mr-2"></i> Profile
-      </a>
-      <a href="companies.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-building mr-2"></i> Companies
-      </a>
-      <a href="contact.html" class="flex items-center px-4 py-2 bg-gradient-to-r from-cyan-400 to-blue-400 text-white rounded-lg shadow-md hover:shadow-lg">
-        <i class="fas fa-envelope mr-2"></i> Contact
-      </a>
+  <!-- Navbar -->
+  <header class="bg-white shadow">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-blue-600">KARDAN</h1>
+      <nav class="space-x-4">
+        <a href="index.html" class="hover:text-blue-600">Home</a>
+        <a href="jobs.html" class="hover:text-blue-600">Jobs</a>
+        <a href="books.html" class="hover:text-blue-600">Buy Books</a>
+        <a href="hangouts.html" class="hover:text-blue-600">Hangouts</a>
+        <a href="companies.html" class="hover:text-blue-600">Companies</a>
+        <a href="login.html" class="hover:text-blue-600">Login</a>
+        <a href="signup.html" class="hover:text-blue-600">Join Now</a>
+      </nav>
     </div>
-  </nav>
+  </header>
 
-  <!-- ✅ Main Content -->
-  <main class="max-w-3xl mx-auto mt-8 p-6 bg-white rounded-2xl shadow-md">
-    <h1 class="text-2xl font-bold mb-4 text-gray-900">Welcome to KARDAN Job Portal</h1>
-    <p class="text-gray-700 mb-6">Find your dream job, explore top companies, and build your career with KARDAN. Post your thoughts, share resources, and stay connected.</p>
+  <!-- Hero -->
+  <section class="bg-blue-600 text-white py-20 text-center">
+    <h2 class="text-4xl font-bold mb-4">Find Your Dream Job</h2>
+    <p class="text-lg mb-6">Discover the latest jobs and apply instantly on KARDAN Job Portal</p>
+    <a href="jobs.html" class="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow hover:bg-gray-100">Browse Jobs</a>
+  </section>
 
-    <h2 class="text-xl font-semibold mb-4">Create a Post</h2>
-    <form action="#" method="POST" class="space-y-3">
-      <textarea placeholder="What's on your mind?" class="w-full p-3 border rounded-lg" rows="4"></textarea>
-      <input type="url" placeholder="Paste photo link here" class="w-full p-3 border rounded-lg" aria-label="Photo URL">
-      <button type="submit" class="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg shadow hover:bg-blue-600">
-        <i class="fas fa-paper-plane mr-2"></i> Post
-      </button>
-    </form>
-  </main>
+  <!-- Featured Job -->
+  <section class="max-w-6xl mx-auto px-4 py-12">
+    <h3 class="text-2xl font-bold mb-6">Featured Job</h3>
+    <div class="bg-white shadow p-6 rounded-lg">
+      <h4 class="text-xl font-semibold">Inside Sales Executive</h4>
+      <p class="text-gray-600">Indeed · Remote</p>
+      <a href="job-detail.html?id=featured" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">View Details</a>
+    </div>
+  </section>
 
-  <!-- ✅ Mobile Menu Toggle Script -->
-  <script>
-    const menuBtn = document.getElementById("menu-btn");
-    const menu = document.getElementById("menu");
-    menuBtn.addEventListener("click", () => {
-      menu.classList.toggle("hidden");
-    });
-  </script>
+  <!-- Popular Searches -->
+  <section class="max-w-6xl mx-auto mt-12 px-4">
+    <h2 class="text-xl font-bold mb-4">Popular Job Searches</h2>
+    <div class="flex flex-wrap gap-2">
+      <a href="jobs.html?search=work-from-home-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Work From Home Jobs India</a>
+      <a href="jobs.html?search=online-jobs-in-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Jobs in India</a>
+      <a href="jobs.html?search=amazon-work-from-home-jobs" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Amazon Work From Home Jobs</a>
+      <a href="jobs.html?search=part-time-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Part Time Jobs India</a>
+      <a href="jobs.html?search=data-entry-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Data Entry Jobs India</a>
+      <a href="jobs.html?search=freelance-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Freelance Jobs India</a>
+      <a href="jobs.html?search=government-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Government Jobs India</a>
+      <a href="jobs.html?search=remote-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Remote Jobs India</a>
+      <a href="jobs.html?search=freshers-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Freshers Jobs India</a>
+      <a href="jobs.html?search=online-teaching-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Teaching Jobs India</a>
+      <a href="jobs.html?search=IT-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">IT Jobs India</a>
+      <a href="jobs.html?search=online-marketing-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Marketing Jobs India</a>
+      <a href="jobs.html?search=private-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Private Jobs India</a>
+      <a href="jobs.html?search=online-typing-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Typing Jobs India</a>
+      <a href="jobs.html?search=HR-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">HR Jobs India</a>
+    </div>
+  </section>
 
-  <!-- ✅ ACLIB Script -->
-  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-  <script type="text/javascript">
-    aclib.runAutoTag({
-        zoneId: 'y0vwfbbxfo',
-    });
-  </script>
+  <!-- Footer -->
+  <footer class="bg-gray-100 mt-12 py-6 text-center text-gray-600">
+    © 2025 KARDAN Job Portal. All rights reserved.
+  </footer>
+
 </body>
 </html>
