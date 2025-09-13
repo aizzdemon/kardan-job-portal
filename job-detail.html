@@ -2,56 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Job Details | Kardan Job Portal</title>
+  <title>Kardan Jobs - Find Your Next Career Opportunity</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Job details on Kardan Job Portal. Apply easily." />
-  <meta name="keywords" content="job, careers, Kardan, remote jobs, sales jobs">
+  <meta name="description" content="Discover the latest job opportunities on Kardan Job Portal. Browse roles, companies, and apply with ease.">
+  <meta name="keywords" content="jobs, careers, hiring, employment, Kardan Job Portal">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Job Details | Kardan Job Portal" />
-  <meta property="og:description" content="View job details and apply." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/job-detail.html" />
-  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png" />
+  <meta property="og:title" content="Kardan Jobs - Career Opportunities">
+  <meta property="og:description" content="Explore jobs across top companies and apply on Kardan Job Portal.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/job-detail.html">
+  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Job Details | Kardan Job Portal" />
-  <meta name="twitter:description" content="View job details and apply." />
-  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png" />
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kardan Jobs - Career Opportunities">
+  <meta name="twitter:description" content="Find the latest job opportunities and apply easily.">
+  <meta name="twitter:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png">
 
-  <!-- Structured Data Template -->
+  <!-- Structured Data -->
   <script type="application/ld+json">
   {
-    "@context":"https://schema.org/",
-    "@type":"JobPosting",
-    "title":"Job Opportunity",
-    "description":"Details of Job",
-    "hiringOrganization":{
-      "@type":"Organization",
-      "name":"Kardan Job Portal",
-      "sameAs":"https://aizzdemon.github.io/kardan-job-portal/"
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": "Job Opportunity",
+    "description": "Explore and apply for jobs on Kardan Job Portal.",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": "Kardan Job Portal",
+      "sameAs": "https://aizzdemon.github.io/kardan-job-portal/"
     },
-    "jobLocation":{
-      "@type":"Place",
-      "address":{
-        "@type":"PostalAddress",
-        "addressLocality":"India",
-        "addressCountry":"IN"
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "India",
+        "addressCountry": "IN"
       }
     },
-    "employmentType":"FULL_TIME"
+    "employmentType": "FULL_TIME"
   }
   </script>
 
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-  <!-- Font Awesome for icons -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -65,153 +66,139 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
-
-  <style>
-    /* Some custom overrides to match blog format style */
-    .job-card {
-      max-width: 800px;
-      margin: 2rem auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 2rem;
-      box-shadow: 0 6px 20px rgba(15,15,15,0.07);
-    }
-    .badge {
-      display: inline-block;
-      background: #eef2ff;
-      color: #3730a3;
-      padding: 0.5rem 1rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-    }
-    .pill {
-      display: inline-block;
-      margin-right: 0.5rem;
-      margin-bottom: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 999px;
-      background: #f3f4f6;
-      color: #111;
-      font-size: 0.9rem;
-    }
-    .apply-btn {
-      display: inline-block;
-      margin-top: 1.5rem;
-      padding: 1rem 1.5rem;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: 600;
-      border: 1px solid #0b61ff;
-      color: #fff;
-      background: #0b61ff;
-    }
-  </style>
 </head>
-
 <body class="bg-gray-100 font-sans">
 
   <!-- Navbar -->
   <nav class="bg-blue-600 text-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4">
-      <div class="flex justify-between items-center py-4">
+      <div class="flex justify-between items-center py-3">
         <a href="index.html" class="flex items-center space-x-2">
-          <img src="https://aizzdemon.github.io/kardan-job-portal/assets/kardan-logo.png" alt="KARDAN Logo" class="w-10 h-10 rounded-lg object-contain">
-          <span class="text-xl font-bold">KARDAN</span>
+          <img src="assets/kardan-logo.png" alt="Kardan Logo" class="h-8 w-8">
+          <span class="font-bold text-lg">KARDAN</span>
         </a>
         <div class="flex space-x-6">
-          <a href="index.html" class="hover:text-gray-200"><i class="fas fa-home mr-1"></i>Home</a>
-          <a href="jobs.html" class="hover:text-gray-200"><i class="fas fa-briefcase mr-1"></i>Jobs</a>
-          <a href="companies.html" class="hover:text-gray-200"><i class="fas fa-building mr-1"></i>Companies</a>
-          <a href="profile.html" class="hover:text-gray-200"><i class="fas fa-user mr-1"></i>Profile</a>
+          <a href="index.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-home"></i><span>Home</span></a>
+          <a href="jobs.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-briefcase"></i><span>Jobs</span></a>
+          <a href="companies.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-building"></i><span>Companies</span></a>
+          <a href="places-to-hangout.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-coffee"></i><span>Hangout Places</span></a>
+          <a href="profile.html" class="flex items-center space-x-1 hover:text-gray-200"><i class="fas fa-user"></i><span>Profile</span></a>
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- Job Detail Card -->
-  <main class="job-card bg-gray-100">
-    <div id="jobDetail">
-      <p>Loading job details...</p>
+  <!-- Job Detail -->
+  <main class="max-w-3xl mx-auto mt-8 bg-white p-8 shadow-lg rounded-lg">
+    
+    <!-- Company Logo -->
+    <div id="job-image" class="flex justify-center mb-6">
+      <img src="https://via.placeholder.com/150" alt="Company Logo" class="h-28 w-28 object-cover rounded-full shadow-md">
+    </div>
+
+    <!-- Job Title -->
+    <h1 id="job-title" class="text-3xl font-bold text-gray-900 text-center mb-2">Loading...</h1>
+    
+    <!-- Meta Info -->
+    <p id="job-meta" class="text-center text-gray-600 mb-6">
+      <i class="fas fa-building"></i> Company | 
+      <i class="fas fa-map-marker-alt"></i> Location | 
+      <i class="fas fa-calendar"></i> Posted Date
+    </p>
+
+    <!-- Quick Info -->
+    <div class="bg-gray-50 border rounded-lg p-4 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+      <div><i class="fas fa-money-bill-wave text-green-500"></i><p id="job-salary">Salary: Not specified</p></div>
+      <div><i class="fas fa-clock text-blue-500"></i><p id="job-type">Job Type: Full-time</p></div>
+      <div><i class="fas fa-sync text-purple-500"></i><p id="job-shift">Shift: Rotational</p></div>
+    </div>
+
+    <!-- Job Description -->
+    <section>
+      <h2 class="text-xl font-semibold mb-2">Job Description</h2>
+      <p id="job-description" class="text-gray-700 leading-relaxed">Loading description...</p>
+    </section>
+
+    <!-- Benefits -->
+    <section id="job-benefits-section" class="mt-6 hidden">
+      <h2 class="text-xl font-semibold mb-2">Benefits</h2>
+      <ul id="job-benefits" class="list-disc list-inside text-gray-700"></ul>
+    </section>
+
+    <!-- Apply Now -->
+    <div class="mt-8 text-center">
+      <a id="apply-link" href="#" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-700 transition">Apply Now</a>
     </div>
   </main>
 
   <script>
+    // Update SEO
     function updateSEOTags(job) {
       document.title = `${job.title || "Job Opportunity"} - ${job.company || "Kardan Job Portal"}`;
       let desc = job.about ? job.about.substring(0, 150) : "Explore and apply for jobs on Kardan Job Portal.";
       document.querySelector('meta[name="description"]').setAttribute("content", desc);
-      document.querySelector('meta[property="og:title"]').setAttribute("content", `${job.title || "Job Opportunity"} at ${job.company || "Kardan"}`);
+      document.querySelector('meta[property="og:title"]').setAttribute("content", `${job.title} at ${job.company}`);
       document.querySelector('meta[property="og:description"]').setAttribute("content", desc);
-      document.querySelector('meta[property="og:image"]').setAttribute("content", job.logoUrl || "https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png");
-      document.querySelector('meta[name="twitter:title"]').setAttribute("content", `${job.title || "Job Opportunity"} - ${job.company || "Kardan"}`);
+      document.querySelector('meta[property="og:image"]').setAttribute("content", job.logoUrl || "assets/default-job.png");
+      document.querySelector('meta[name="twitter:title"]').setAttribute("content", job.title);
       document.querySelector('meta[name="twitter:description"]').setAttribute("content", desc);
-      document.querySelector('meta[name="twitter:image"]').setAttribute("content", job.logoUrl || "https://aizzdemon.github.io/kardan-job-portal/assets/default-job.png");
-      // Could update JSON-LD similarly if needed
+      document.querySelector('meta[name="twitter:image"]').setAttribute("content", job.logoUrl || "assets/default-job.png");
     }
 
+    // Load Job
     async function loadJobDetail() {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("id");
-      if (!jobId) {
-        document.getElementById("jobDetail").innerHTML = "<p class='text-red-500'>No Job ID provided.</p>";
-        return;
-      }
+
+      if (!jobId) return;
+
       try {
         const docSnap = await db.collection("jobs").doc(jobId).get();
         if (docSnap.exists) {
           const job = docSnap.data();
           updateSEOTags(job);
 
-          // Build the card HTML
-          let logoHtml = job.logoUrl
-            ? `<img src="${job.logoUrl}" alt="${job.company}" class="w-24 h-24 rounded-lg object-cover shadow-md">`
-            : `<div class="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center"><i class="fas fa-building text-gray-500 text-3xl"></i></div>`;
+          // Logo
+          document.getElementById("job-image").innerHTML =
+            `<img src="${job.logoUrl || 'https://via.placeholder.com/150'}" alt="Company Logo" class="h-28 w-28 object-cover rounded-full shadow-md">`;
 
-          let applyHtml = job.applyLink
-            ? `<a href="${job.applyLink}" target="_blank" class="apply-btn">Apply Now</a>`
-            : '';
+          // Title
+          document.getElementById("job-title").textContent = job.title || "Untitled Job";
 
-          document.getElementById("jobDetail").innerHTML = `
-            <div class="hero flex items-center space-x-6 mb-6">
-              ${logoHtml}
-              <div>
-                <h1 class="text-3xl font-bold text-gray-800">${job.title || ""}</h1>
-                <div class="text-gray-600 mt-1">${job.company || ""}</div>
-                <div class="flex flex-wrap text-sm text-gray-500 mt-2 space-x-4">
-                  <div><i class="fas fa-map-marker-alt mr-1"></i>${job.location || ""}</div>
-                  <div><i class="fas fa-clock mr-1"></i>${job.shifts || ""}</div>
-                  <div><i class="fas fa-money-bill-wave mr-1"></i>${job.salary || ""}</div>
-                </div>
-              </div>
-            </div>
+          // Meta
+          document.getElementById("job-meta").innerHTML =
+            `<i class="fas fa-building"></i> ${job.company || "Unknown"} | 
+             <i class="fas fa-map-marker-alt"></i> ${job.location || "Not specified"} | 
+             <i class="fas fa-calendar"></i> ${job.postedDate || "Recently"}`;
 
-            <div class="section mt-4 text-gray-700">
-              <h2 class="text-xl font-semibold mb-2">Job Description</h2>
-              <p>${job.about || ""}</p>
-            </div>
+          // Quick Info
+          document.getElementById("job-salary").textContent = "Salary: " + (job.salary || "Not specified");
+          document.getElementById("job-type").textContent = "Job Type: " + (job.type || "Full-time");
+          document.getElementById("job-shift").textContent = "Shift: " + (job.shift || "Not specified");
 
-            ${applyHtml}
+          // Description
+          document.getElementById("job-description").textContent = job.about || "No description available.";
 
-            <div class="tags mt-8">
-              <strong>Tags:</strong>
-              <div class="mt-2">
-                ${ (job.tags || []).map(tag =>
-                    `<span class="pill"><a href="/search/label/${encodeURIComponent(tag)}">${tag}</a></span>`
-                  ).join('') }
-              </div>
-            </div>
-          `;
-        } else {
-          document.getElementById("jobDetail").innerHTML = "<p class='text-red-500'>Job not found.</p>";
+          // Benefits
+          if (job.benefits && job.benefits.length > 0) {
+            const benefitsList = job.benefits.map(b => `<li>${b}</li>`).join("");
+            document.getElementById("job-benefits").innerHTML = benefitsList;
+            document.getElementById("job-benefits-section").classList.remove("hidden");
+          }
+
+          // Apply Link
+          if (job.applyLink) {
+            document.getElementById("apply-link").href = job.applyLink;
+          } else {
+            document.getElementById("apply-link").classList.add("hidden");
+          }
         }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("jobDetail").innerHTML = "<p class='text-red-500'>Error loading job details.</p>";
+      } catch (e) {
+        console.error("Error loading job:", e);
       }
     }
 
     window.onload = loadJobDetail;
   </script>
-
 </body>
 </html>
