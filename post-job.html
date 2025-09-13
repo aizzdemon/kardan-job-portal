@@ -1,59 +1,112 @@
-<form id="jobForm" class="space-y-4">
-  <input type="text" id="title" placeholder="Job Title" required class="w-full p-2 border rounded" />
-  <input type="text" id="company" placeholder="Company Name" required class="w-full p-2 border rounded" />
-  <input type="text" id="location" placeholder="Location" required class="w-full p-2 border rounded" />
-  <input type="url" id="logo" placeholder="Company Logo URL" class="w-full p-2 border rounded" />
-  <textarea id="aboutCompany" placeholder="About the Company" class="w-full p-2 border rounded"></textarea>
-  <textarea id="summary" placeholder="Job Summary" class="w-full p-2 border rounded"></textarea>
-  
-  <textarea id="responsibilities" placeholder="Key Responsibilities (one per line)" class="w-full p-2 border rounded"></textarea>
-  <textarea id="requirements" placeholder="Requirements (one per line)" class="w-full p-2 border rounded"></textarea>
-  <textarea id="benefits" placeholder="Perks & Benefits (one per line)" class="w-full p-2 border rounded"></textarea>
-  
-  <textarea id="timings" placeholder="Timings & Additional Info" class="w-full p-2 border rounded"></textarea>
-  <input type="url" id="applyLink" placeholder="Application Link" required class="w-full p-2 border rounded" />
-  
-  <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded">Publish Job</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post a Job - KARDAN</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+  <!-- Job Post Form Card -->
+  <div class="bg-white shadow-xl rounded-2xl w-full max-w-2xl p-8">
+    <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">📝 Publish a New Job</h1>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-    authDomain: "kar-kardan.firebaseapp.com",
-    projectId: "kar-kardan",
-    storageBucket: "kar-kardan.firebasestorage.app",
-    messagingSenderId: "554147696994",
-    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-    measurementId: "G-RRC3X485KQ"
-  };
+    <form id="jobForm" class="space-y-4">
+      <input type="text" id="title" placeholder="Job Title" required
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+      <input type="text" id="company" placeholder="Company Name" required
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
 
-  document.getElementById("jobForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+      <input type="text" id="location" placeholder="Location"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
 
-    const job = {
-      title: document.getElementById("title").value,
-      company: document.getElementById("company").value,
-      location: document.getElementById("location").value,
-      logo: document.getElementById("logo").value,
-      aboutCompany: document.getElementById("aboutCompany").value,
-      summary: document.getElementById("summary").value,
-      responsibilities: document.getElementById("responsibilities").value.split("\n").filter(Boolean),
-      requirements: document.getElementById("requirements").value.split("\n").filter(Boolean),
-      benefits: document.getElementById("benefits").value.split("\n").filter(Boolean),
-      timings: document.getElementById("timings").value,
-      applyLink: document.getElementById("applyLink").value,
-      timestamp: serverTimestamp(),
-      status: "pending" // from pro 69 workflow
+      <input type="url" id="logo" placeholder="Company Logo URL"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+
+      <textarea id="aboutCompany" placeholder="About the Company"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+
+      <textarea id="summary" placeholder="Job Summary"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+
+      <textarea id="responsibilities" placeholder="Key Responsibilities (one per line)"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+
+      <textarea id="requirements" placeholder="Requirements (one per line)"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+
+      <textarea id="benefits" placeholder="Perks & Benefits (one per line)"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+
+      <textarea id="timings" placeholder="Timings & Additional Info"
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+
+      <input type="url" id="applyLink" placeholder="Application Link" required
+        class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+
+      <button type="submit"
+        class="w-full py-3 text-lg font-semibold text-white rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 transition">
+        🚀 Publish Job
+      </button>
+    </form>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
     };
 
-    await addDoc(collection(db, "jobs"), job);
-    alert("Job published successfully (pending approval)");
-    e.target.reset();
-  });
-</script>
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    document.getElementById("jobForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ Please log in to publish a job.");
+        return;
+      }
+
+      const job = {
+        title: document.getElementById("title").value,
+        company: document.getElementById("company").value,
+        location: document.getElementById("location").value,
+        logo: document.getElementById("logo").value,
+        aboutCompany: document.getElementById("aboutCompany").value,
+        summary: document.getElementById("summary").value,
+        responsibilities: document.getElementById("responsibilities").value.split("\n").filter(Boolean),
+        requirements: document.getElementById("requirements").value.split("\n").filter(Boolean),
+        benefits: document.getElementById("benefits").value.split("\n").filter(Boolean),
+        timings: document.getElementById("timings").value,
+        applyLink: document.getElementById("applyLink").value,
+        uid: user.uid,
+        createdAt: serverTimestamp(), // ✅ matches rules
+        status: "pending"
+      };
+
+      try {
+        await addDoc(collection(db, "jobs"), job);
+        alert("✅ Job published successfully (pending approval).");
+        e.target.reset();
+      } catch (error) {
+        console.error("Error posting job:", error);
+        alert("❌ Failed to post job. Try again.");
+      }
+    });
+  </script>
+</body>
+</html>
