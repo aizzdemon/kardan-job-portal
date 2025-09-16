@@ -78,7 +78,7 @@
 
   <!-- Firestore Script -->
   <script>
-    // Firebase config (already provided in your project)
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
@@ -93,15 +93,15 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fetch Featured Jobs (limit 10)
+    // Fetch Featured Jobs (latest 10 approved)
     async function loadFeaturedJobs() {
       const jobContainer = document.getElementById("featured-jobs");
       jobContainer.innerHTML = "<p>Loading jobs...</p>";
 
       try {
         const snapshot = await db.collection("jobs")
-          .where("status", "==", "approved") // only approved jobs
-          .orderBy("timestamp", "desc")
+          .where("status", "==", "approved")   // only approved jobs
+          .orderBy("createdAt", "desc")        // sort by creation time
           .limit(10)
           .get();
 
