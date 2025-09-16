@@ -11,6 +11,10 @@
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
@@ -37,13 +41,11 @@
     <a href="jobs.html" class="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow hover:bg-gray-100">Browse Jobs</a>
   </section>
 
-  <!-- Featured Job -->
+  <!-- Featured Jobs -->
   <section class="max-w-6xl mx-auto px-4 py-12">
-    <h3 class="text-2xl font-bold mb-6">Featured Job</h3>
-    <div class="bg-white shadow p-6 rounded-lg">
-      <h4 class="text-xl font-semibold">Inside Sales Executive</h4>
-      <p class="text-gray-600">Indeed · Remote</p>
-      <a href="job-detail.html?id=featured" class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">View Details</a>
+    <h3 class="text-2xl font-bold mb-6">Featured Jobs</h3>
+    <div id="featured-jobs" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Jobs will load here dynamically -->
     </div>
   </section>
 
@@ -73,6 +75,66 @@
   <footer class="bg-gray-100 mt-12 py-6 text-center text-gray-600">
     © 2025 KARDAN Job Portal. All rights reserved.
   </footer>
+
+  <!-- Firestore Script -->
+  <script>
+    // Firebase config (already provided in your project)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+      measurementId: "G-RRC3X485KQ"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Fetch Featured Jobs (limit 10)
+    async function loadFeaturedJobs() {
+      const jobContainer = document.getElementById("featured-jobs");
+      jobContainer.innerHTML = "<p>Loading jobs...</p>";
+
+      try {
+        const snapshot = await db.collection("jobs")
+          .where("status", "==", "approved") // only approved jobs
+          .orderBy("timestamp", "desc")
+          .limit(10)
+          .get();
+
+        jobContainer.innerHTML = ""; // clear loading text
+
+        if (snapshot.empty) {
+          jobContainer.innerHTML = "<p>No featured jobs available.</p>";
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const job = doc.data();
+          const jobCard = `
+            <div class="bg-white shadow p-6 rounded-lg">
+              <h4 class="text-xl font-semibold">${job.title || "Untitled Job"}</h4>
+              <p class="text-gray-600">${job.company || "Unknown Company"} · ${job.location || "Location not specified"}</p>
+              <a href="job-detail.html?id=${doc.id}" 
+                class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                View Details
+              </a>
+            </div>
+          `;
+          jobContainer.innerHTML += jobCard;
+        });
+
+      } catch (error) {
+        console.error("Error loading jobs: ", error);
+        jobContainer.innerHTML = "<p class='text-red-500'>Failed to load jobs.</p>";
+      }
+    }
+
+    loadFeaturedJobs();
+  </script>
 
 </body>
 </html>
