@@ -25,6 +25,29 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
 
+  <!-- ✅ Notification Popup Modal with Blur -->
+  <div id="notify-modal" 
+       class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-2xl shadow-xl p-6 w-96 text-center animate-fade-in">
+      <h2 class="text-xl font-bold text-indigo-700 mb-3 flex items-center justify-center">
+        <i class="fas fa-bell text-yellow-500 mr-2"></i> Stay Updated!
+      </h2>
+      <p class="text-gray-600 mb-4">
+        Enable notifications to get instant alerts about the latest job opportunities.
+      </p>
+      <div class="flex justify-center gap-3">
+        <button id="allow-btn" 
+                class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition">
+          Allow
+        </button>
+        <button id="deny-btn" 
+                class="bg-gray-400 text-white px-5 py-2 rounded-lg hover:bg-gray-500 transition">
+          Later
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ✅ Navbar -->
   <nav class="shadow sticky top-0 z-30 bg-white">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3 p-4">
@@ -80,7 +103,7 @@
     <section id="job-list" class="space-y-4"></section>
   </main>
 
-  <!-- ✅ Firebase + Firestore -->
+  <!-- ✅ Firebase + Firestore + Notifications -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
@@ -102,8 +125,32 @@
     const filterType = document.getElementById("filter-type");
     const filterLocation = document.getElementById("filter-location");
     const searchBtn = document.getElementById("search-btn");
-    const typeList = document.getElementById("type-list");
-    const locationList = document.getElementById("location-list");
+
+    // ✅ Notification modal
+    const notifyModal = document.getElementById("notify-modal");
+    const allowBtn = document.getElementById("allow-btn");
+    const denyBtn = document.getElementById("deny-btn");
+
+    // ✅ Show modal only if permission not granted/denied
+    window.addEventListener("load", () => {
+      if (Notification.permission === "default") {
+        setTimeout(() => notifyModal.classList.remove("hidden"), 1000);
+      }
+    });
+
+    // ✅ Handle Allow
+    allowBtn.addEventListener("click", async () => {
+      notifyModal.classList.add("hidden");
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        new Notification("✅ You will now receive job alerts from KARDAN!");
+      }
+    });
+
+    // ✅ Handle Deny (later)
+    denyBtn.addEventListener("click", () => {
+      notifyModal.classList.add("hidden");
+    });
 
     let jobsData = [];
 
@@ -117,34 +164,7 @@
         jobsData.push({ id: doc.id, ...doc.data() });
       });
 
-      populateSuggestions();
       renderJobs(jobsData);
-    }
-
-    // ✅ Populate datalist suggestions
-    function populateSuggestions() {
-      const types = new Set();
-      const locations = new Set();
-
-      jobsData.forEach(job => {
-        if (job.title) types.add(job.title);
-        if (job.location) locations.add(job.location);
-      });
-
-      typeList.innerHTML = "";
-      locationList.innerHTML = "";
-
-      types.forEach(type => {
-        const option = document.createElement("option");
-        option.value = type;
-        typeList.appendChild(option);
-      });
-
-      locations.forEach(loc => {
-        const option = document.createElement("option");
-        option.value = loc;
-        locationList.appendChild(option);
-      });
     }
 
     // ✅ Render job list
@@ -198,7 +218,7 @@
       });
     }
 
-    // ✅ Filter jobs when clicking search
+    // ✅ Search filter
     searchBtn.addEventListener("click", () => {
       const selectedType = filterType.value.trim().toLowerCase();
       const selectedLoc = filterLocation.value.trim().toLowerCase();
@@ -214,5 +234,16 @@
 
     loadJobs();
   </script>
+
+  <!-- ✅ Tailwind Animation -->
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+  </style>
 </body>
 </html>
