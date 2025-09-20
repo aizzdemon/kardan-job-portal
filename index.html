@@ -76,6 +76,19 @@
     © 2025 KARDAN Job Portal. All rights reserved.
   </footer>
 
+  <!-- ✅ Notification Popup Modal -->
+  <div id="notifyModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
+      <h3 class="text-2xl font-bold text-blue-600 mb-4">🔔 Stay Updated!</h3>
+      <p class="text-gray-600 mb-6">Allow notifications to get instant job alerts from KARDAN Job Portal.</p>
+      <div class="flex justify-center gap-4">
+        <button id="allowNotify" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Allow</button>
+        <button id="closeNotify" class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">Later</button>
+      </div>
+      <p id="notifyStatus" class="mt-4 text-sm text-gray-500"></p>
+    </div>
+  </div>
+
   <!-- Firestore Script -->
   <script>
     // Firebase config
@@ -89,23 +102,22 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Fetch Featured Jobs (latest 10 approved)
+    // Load featured jobs
     async function loadFeaturedJobs() {
       const jobContainer = document.getElementById("featured-jobs");
       jobContainer.innerHTML = "<p>Loading jobs...</p>";
 
       try {
         const snapshot = await db.collection("jobs")
-          .where("status", "==", "approved")   // only approved jobs
-          .orderBy("createdAt", "desc")        // sort by creation time
+          .where("status", "==", "approved")
+          .orderBy("createdAt", "desc")
           .limit(10)
           .get();
 
-        jobContainer.innerHTML = ""; // clear loading text
+        jobContainer.innerHTML = "";
 
         if (snapshot.empty) {
           jobContainer.innerHTML = "<p>No featured jobs available.</p>";
@@ -134,6 +146,55 @@
     }
 
     loadFeaturedJobs();
+
+    // ✅ Show popup after 3 seconds
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        document.getElementById("notifyModal").classList.remove("hidden");
+      }, 3000);
+    });
+
+    const allowBtn = document.getElementById("allowNotify");
+    const closeBtn = document.getElementById("closeNotify");
+    const modal = document.getElementById("notifyModal");
+    const notifyStatus = document.getElementById("notifyStatus");
+
+    // Allow notifications
+    allowBtn.addEventListener("click", async () => {
+      if (!("Notification" in window)) {
+        notifyStatus.textContent = "Your browser does not support notifications.";
+        notifyStatus.classList.add("text-red-500");
+        return;
+      }
+
+      let permission = Notification.permission;
+
+      if (permission === "granted") {
+        new Notification("✅ You already allowed notifications!");
+        notifyStatus.textContent = "Notifications are enabled.";
+        notifyStatus.classList.add("text-green-600");
+        modal.classList.add("hidden");
+      } else if (permission === "denied") {
+        notifyStatus.textContent = "You blocked notifications. Please enable them in browser settings.";
+        notifyStatus.classList.add("text-red-500");
+      } else {
+        permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          new Notification("🔔 Notifications enabled! You will now get job alerts.");
+          notifyStatus.textContent = "Notifications are enabled.";
+          notifyStatus.classList.add("text-green-600");
+          modal.classList.add("hidden");
+        } else {
+          notifyStatus.textContent = "You denied notifications.";
+          notifyStatus.classList.add("text-red-500");
+        }
+      }
+    });
+
+    // Close popup
+    closeBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
   </script>
 
 </body>
