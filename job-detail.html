@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KARDAN Job Details</title>
+  <meta name="description" content="Find detailed job descriptions, company information, requirements, perks, and apply directly on KARDAN Job Portal." />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
@@ -46,7 +47,7 @@
     </div>
   </nav>
 
-  <!-- Job Details -->
+  <!-- Job Details Container -->
   <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6 my-10">
     <div class="flex justify-center mb-6">
       <img id="companyLogo" src="" alt="Company Logo" class="w-28 h-28 object-contain rounded-lg shadow">
@@ -60,34 +61,15 @@
       <p id="aboutCompany" class="text-gray-700"></p>
     </div>
 
-    <div id="jobSummarySection" class="mb-6 hidden">
-      <h2 class="text-xl font-semibold mb-2">Job Summary</h2>
-      <p id="jobSummary" class="text-gray-700"></p>
-    </div>
-
-    <div id="responsibilitiesSection" class="mb-6 hidden">
-      <h2 class="text-xl font-semibold mb-2">Key Responsibilities</h2>
-      <ul id="responsibilitiesList" class="list-disc pl-6 text-gray-700"></ul>
-    </div>
-
-    <div id="requirementsSection" class="mb-6 hidden">
-      <h2 class="text-xl font-semibold mb-2">Requirements</h2>
-      <ul id="requirementsList" class="list-disc pl-6 text-gray-700"></ul>
-    </div>
-
-    <div id="benefitsSection" class="mb-6 hidden">
-      <h2 class="text-xl font-semibold mb-2">Perks & Benefits</h2>
-      <ul id="benefitsList" class="list-disc pl-6 text-gray-700"></ul>
-    </div>
-
-    <div id="timingsSection" class="mb-6 hidden">
-      <h2 class="text-xl font-semibold mb-2">Timings & Additional Info</h2>
-      <p id="timingsInfo" class="text-gray-700"></p>
-    </div>
-
     <div class="text-center mt-8">
       <a id="applyLink" href="#" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Apply Now</a>
     </div>
+  </div>
+
+  <!-- SEO Keywords Section -->
+  <div class="max-w-3xl mx-auto p-4 text-gray-600 text-sm mt-10">
+    <strong>Related Keywords:</strong> 
+    corporate jobs, corporate careers, office jobs, full-time jobs, part-time jobs, permanent jobs, remote jobs, work from home jobs, WFH jobs, telecommute jobs, virtual jobs, online jobs, IT jobs, sales jobs, marketing jobs, business development jobs, finance jobs, accounting jobs, HR jobs, human resources jobs, customer support jobs, call center jobs, administrative jobs, management jobs, executive jobs, entry-level jobs, mid-level jobs, senior-level jobs, flexible jobs, home-based jobs, freelancer jobs, telework, online work, digital jobs, startup jobs, corporate internship, career growth, professional jobs, job portal, KARDAN Job Portal, job opportunities, apply online, Bengaluru jobs, Mumbai jobs, India jobs
   </div>
 
   <script type="module">
@@ -126,7 +108,7 @@
           // Company Logo
           document.getElementById("companyLogo").src = job.logoUrl || "https://via.placeholder.com/150?text=No+Logo";
 
-          // About
+          // About Section
           if (job.about) {
             document.getElementById("aboutCompany").textContent = job.about;
             document.getElementById("aboutCompanySection").classList.remove("hidden");
@@ -135,8 +117,9 @@
           // Apply Link
           if (job.applyLink) document.getElementById("applyLink").href = job.applyLink;
 
-          // Update SEO
+          // Update SEO dynamically
           document.title = `${job.title} at ${job.company} - KARDAN Job Portal`;
+          document.querySelector('meta[name="description"]').setAttribute("content", `${job.title} role at ${job.company}. Apply now on KARDAN.`);
         } else {
           document.getElementById("jobTitle").textContent = "Job not found";
         }
