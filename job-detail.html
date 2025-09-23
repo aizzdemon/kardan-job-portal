@@ -9,41 +9,45 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
-  <script src="https://unpkg.com/lucide-icons/dist/umd/lucide.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
 
   <!-- 🔹 Navigation Bar -->
-  <nav class="bg-white shadow-md sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <!-- Logo -->
-      <a href="index.html" class="text-2xl font-bold text-blue-600 flex items-center space-x-2">
-        <span>KARDAN</span>
-      </a>
+  <nav class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16 items-center">
+        
+        <!-- Logo -->
+        <a href="index.html" class="flex items-center space-x-2 text-2xl font-bold text-blue-600">
+          <i data-lucide="briefcase" class="w-6 h-6"></i>
+          <span>KARDAN</span>
+        </a>
 
-      <!-- Nav Buttons -->
-      <div class="flex space-x-6 text-gray-700 font-medium">
-        <a href="index.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="home" class="w-5 h-5"></i><span>Home</span>
-        </a>
-        <a href="jobs.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="briefcase" class="w-5 h-5"></i><span>Jobs</span>
-        </a>
-        <a href="books.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="book-open" class="w-5 h-5"></i><span>Buy Books</span>
-        </a>
-        <a href="places-to-hangout.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="map-pin" class="w-5 h-5"></i><span>Hangouts</span>
-        </a>
-        <a href="companies.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="building-2" class="w-5 h-5"></i><span>Companies</span>
-        </a>
-        <a href="login.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="log-in" class="w-5 h-5"></i><span>Login</span>
-        </a>
-        <a href="signup.html" class="flex items-center space-x-1 hover:text-blue-600">
-          <i data-lucide="user-plus" class="w-5 h-5"></i><span>Join Now</span>
-        </a>
+        <!-- Navigation Links -->
+        <div class="flex space-x-6">
+          <a href="index.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="home" class="w-5 h-5"></i><span>Home</span>
+          </a>
+          <a href="jobs.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="list" class="w-5 h-5"></i><span>Jobs</span>
+          </a>
+          <a href="books.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="book" class="w-5 h-5"></i><span>Buy Books</span>
+          </a>
+          <a href="places-to-hangout.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="map-pin" class="w-5 h-5"></i><span>Hangouts</span>
+          </a>
+          <a href="companies.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="building" class="w-5 h-5"></i><span>Companies</span>
+          </a>
+          <a href="login.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="log-in" class="w-5 h-5"></i><span>Login</span>
+          </a>
+          <a href="signup.html" class="flex items-center space-x-1 text-gray-700 hover:text-blue-600">
+            <i data-lucide="user-plus" class="w-5 h-5"></i><span>Join Now</span>
+          </a>
+        </div>
       </div>
     </div>
   </nav>
@@ -53,7 +57,7 @@
     
     <!-- Logo -->
     <div class="flex justify-center mb-6">
-      <img id="companyLogo" src="" alt="Company Logo" class="w-28 h-28 object-contain rounded-lg shadow hidden">
+      <img id="companyLogo" src="" alt="Company Logo" class="w-28 h-28 object-contain rounded-lg shadow">
     </div>
 
     <!-- Job Title -->
@@ -100,13 +104,8 @@
     </div>
 
     <!-- Apply Button -->
-    <div class="text-center mt-8 hidden" id="applyBtnSection">
+    <div class="text-center mt-8">
       <a id="applyLink" href="#" target="_blank" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">Apply Now</a>
-    </div>
-
-    <!-- Fallback Error -->
-    <div id="errorMessage" class="text-center text-red-600 font-semibold mt-6 hidden">
-      ❌ Job not found or details unavailable.
     </div>
   </div>
 
@@ -130,117 +129,82 @@
     async function loadJobDetails() {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get("id");
-
-      if (!jobId) {
-        document.getElementById("errorMessage").classList.remove("hidden");
-        document.getElementById("jobTitle").textContent = "Invalid Job ID";
-        return;
-      }
+      if (!jobId) return;
 
       try {
         const docRef = doc(db, "jobs", jobId);
         const docSnap = await getDoc(docRef);
 
-        if (!docSnap.exists()) {
-          document.getElementById("errorMessage").classList.remove("hidden");
-          document.getElementById("jobTitle").textContent = "Job Not Found";
-          return;
-        }
+        if (docSnap.exists()) {
+          const job = docSnap.data();
 
-        const job = docSnap.data();
-        console.log("Fetched job:", job);
+          document.getElementById("jobTitle").textContent = job.title || "Job Title";
+          document.getElementById("companyName").textContent = `${job.company || "Company"} • ${job.location || "Location"}`;
+          document.getElementById("publishedDate").textContent = job.timestamp ? `Posted on ${new Date(job.timestamp.toDate()).toDateString()}` : "";
 
-        // Title & company
-        document.getElementById("jobTitle").textContent = job.title || "Job Title";
-        document.getElementById("companyName").textContent = 
-          `${job.company || "Company"} • ${job.location || "Location"}`;
+          if (job.logo) document.getElementById("companyLogo").src = job.logo;
 
-        // Published date
-        if (job.timestamp && job.timestamp.toDate) {
-          document.getElementById("publishedDate").textContent =
-            `Posted on ${new Date(job.timestamp.toDate()).toDateString()}`;
-        }
+          // ✅ Handle both 'aboutCompany' and 'about'
+          if (job.aboutCompany || job.about) {
+            document.getElementById("aboutCompany").textContent = job.aboutCompany || job.about;
+            document.getElementById("aboutCompanySection").classList.remove("hidden");
+          }
 
-        // Logo
-        if (job.logo) {
-          const logoEl = document.getElementById("companyLogo");
-          logoEl.src = job.logo;
-          logoEl.classList.remove("hidden");
-        }
+          // ✅ Handle both 'summary' and 'description'
+          if (job.summary || job.description) {
+            document.getElementById("jobSummary").textContent = job.summary || job.description;
+            document.getElementById("jobSummarySection").classList.remove("hidden");
+          }
 
-        // About company
-        if (job.aboutCompany) {
-          document.getElementById("aboutCompany").textContent = job.aboutCompany;
-          document.getElementById("aboutCompanySection").classList.remove("hidden");
-        }
+          if (job.responsibilities && job.responsibilities.length) {
+            job.responsibilities.forEach(r => {
+              const li = document.createElement("li");
+              li.textContent = r;
+              document.getElementById("responsibilitiesList").appendChild(li);
+            });
+            document.getElementById("responsibilitiesSection").classList.remove("hidden");
+          }
 
-        // Summary
-        if (job.summary) {
-          document.getElementById("jobSummary").textContent = job.summary;
-          document.getElementById("jobSummarySection").classList.remove("hidden");
-        }
+          if (job.requirements && job.requirements.length) {
+            job.requirements.forEach(r => {
+              const li = document.createElement("li");
+              li.textContent = r;
+              document.getElementById("requirementsList").appendChild(li);
+            });
+            document.getElementById("requirementsSection").classList.remove("hidden");
+          }
 
-        // Responsibilities
-        if (Array.isArray(job.responsibilities) && job.responsibilities.length) {
-          job.responsibilities.forEach(r => {
-            const li = document.createElement("li");
-            li.textContent = r;
-            document.getElementById("responsibilitiesList").appendChild(li);
-          });
-          document.getElementById("responsibilitiesSection").classList.remove("hidden");
-        }
+          if (job.benefits && job.benefits.length) {
+            job.benefits.forEach(b => {
+              const li = document.createElement("li");
+              li.textContent = b;
+              document.getElementById("benefitsList").appendChild(li);
+            });
+            document.getElementById("benefitsSection").classList.remove("hidden");
+          }
 
-        // Requirements
-        if (Array.isArray(job.requirements) && job.requirements.length) {
-          job.requirements.forEach(r => {
-            const li = document.createElement("li");
-            li.textContent = r;
-            document.getElementById("requirementsList").appendChild(li);
-          });
-          document.getElementById("requirementsSection").classList.remove("hidden");
-        }
+          if (job.timings) {
+            document.getElementById("timingsInfo").textContent = job.timings;
+            document.getElementById("timingsSection").classList.remove("hidden");
+          }
 
-        // Benefits
-        if (Array.isArray(job.benefits) && job.benefits.length) {
-          job.benefits.forEach(b => {
-            const li = document.createElement("li");
-            li.textContent = b;
-            document.getElementById("benefitsList").appendChild(li);
-          });
-          document.getElementById("benefitsSection").classList.remove("hidden");
-        }
+          if (job.applyLink) {
+            document.getElementById("applyLink").href = job.applyLink;
+          }
 
-        // Timings
-        if (job.timings) {
-          document.getElementById("timingsInfo").textContent = job.timings;
-          document.getElementById("timingsSection").classList.remove("hidden");
-        }
-
-        // Apply link
-        if (job.applyLink) {
-          document.getElementById("applyLink").href = job.applyLink;
-          document.getElementById("applyBtnSection").classList.remove("hidden");
-        }
-
-        // SEO update
-        if (job.title && job.company) {
+          // 🔹 Update SEO dynamically
           document.title = `${job.title} at ${job.company} - KARDAN Job Portal`;
-          document.querySelector('meta[name="description"]').setAttribute(
-            "content",
-            `${job.title} role at ${job.company}. ${job.summary || "Apply now on KARDAN."}`
-          );
+          document.querySelector('meta[name="description"]').setAttribute("content", `${job.title} role at ${job.company}. ${job.summary || job.description || "Apply now on KARDAN."}`);
+        } else {
+          document.getElementById("jobTitle").textContent = "Job not found";
         }
-
-      } catch (error) {
-        console.error("Error fetching job:", error);
-        document.getElementById("errorMessage").classList.remove("hidden");
-        document.getElementById("jobTitle").textContent = "Error loading job";
+      } catch (err) {
+        console.error("Error loading job details:", err);
+        document.getElementById("jobTitle").textContent = "Error loading job details";
       }
     }
 
     loadJobDetails();
-
-    // Load icons
     lucide.createIcons();
   </script>
 </body>
