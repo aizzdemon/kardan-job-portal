@@ -1,0 +1,49 @@
+<!-- navbar.html -->
+<nav class="bg-white shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+
+      <!-- Logo -->
+      <a href="index.html" class="text-2xl font-bold text-blue-600">BooterSpace</a>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex space-x-6">
+        <a href="index.html" class="text-gray-700 hover:text-blue-600 font-medium">Home</a>
+        <a href="jobs.html" class="text-gray-700 hover:text-blue-600 font-medium">Jobs</a>
+        <a href="books.html" class="text-gray-700 hover:text-blue-600 font-medium">Buy Books</a>
+        <a href="places-to-hangout.html" class="text-gray-700 hover:text-blue-600 font-medium">Hangouts</a>
+        <a href="companies.html" class="text-gray-700 hover:text-blue-600 font-medium">Companies</a>
+        <a href="login.html" class="text-gray-700 hover:text-blue-600 font-medium">Login</a>
+        <a href="signup.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium">Join Now</a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button id="menu-btn" class="md:hidden text-gray-700 text-3xl focus:outline-none">
+        ☰
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden flex-col bg-white border-t border-gray-200">
+      <a href="index.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
+      <a href="jobs.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Jobs</a>
+      <a href="books.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Buy Books</a>
+      <a href="places-to-hangout.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Hangouts</a>
+      <a href="companies.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Companies</a>
+      <a href="login.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Login</a>
+      <a href="signup.html" class="block px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg m-2 text-center">Join Now</a>
+    </div>
+</nav>
+
+<!-- Hamburger Toggle Script (optional if using fetch in index.html) -->
+<!--
+<script>
+  const menuBtn = document.getElementById('menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if(menuBtn){
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
+</script>
+-->
