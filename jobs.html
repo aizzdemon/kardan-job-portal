@@ -18,6 +18,8 @@
   <!-- Search Section -->
   <div class="max-w-5xl mx-auto py-6">
     <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+
+      <!-- Existing Fields -->
       <div class="relative w-full md:w-1/2">
         <input id="searchTitle" type="text" placeholder="Search by job title" class="w-full border rounded-lg p-2">
         <ul id="titleSuggestions" class="absolute bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto hidden z-10"></ul>
@@ -26,8 +28,27 @@
         <input id="searchLocation" type="text" placeholder="Search by location" class="w-full border rounded-lg p-2">
         <ul id="locationSuggestions" class="absolute bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto hidden z-10"></ul>
       </div>
+
       <button id="searchBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Search</button>
     </div>
+
+    <!-- 🔥 NEW: Calendar Filter -->
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-center mt-4">
+      <input id="startDate" type="date" class="border rounded-lg p-2 w-full md:w-1/3">
+      <input id="endDate" type="date" class="border rounded-lg p-2 w-full md:w-1/3">
+      <button id="filterByDateBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+        Filter by Date
+      </button>
+    </div>
+
+    <!-- 🔥 NEW: Result Count + All Jobs Button -->
+    <div id="resultInfo" class="text-center text-gray-700 mt-4 text-sm hidden"></div>
+    <div class="text-center mt-2">
+      <button id="showAllBtn" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition hidden">
+        Show All Jobs
+      </button>
+    </div>
+
   </div>
 
   <!-- Jobs List -->
@@ -72,6 +93,12 @@
     const searchBtn = document.getElementById('searchBtn');
     const loadMoreBtn = document.getElementById('loadMoreBtn');
 
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const filterByDateBtn = document.getElementById('filterByDateBtn');
+    const resultInfo = document.getElementById('resultInfo');
+    const showAllBtn = document.getElementById('showAllBtn');
+
     let allJobs = [];
     let displayedJobs = [];
     let jobsPerPage = 20;
@@ -84,6 +111,8 @@
         allJobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         currentIndex = 0;
         displayedJobs = [];
+        resultInfo.classList.add("hidden");
+        showAllBtn.classList.add("hidden");
         loadMoreJobs();
       } catch (error) {
         console.error('Error fetching jobs:', error);
@@ -145,7 +174,7 @@
       window.location.href = `job-detail.html?id=${jobId}`;
     }
 
-    // 🔹 Search Suggestions
+    // Search Suggestions
     function filterSuggestions(input, list) {
       const value = input.value.toLowerCase();
       const filtered = list.filter(item => item.toLowerCase().includes(value));
@@ -182,6 +211,7 @@
       showSuggestions(searchLocation, locationSuggestions, locations);
     });
 
+    // SEARCH BUTTON FILTER
     searchBtn.addEventListener('click', () => {
       const titleVal = searchTitle.value.toLowerCase();
       const locationVal = searchLocation.value.toLowerCase();
@@ -192,9 +222,35 @@
         return titleMatch && locationMatch;
       });
 
+      updateFilteredResults(filteredJobs);
+    });
+
+    // 🔥 NEW: DATE FILTER BUTTON
+    filterByDateBtn.addEventListener("click", () => {
+      if (!startDate.value || !endDate.value) return;
+
+      const start = new Date(startDate.value);
+      const end = new Date(endDate.value);
+
+      const filtered = allJobs.filter(job => {
+        if (!job.timestamp) return false;
+        const jobDate = job.timestamp.toDate();
+        return jobDate >= start && jobDate <= end;
+      });
+
+      updateFilteredResults(filtered);
+    });
+
+    // 🔥 NEW: COMMON FILTER RESULT HANDLING
+    function updateFilteredResults(filteredJobs) {
       displayedJobs = filteredJobs.slice(0, jobsPerPage);
       currentIndex = displayedJobs.length;
       displayJobs(displayedJobs);
+
+      // Result count
+      resultInfo.textContent = `Showing ${filteredJobs.length} job(s)`;
+      resultInfo.classList.remove("hidden");
+      showAllBtn.classList.remove("hidden");
 
       if(currentIndex >= filteredJobs.length) {
         loadMoreBtn.classList.add('hidden');
@@ -209,8 +265,16 @@
         currentIndex += jobsPerPage;
         if(currentIndex >= filteredJobs.length) loadMoreBtn.classList.add('hidden');
       }
+    }
+
+    // 🔥 NEW: Show All Jobs Button
+    showAllBtn.addEventListener("click", () => {
+      resultInfo.classList.add("hidden");
+      showAllBtn.classList.add("hidden");
+      fetchJobs();
     });
 
+    // Hide suggestions on click outside
     document.addEventListener('click', e => {
       if(!searchTitle.contains(e.target)) titleSuggestions.classList.add('hidden');
       if(!searchLocation.contains(e.target)) locationSuggestions.classList.add('hidden');
