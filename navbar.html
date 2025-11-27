@@ -8,6 +8,28 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .nav-btn {
+      @apply flex items-center gap-2 px-4 py-2 rounded-xl 
+      transition-all duration-200 
+      text-gray-700 font-medium
+      hover:-translate-y-0.5 hover:shadow-md hover:bg-gray-100;
+    }
+
+    .nav-btn-mobile {
+      @apply flex items-center gap-3 px-4 py-3 rounded-lg
+      transition-all duration-200 hover:bg-gray-100;
+    }
+
+    .join-btn {
+      @apply flex items-center gap-2 px-5 py-2 rounded-xl 
+      font-semibold text-white 
+      bg-gradient-to-r from-blue-600 to-blue-700
+      shadow-md transition-all duration-200 
+      hover:shadow-lg hover:brightness-110;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50">
@@ -21,45 +43,45 @@
       <a href="index.html" class="text-2xl font-bold text-blue-600">BooterSpace</a>
 
       <!-- Desktop Menu -->
-      <div class="hidden md:flex space-x-6">
+      <div class="hidden md:flex space-x-3">
 
-        <a href="index.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="index.html" class="nav-btn">
           <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
-          <span class="text-gray-700 font-medium">Home</span>
+          Home
         </a>
 
-        <a href="jobs.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="jobs.html" class="nav-btn">
           <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i>
-          <span class="text-gray-700 font-medium">Jobs</span>
+          Jobs
         </a>
 
-        <a href="books.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="books.html" class="nav-btn">
           <i data-lucide="book-open" class="w-5 h-5 text-red-500"></i>
-          <span class="text-gray-700 font-medium">Books</span>
+          Books
         </a>
 
-        <a href="dashboard.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="dashboard.html" class="nav-btn">
           <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i>
-          <span class="text-gray-700 font-medium">Dashboard</span>
+          Dashboard
         </a>
 
-        <a href="places-to-hangout.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="places-to-hangout.html" class="nav-btn">
           <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i>
-          <span class="text-gray-700 font-medium">Hangouts</span>
+          Hangouts
         </a>
 
-        <a href="companies.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="companies.html" class="nav-btn">
           <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i>
-          <span class="text-gray-700 font-medium">Companies</span>
+          Companies
         </a>
 
-        <a href="login.html" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
+        <a href="login.html" class="nav-btn">
           <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i>
-          <span class="text-gray-700 font-medium">Login</span>
+          Login
         </a>
 
         <a href="signup.html">
-          <button class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+          <button class="join-btn">
             <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
             Join
           </button>
@@ -76,37 +98,39 @@
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="hidden md:hidden flex-col bg-white border-t border-gray-200">
 
-      <a href="index.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="index.html" class="nav-btn-mobile">
         <i data-lucide="home" class="w-5 h-5 text-blue-600"></i> Home
       </a>
 
-      <a href="jobs.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="jobs.html" class="nav-btn-mobile">
         <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i> Jobs
       </a>
 
-      <a href="books.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="books.html" class="nav-btn-mobile">
         <i data-lucide="book-open" class="w-5 h-5 text-red-500"></i> Buy Books
       </a>
 
-      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="dashboard.html" class="nav-btn-mobile">
         <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i> Dashboard
       </a>
 
-      <a href="places-to-hangout.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="places-to-hangout.html" class="nav-btn-mobile">
         <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i> Hangouts
       </a>
 
-      <a href="companies.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="companies.html" class="nav-btn-mobile">
         <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i> Companies
       </a>
 
-      <a href="login.html" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-100">
+      <a href="login.html" class="nav-btn-mobile">
         <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i> Login
       </a>
 
-      <a href="signup.html" class="block px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg m-2 text-center flex items-center justify-center gap-2">
-        <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-        Join Now
+      <a href="signup.html" class="m-3 block">
+        <button class="join-btn w-full justify-center">
+          <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+          Join Now
+        </button>
       </a>
     </div>
   </div>
@@ -115,9 +139,15 @@
 
 <script>
   lucide.createIcons();
-</script>
 
-<script src="navbar.js"></script>
+  // Mobile toggle
+  const menuBtn = document.getElementById("menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+
+  menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+  });
+</script>
 
 </body>
 </html>
