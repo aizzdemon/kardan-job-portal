@@ -1,189 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stylish Navbar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* Use Inter font for a modern look */
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    body {
-        font-family: 'Inter', sans-serif;
-    }
-  </style>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <style>
-    /* Desktop Nav Button (Box Design) */
-    .nav-btn {
-      @apply flex items-center gap-2 px-4 py-2 rounded-xl 
-      transition-all duration-200 
-      text-gray-700 font-medium
-      /* Box Styling: solid background, soft shadow, light border */
-      bg-white shadow-sm border border-gray-200
-      hover:bg-blue-50 hover:text-blue-700 hover:shadow-md hover:border-blue-300 active:scale-[0.98];
-    }
-
-    /* Mobile Nav Button (New Box Design for mobile menu) */
-    .nav-btn-mobile {
-      @apply flex items-center gap-3 px-4 py-3 rounded-xl
-      transition-all duration-200
-      /* Mobile Box Styling */
-      bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2
-      hover:bg-white hover:shadow-md hover:border-blue-300 hover:text-blue-700;
-    }
-
-    /* Enhanced Join Button with a defined shadow and active press effect */
-    .join-btn {
-      @apply flex items-center gap-2 px-5 py-2 rounded-xl 
-      font-semibold text-white 
-      bg-gradient-to-r from-blue-600 to-blue-700
-      shadow-lg shadow-blue-500/50 transition-all duration-300 
-      hover:shadow-xl hover:brightness-105 active:scale-[0.97]
-      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stylish Navbar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide Icons stable version -->
+<script src="https://unpkg.com/lucide@0.230.0/dist/lucide.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+</style>
 </head>
-
 <body class="bg-gray-50 min-h-screen">
 
 <!-- NAVBAR START -->
-<!-- Added backdrop-blur for a modern, sticky header effect -->
 <nav class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-gray-100">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
 
-      <!-- Logo -->
-      <a href="index.html" class="text-2xl font-extrabold text-blue-600 tracking-tight flex items-center gap-1">
+      <!-- Logo -->
+      <a href="index.html" class="text-2xl font-extrabold text-blue-600 flex items-center gap-1">
         <i data-lucide="rocket" class="w-6 h-6 text-blue-500"></i>
         BooterSpace
       </a>
 
-      <!-- Desktop Menu -->
-      <div class="hidden md:flex space-x-2 lg:space-x-3">
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex space-x-2 lg:space-x-3">
+        <a href="index.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md hover:border-blue-300">
+          <i data-lucide="home" class="w-5 h-5 text-blue-600"></i> Home
+        </a>
+        <a href="jobs.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-purple-700 hover:shadow-md hover:border-purple-300">
+          <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i> Jobs
+        </a>
+        <a href="books.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-red-700 hover:shadow-md hover:border-red-300">
+          <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Books
+        </a>
+        <a href="dashboard.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-indigo-700 hover:shadow-md hover:border-indigo-300">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i> Dashboard
+        </a>
+        <a href="places-to-hangout.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-green-700 hover:shadow-md hover:border-green-300">
+          <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i> Hangouts
+        </a>
+        <a href="companies.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-yellow-700 hover:shadow-md hover:border-yellow-300">
+          <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i> Companies
+        </a>
+        <a href="login.html" class="flex items-center gap-2 px-4 py-2 rounded-xl text-gray-700 font-medium bg-white shadow-sm border border-gray-200 hover:bg-blue-50 hover:text-teal-700 hover:shadow-md hover:border-teal-300">
+          <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i> Login
+        </a>
+        <a href="signup.html" class="flex items-center px-5 py-2 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 hover:shadow-xl hover:brightness-105 active:scale-[0.97]">
+          <i data-lucide="user-plus" class="w-5 h-5"></i> Join
+        </a>
+      </div>
 
-        <a href="index.html" class="nav-btn">
-          <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
-          <span>Home</span>
-        </a>
-
-        <a href="jobs.html" class="nav-btn">
-          <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i>
-          <span>Jobs</span>
-        </a>
-
-        <a href="books.html" class="nav-btn">
-          <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i>
-          <span>Books</span>
-        </a>
-
-        <a href="dashboard.html" class="nav-btn">
-          <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <a href="places-to-hangout.html" class="nav-btn">
-          <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i>
-          <span>Hangouts</span>
-        </a>
-
-        <a href="companies.html" class="nav-btn">
-          <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i>
-          <span>Companies</span>
-        </a>
-
-        <a href="login.html" class="nav-btn">
-          <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i>
-          <span>Login</span>
-        </a>
-
-        <!-- The Join button is already a strong box design -->
-        <a href="signup.html" class="flex items-center">
-          <button class="join-btn">
-            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-            <span>Join</span>
-          </button>
-        </a>
-
-      </div>
-
-      <!-- Mobile Hamburger Button (Now uses Lucide icons) -->
-      <button id="menu-btn" class="md:hidden text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
-        <!-- Initial icon is 'menu' -->
+      <!-- Mobile Hamburger -->
+      <button id="menu-btn" class="md:hidden text-gray-700 p-2 rounded-lg hover:bg-gray-100" aria-label="Toggle Menu">
         <i id="menu-icon" data-lucide="menu" class="w-6 h-6"></i>
-      </button>
-    </div>
+      </button>
+    </div>
 
-    <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden flex-col bg-white border-t border-gray-200 py-2">
-
-      <!-- All mobile links now use the box styling defined in .nav-btn-mobile -->
-      <a href="index.html" class="nav-btn-mobile">
-        <i data-lucide="home" class="w-5 h-5 text-blue-600"></i> Home
-      </a>
-
-      <a href="jobs.html" class="nav-btn-mobile">
-        <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i> Jobs
-      </a>
-
-      <a href="books.html" class="nav-btn-mobile">
-        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Buy Books
-      </a>
-
-      <a href="dashboard.html" class="nav-btn-mobile">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i> Dashboard
-      </a>
-
-      <a href="places-to-hangout.html" class="nav-btn-mobile">
-        <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i> Hangouts
-      </a>
-
-      <a href="companies.html" class="nav-btn-mobile">
-        <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i> Companies
-      </a>
-
-      <a href="login.html" class="nav-btn-mobile">
-        <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i> Login
-      </a>
-
-      <div class="m-3">
-        <!-- The Join button is styled as a full-width call to action -->
-        <a href="signup.html">
-          <button class="join-btn w-full justify-center">
-            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-            <span>Join Now</span>
-          </button>
-        </a>
-      </div>
-    </div>
-  </div>
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden flex-col bg-white border-t border-gray-200 py-2 transition-all duration-300">
+      <a href="index.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-blue-300 hover:text-blue-700">
+        <i data-lucide="home" class="w-5 h-5 text-blue-600"></i> Home
+      </a>
+      <a href="jobs.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-purple-300 hover:text-purple-700">
+        <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i> Jobs
+      </a>
+      <a href="books.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-red-300 hover:text-red-700">
+        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Books
+      </a>
+      <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-indigo-300 hover:text-indigo-700">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i> Dashboard
+      </a>
+      <a href="places-to-hangout.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-green-300 hover:text-green-700">
+        <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i> Hangouts
+      </a>
+      <a href="companies.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-yellow-300 hover:text-yellow-700">
+        <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i> Companies
+      </a>
+      <a href="login.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2 hover:bg-white hover:shadow-md hover:border-teal-300 hover:text-teal-700">
+        <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i> Login
+      </a>
+      <div class="m-3">
+        <a href="signup.html">
+          <button class="flex items-center justify-center gap-2 w-full px-5 py-2 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/50 hover:shadow-xl hover:brightness-105 active:scale-[0.97]">
+            <i data-lucide="user-plus" class="w-5 h-5"></i> Join Now
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
 </nav>
 <!-- NAVBAR END -->
 
 <script>
-  // Initialize Lucide icons
-  lucide.createIcons();
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize Lucide icons
+  lucide.createIcons();
 
-  // Mobile menu toggle logic
-  const menuBtn = document.getElementById("menu-btn");
-  const mobileMenu = document.getElementById("mobile-menu");
+  const menuBtn = document.getElementById("menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
   const menuIcon = document.getElementById("menu-icon");
 
-  menuBtn.addEventListener("click", () => {
-    mobileMenu.classList.toggle("hidden");
+  menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
 
-    // Toggle icon between 'menu' and 'x' (close)
     if (mobileMenu.classList.contains("hidden")) {
       menuIcon.setAttribute('data-lucide', 'menu');
     } else {
       menuIcon.setAttribute('data-lucide', 'x');
     }
-    // Re-create icons after changing the data attribute
     lucide.createIcons();
-  });
+  });
+});
 </script>
 
 </body>
