@@ -2,97 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>KARDAN Job Portal - Find Jobs</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- SEO -->
-  <meta name="description" content="Find the latest jobs in India. Work from home jobs, online jobs, Amazon jobs, and more on KARDAN Job Portal. Apply now!">
-  <meta name="keywords" content="work from home jobs india, online jobs in india, amazon work from home jobs, part time jobs india, data entry jobs india, freelance jobs india, government jobs india, remote jobs india, freshers jobs india, online teaching jobs india, IT jobs india, WFH jobs india, online marketing jobs india, private jobs india, online typing jobs india, HR jobs india">
-
-  <!-- Tailwind CSS -->
+  <title>BooterSpace - Job Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-</head>
-<body class="bg-gray-50 text-gray-800">
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { 
+      getFirestore, collection, query, orderBy, limit, getDocs 
+    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-  <!-- Navbar -->
-  <header class="bg-white shadow">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <h1 class="text-2xl font-bold text-blue-600">KARDAN</h1>
-      <nav class="space-x-4">
-        <a href="index.html" class="hover:text-blue-600">Home</a>
-        <a href="jobs.html" class="hover:text-blue-600">Jobs</a>
-        <a href="Government-Exam.html" class="hover:text-blue-600">GOVT Exam</a>
-        <a href="books.html" class="hover:text-blue-600">Buy Books</a>
-        <a href="hangouts.html" class="hover:text-blue-600">Hangouts</a>
-        <a href="companies.html" class="hover:text-blue-600">Companies</a>
-        <a href="login.html" class="hover:text-blue-600">Login</a>
-        <a href="signup.html" class="hover:text-blue-600">Join Now</a>
-      </nav>
-    </div>
-  </header>
-
-  <!-- Hero -->
-  <section class="bg-blue-600 text-white py-20 text-center">
-    <h2 class="text-4xl font-bold mb-4">Find Your Dream Job</h2>
-    <p class="text-lg mb-6">Discover the latest jobs and apply instantly on KARDAN Job Portal</p>
-    <a href="jobs.html" class="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow hover:bg-gray-100">Browse Jobs</a>
-  </section>
-
-  <!-- Featured Jobs -->
-  <section class="max-w-6xl mx-auto px-4 py-12">
-    <h3 class="text-2xl font-bold mb-6">Featured Jobs</h3>
-    <div id="featured-jobs" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Jobs will load here dynamically -->
-    </div>
-  </section>
-
-  <!-- Popular Searches -->
-  <section class="max-w-6xl mx-auto mt-12 px-4">
-    <h2 class="text-xl font-bold mb-4">Popular Job Searches</h2>
-    <div class="flex flex-wrap gap-2">
-      <a href="jobs.html?search=work-from-home-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Work From Home Jobs India</a>
-      <a href="jobs.html?search=online-jobs-in-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Jobs in India</a>
-      <a href="jobs.html?search=amazon-work-from-home-jobs" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Amazon Work From Home Jobs</a>
-      <a href="jobs.html?search=part-time-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Part Time Jobs India</a>
-      <a href="jobs.html?search=data-entry-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Data Entry Jobs India</a>
-      <a href="jobs.html?search=freelance-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Freelance Jobs India</a>
-      <a href="jobs.html?search=government-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Government Jobs India</a>
-      <a href="jobs.html?search=remote-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Remote Jobs India</a>
-      <a href="jobs.html?search=freshers-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Freshers Jobs India</a>
-      <a href="jobs.html?search=online-teaching-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Teaching Jobs India</a>
-      <a href="jobs.html?search=IT-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">IT Jobs India</a>
-      <a href="jobs.html?search=online-marketing-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Marketing Jobs India</a>
-      <a href="jobs.html?search=private-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Private Jobs India</a>
-      <a href="jobs.html?search=online-typing-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">Online Typing Jobs India</a>
-      <a href="jobs.html?search=HR-jobs-india" class="px-3 py-1 bg-gray-100 text-sm rounded-full hover:bg-blue-500 hover:text-white transition">HR Jobs India</a>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="bg-gray-100 mt-12 py-6 text-center text-gray-600">
-    © 2025 KARDAN Job Portal. All rights reserved.
-  </footer>
-
-  <!-- ✅ Notification Popup Modal -->
-  <div id="notifyModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center hidden">
-    <div class="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
-      <h3 class="text-2xl font-bold text-blue-600 mb-4">🔔 Stay Updated!</h3>
-      <p class="text-gray-600 mb-6">Allow notifications to get instant job alerts from KARDAN Job Portal.</p>
-      <div class="flex justify-center gap-4">
-        <button id="allowNotify" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Allow</button>
-        <button id="closeNotify" class="px-6 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400">Later</button>
-      </div>
-      <p id="notifyStatus" class="mt-4 text-sm text-gray-500"></p>
-    </div>
-  </div>
-
-  <!-- Firestore Script -->
-  <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
@@ -103,102 +23,154 @@
       measurementId: "G-RRC3X485KQ"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    // Load featured jobs
-    async function loadFeaturedJobs() {
-      const jobContainer = document.getElementById("featured-jobs");
-      jobContainer.innerHTML = "<p>Loading jobs...</p>";
+    window.addEventListener("DOMContentLoaded", async () => {
 
-      try {
-        const snapshot = await db.collection("jobs")
-          .where("status", "==", "approved")
-          .orderBy("createdAt", "desc")
-          .limit(10)
-          .get();
+      const featuredContainer = document.getElementById("featured-jobs");
+      const govtContainer = document.getElementById("govt-jobs");
+      const latestContainer = document.getElementById("latest-updates");
 
-        jobContainer.innerHTML = "";
+      /* --------------------------
+          FEATURED JOBS
+      ----------------------------- */
+      const featuredQuery = query(
+        collection(db, "jobs"), 
+        orderBy("timestamp", "desc"), 
+        limit(10)
+      );
+      const featuredSnapshot = await getDocs(featuredQuery);
 
-        if (snapshot.empty) {
-          jobContainer.innerHTML = "<p>No featured jobs available.</p>";
-          return;
-        }
+      featuredSnapshot.forEach(doc => {
+        const job = doc.data();
+        const jobId = doc.id;
 
-        snapshot.forEach(doc => {
-          const job = doc.data();
-          const jobCard = `
-            <div class="bg-white shadow p-6 rounded-lg">
-              <h4 class="text-xl font-semibold">${job.title || "Untitled Job"}</h4>
-              <p class="text-gray-600">${job.company || "Unknown Company"} · ${job.location || "Location not specified"}</p>
-              <a href="job-detail.html?id=${doc.id}" 
-                class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                View Details
-              </a>
+        const logo = job.companyImageUrl || "https://via.placeholder.com/80";
+
+        featuredContainer.innerHTML += `
+          <div class="bg-white p-4 rounded-lg shadow mb-4">
+            <div class="flex items-center space-x-3">
+              <img src="${logo}" class="w-12 h-12 object-contain rounded-md" />
+              <div>
+                <h3 class="text-lg font-bold">${job.title}</h3>
+                <p class="text-gray-600">${job.companyName}</p>
+                <p class="text-gray-500 text-sm">${job.location}</p>
+              </div>
             </div>
-          `;
-          jobContainer.innerHTML += jobCard;
-        });
+            <div class="flex space-x-2 mt-3">
+              <a href="job-detail.html?id=${jobId}" class="bg-blue-500 text-white px-3 py-1 rounded">View</a>
+              <a href="job-detail.html?id=${jobId}" class="bg-green-500 text-white px-3 py-1 rounded">Apply</a>
+            </div>
+          </div>
+        `;
+      });
 
-      } catch (error) {
-        console.error("Error loading jobs: ", error);
-        jobContainer.innerHTML = "<p class='text-red-500'>Failed to load jobs.</p>";
-      }
-    }
+      /* --------------------------
+          GOVT JOBS
+      ----------------------------- */
+      const govtQuery = query(
+        collection(db, "govtJobs"),
+        orderBy("timestamp", "desc")
+      );
+      const govtSnapshot = await getDocs(govtQuery);
 
-    loadFeaturedJobs();
+      govtSnapshot.forEach(doc => {
+        const job = doc.data();
+        const jobId = doc.id;
 
-    // ✅ Show popup after 3 seconds
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        document.getElementById("notifyModal").classList.remove("hidden");
-      }, 3000);
-    });
+        const logo = job.companyImageUrl || "https://via.placeholder.com/80";
 
-    const allowBtn = document.getElementById("allowNotify");
-    const closeBtn = document.getElementById("closeNotify");
-    const modal = document.getElementById("notifyModal");
-    const notifyStatus = document.getElementById("notifyStatus");
+        govtContainer.innerHTML += `
+          <div class="bg-white p-4 rounded-lg shadow mb-4">
+            <div class="flex items-center space-x-3">
+              <img src="${logo}" class="w-12 h-12 object-contain rounded-md" />
+              <div>
+                <h3 class="text-lg font-bold">${job.title}</h3>
+                <p class="text-gray-600">${job.companyName}</p>
+                <p class="text-gray-500 text-sm">${job.location}</p>
+              </div>
+            </div>
+            <div class="flex space-x-2 mt-3">
+              <a href="job-detail.html?id=${jobId}" class="bg-blue-500 text-white px-3 py-1 rounded">View</a>
+              <a href="job-detail.html?id=${jobId}" class="bg-green-500 text-white px-3 py-1 rounded">Apply</a>
+            </div>
+          </div>
+        `;
+      });
 
-    // Allow notifications
-    allowBtn.addEventListener("click", async () => {
-      if (!("Notification" in window)) {
-        notifyStatus.textContent = "Your browser does not support notifications.";
-        notifyStatus.classList.add("text-red-500");
-        return;
-      }
+      /* --------------------------
+          LATEST UPDATES
+      ----------------------------- */
+      const latestQuery = query(
+        collection(db, "flashLinks"),
+        orderBy("timestamp", "desc"),
+        limit(20)
+      );
+      const latestSnapshot = await getDocs(latestQuery);
 
-      let permission = Notification.permission;
+      latestSnapshot.forEach(doc => {
+        const item = doc.data();
 
-      if (permission === "granted") {
-        new Notification("✅ You already allowed notifications!");
-        notifyStatus.textContent = "Notifications are enabled.";
-        notifyStatus.classList.add("text-green-600");
-        modal.classList.add("hidden");
-      } else if (permission === "denied") {
-        notifyStatus.textContent = "You blocked notifications. Please enable them in browser settings.";
-        notifyStatus.classList.add("text-red-500");
-      } else {
-        permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          new Notification("🔔 Notifications enabled! You will now get job alerts.");
-          notifyStatus.textContent = "Notifications are enabled.";
-          notifyStatus.classList.add("text-green-600");
-          modal.classList.add("hidden");
-        } else {
-          notifyStatus.textContent = "You denied notifications.";
-          notifyStatus.classList.add("text-red-500");
-        }
-      }
-    });
+        latestContainer.innerHTML += `
+          <div class="p-3 bg-yellow-100 border border-yellow-300 rounded">
+            <a href="${item.url}" target="_blank" class="text-blue-700 font-semibold hover:underline">
+              🔥 ${item.title}
+            </a>
+            <p class="text-gray-600 text-xs mt-1">
+              ${item.timestamp ? new Date(item.timestamp.toDate()).toLocaleString() : ""}
+            </p>
+          </div>
+        `;
+      });
 
-    // Close popup
-    closeBtn.addEventListener("click", () => {
-      modal.classList.add("hidden");
     });
   </script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Navbar -->
+  <div id="navbar"></div>
+  <script>
+    fetch('navbar.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('navbar').innerHTML = data;
+
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (menuBtn) {
+          menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+      });
+  </script>
+
+  <!-- MAIN GRID -->
+  <div class="max-w-7xl mx-auto mt-6 grid md:grid-cols-3 gap-6 px-4">
+
+    <!-- 1. FEATURED JOBS -->
+    <div>
+      <h2 class="text-2xl font-bold mb-4">Featured Jobs</h2>
+      <div id="featured-jobs"></div>
+    </div>
+
+    <!-- 2. GOVT JOBS -->
+    <div>
+      <h2 class="text-2xl font-bold mb-4">Govt Jobs</h2>
+      <div id="govt-jobs"></div>
+    </div>
+
+    <!-- 3. LATEST UPDATES -->
+    <div>
+      <h2 class="text-2xl font-bold mb-4">Latest Updates</h2>
+      <div id="latest-updates" class="space-y-3 bg-white p-4 rounded-lg shadow"></div>
+    </div>
+
+  </div>
 
 </body>
 </html>
-
-
