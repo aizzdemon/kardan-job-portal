@@ -1,249 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Find Jobs - KARDAN Job Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- ✅ SEO Meta Tags -->
-  <meta name="description" content="Discover the latest job opportunities on KARDAN Job Portal. Search by title, company, or location and apply directly online.">
-  <meta name="keywords" content="jobs, careers, Kardan, job portal, job search, hiring, companies, recruitment">
-  <meta name="author" content="KARDAN">
-  
-  <!-- ✅ Open Graph (For Facebook/LinkedIn) -->
-  <meta property="og:title" content="Find Jobs - KARDAN Job Portal">
-  <meta property="og:description" content="Browse and apply to the latest job openings on KARDAN Job Portal.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://aizzdemon.github.io/kardan-job-portal/jobs.html">
-  <meta property="og:image" content="https://aizzdemon.github.io/kardan-job-portal/assets/job-banner.png">
-
-  <!-- ✅ Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  
-  <!-- ✅ Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Find Jobs - Booterspace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="description" content="Discover the latest job opportunities on Booterspace. Search by title, company, or location and apply directly online.">
+    <meta name="keywords" content="jobs, careers, Booterspace, job portal, job search, hiring, companies, recruitment">
+    
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <!-- ✅ Notification Popup Modal with Blur -->
-  <div id="notify-modal" 
-       class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-2xl shadow-xl p-6 w-96 text-center animate-fade-in">
-      <h2 class="text-xl font-bold text-indigo-700 mb-3 flex items-center justify-center">
-        <i class="fas fa-bell text-yellow-500 mr-2"></i> Stay Updated!
-      </h2>
-      <p class="text-gray-600 mb-4">
-        Enable notifications to get instant alerts about the latest job opportunities.
-      </p>
-      <div class="flex justify-center gap-3">
-        <button id="allow-btn" 
-                class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition">
-          Allow
-        </button>
-        <button id="deny-btn" 
-                class="bg-gray-400 text-white px-5 py-2 rounded-lg hover:bg-gray-500 transition">
-          Later
-        </button>
-      </div>
+    <div id="notify-modal" 
+         class="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-96 text-center animate-fade-in">
+            <h2 class="text-xl font-bold text-indigo-700 mb-3 flex items-center justify-center">
+                <i class="fas fa-bell text-yellow-500 mr-2"></i> Stay Updated!
+            </h2>
+            <p class="text-gray-600 mb-4">
+                Enable notifications to get instant alerts about the latest job opportunities.
+            </p>
+            <div class="flex justify-center gap-3">
+                <button id="allow-btn" 
+                        class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 transition">
+                    Allow
+                </button>
+                <button id="deny-btn" 
+                        class="bg-gray-400 text-white px-5 py-2 rounded-lg hover:bg-gray-500 transition">
+                    Later
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- ✅ Navbar -->
-  <nav class="shadow sticky top-0 z-30 bg-white">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3 p-4">
-      <a href="index.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-home mr-2"></i> Home
-      </a>
-      <a href="jobs.html" class="flex items-center px-4 py-2 text-sm bg-blue-700 text-white rounded-lg shadow">
-        <i class="fas fa-briefcase mr-2"></i> Jobs
-      </a>
-      <a href="books.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-book mr-2"></i> Buy Books
-      </a>
-      <a href="profile.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-user mr-2"></i> Profile
-      </a>
-      <a href="companies.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-building mr-2"></i> Companies
-      </a>
-      <a href="contact.html" class="flex items-center px-4 py-2 text-sm bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
-        <i class="fas fa-envelope mr-2"></i> Contact
-      </a>
-    </div>
-  </nav>
-
-  <!-- ✅ Main Content -->
-  <main class="max-w-6xl mx-auto p-6">
-    <header class="mb-6 text-center">
-      <h1 class="text-3xl font-bold text-indigo-700">Latest Job Listings</h1>
-      <p class="text-gray-600 mt-2">Search and apply to jobs tailored to your career goals</p>
+    <header class="bg-white shadow">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-600">Booterspace</h1>
+            <nav class="space-x-4">
+                <a href="index.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-orange-700">Home</a>
+                <a href="jobs.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Jobs</a>
+                <a href="govt-jobs.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Govt Jobs</a>
+                <a href="books.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Buy Books</a>
+                <a href="places-to-hangout.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Hangouts</a>
+                <a href="companies.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Companies</a>
+                <a href="profile.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Profile</a>
+                <a href="login.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Login</a>
+                <a href="signup.html" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Join Now</a>
+            </nav>
+        </div>
     </header>
 
-    <!-- ✅ Search Filters -->
-    <section class="flex flex-col md:flex-row gap-3 mb-6 bg-white p-4 rounded-lg shadow">
-      <div class="flex-1 relative">
-        <input id="filter-type" list="type-list" placeholder="Search by Job Title" 
-               class="p-3 border rounded-lg w-full focus:ring focus:ring-blue-300" />
-        <datalist id="type-list"></datalist>
-        <i class="fas fa-briefcase absolute right-3 top-3 text-gray-400"></i>
-      </div>
-      <div class="flex-1 relative">
-        <input id="filter-location" list="location-list" placeholder="Search by Location" 
-               class="p-3 border rounded-lg w-full focus:ring focus:ring-blue-300" />
-        <datalist id="location-list"></datalist>
-        <i class="fas fa-map-marker-alt absolute right-3 top-3 text-gray-400"></i>
-      </div>
-      <button id="search-btn" 
-              class="bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700 transition">
-        <i class="fas fa-search mr-2"></i> Search
-      </button>
-    </section>
+    <main class="max-w-6xl mx-auto p-6">
+        <header class="mb-6 text-center">
+            <h1 class="text-3xl font-bold text-indigo-700">Latest Job Listings</h1>
+            <p class="text-gray-600 mt-2">Search and apply to jobs tailored to your career goals</p>
+        </header>
 
-    <!-- ✅ Job List -->
-    <section id="job-list" class="space-y-4"></section>
-  </main>
+        <section class="flex flex-col md:flex-row gap-3 mb-6 bg-white p-4 rounded-lg shadow">
+            <div class="flex-1 relative">
+                <input id="filter-type" list="type-list" placeholder="Search by Job Title" 
+                       class="p-3 border rounded-lg w-full focus:ring focus:ring-blue-300" />
+                <datalist id="type-list"></datalist>
+                <i class="fas fa-briefcase absolute right-3 top-3 text-gray-400"></i>
+            </div>
+            <div class="flex-1 relative">
+                <input id="filter-location" list="location-list" placeholder="Search by Location" 
+                       class="p-3 border rounded-lg w-full focus:ring focus:ring-blue-300" />
+                <datalist id="location-list"></datalist>
+                <i class="fas fa-map-marker-alt absolute right-3 top-3 text-gray-400"></i>
+            </div>
+            <button id="search-btn" 
+                    class="bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700 transition">
+                <i class="fas fa-search mr-2"></i> Search
+            </button>
+        </section>
 
-  <!-- ✅ Firebase + Firestore + Notifications -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+        <section id="job-list" class="space-y-4"></section>
+    </main>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-      authDomain: "kar-kardan.firebaseapp.com",
-      projectId: "kar-kardan",
-      storageBucket: "kar-kardan.appspot.com",
-      messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-      measurementId: "G-RRC3X485KQ"
-    };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+        // IMPORTANT: Replace with your actual Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I", // Placeholder/Example Key
+            authDomain: "kar-kardan.firebaseapp.com",
+            projectId: "kar-kardan",
+            storageBucket: "kar-kardan.appspot.com",
+            messagingSenderId: "554147696994",
+            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+            measurementId: "G-RRC3X485KQ"
+        };
 
-    const jobList = document.getElementById("job-list");
-    const filterType = document.getElementById("filter-type");
-    const filterLocation = document.getElementById("filter-location");
-    const searchBtn = document.getElementById("search-btn");
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-    // ✅ Notification modal
-    const notifyModal = document.getElementById("notify-modal");
-    const allowBtn = document.getElementById("allow-btn");
-    const denyBtn = document.getElementById("deny-btn");
+        const jobList = document.getElementById("job-list");
+        const filterType = document.getElementById("filter-type");
+        const filterLocation = document.getElementById("filter-location");
+        const searchBtn = document.getElementById("search-btn");
 
-    // ✅ Show modal only if permission not granted/denied
-    window.addEventListener("load", () => {
-      if (Notification.permission === "default") {
-        setTimeout(() => notifyModal.classList.remove("hidden"), 1000);
-      }
-    });
+        let jobsData = [];
+        const fallbackLogoHTML = (company) => `
+            <div class="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg" title="${company || 'Company'}">
+                <i class="fas fa-building"></i>
+            </div>`;
 
-    // ✅ Handle Allow
-    allowBtn.addEventListener("click", async () => {
-      notifyModal.classList.add("hidden");
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        new Notification("✅ You will now receive job alerts from KARDAN!");
-      }
-    });
-
-    // ✅ Handle Deny (later)
-    denyBtn.addEventListener("click", () => {
-      notifyModal.classList.add("hidden");
-    });
-
-    let jobsData = [];
-
-    // ✅ Load jobs from Firestore
-    async function loadJobs() {
-      const q = query(collection(db, "jobs"), orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
-
-      jobsData = [];
-      querySnapshot.forEach((doc) => {
-        jobsData.push({ id: doc.id, ...doc.data() });
-      });
-
-      renderJobs(jobsData);
-    }
-
-    // ✅ Render job list
-    function renderJobs(data) {
-      jobList.innerHTML = "";
-
-      if (data.length === 0) {
-        jobList.innerHTML = `<p class="text-gray-600">No jobs found matching your filters.</p>`;
-        return;
-      }
-
-      data.forEach(job => {
-        let postedDate = "";
-        if (job.timestamp?.toDate) {
-          postedDate = job.timestamp.toDate();
+        async function loadJobs() {
+            const q = query(collection(db, "jobs"), orderBy("timestamp", "desc"));
+            const snapshot = await getDocs(q);
+            jobsData = [];
+            snapshot.forEach(doc => {
+                jobsData.push({ id: doc.id, ...doc.data() });
+            });
+            renderJobs(jobsData);
         }
 
-        const card = document.createElement("article");
-        card.className = "flex flex-col md:flex-row items-start md:items-center justify-between border rounded-lg p-5 bg-white shadow hover:shadow-md transition";
+        function renderJobs(data) {
+            jobList.innerHTML = "";
+            if (data.length === 0) {
+                jobList.innerHTML = `<p class="text-gray-600">No jobs found matching your filters.</p>`;
+                return;
+            }
 
-        const logoHTML = job.logoUrl 
-          ? `<img src="${job.logoUrl}" alt="${job.company || 'Company Logo'}" class="w-16 h-16 rounded object-cover border" />`
-          : `<div class="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
-               <i class="fas fa-building"></i>
-             </div>`;
+            data.forEach(job => {
+                const postedDate = job.timestamp?.toDate ? job.timestamp.toDate() : null;
+                const card = document.createElement("article");
+                card.className = "flex flex-col md:flex-row items-start md:items-center justify-between border rounded-lg p-5 bg-white shadow hover:shadow-md transition";
+                
+                // --- FIX FOR BROKEN/MISSING IMAGES ---
+                // If logoUrl is present, use the image tag with an onerror handler
+                // The onerror handler replaces the broken image with the fallback logo HTML
+                const logoHTML = job.logoUrl
+                    ? `<img src="${job.logoUrl}" 
+                           alt="${job.company || 'Company Logo'}" 
+                           class="w-16 h-16 rounded object-cover border"
+                           onerror="this.outerHTML = document.getElementById('fallback-logo-${job.id}').innerHTML; return false;" />`
+                    : fallbackLogoHTML(job.company);
 
-        card.innerHTML = `
-          <div class="flex items-center gap-4 w-full">
-            ${logoHTML}
-            <div>
-              <h2 class="text-lg font-semibold text-indigo-700">${job.title}</h2>
-              <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
-              <p class="text-sm text-gray-500 flex items-center gap-1">
-                <i class="fas fa-map-marker-alt text-red-500"></i> ${job.location || "Location not specified"}
-              </p>
-              <p class="text-sm text-gray-500 flex items-center gap-1">
-                <i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || "Salary not specified"}
-              </p>
-              ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate.toLocaleDateString("en-IN")}</p>` : ""}
-            </div>
-          </div>
-          <div class="mt-3 md:mt-0">
-            <a href="job-detail.html?id=${job.id}"
-               class="bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
-               Apply Now
-            </a>
-          </div>
-        `;
+                // Create a hidden template for the onerror handler to use
+                const hiddenFallback = `
+                    <div id="fallback-logo-${job.id}" style="display:none;">
+                        ${fallbackLogoHTML(job.company)}
+                    </div>`;
+                // --- END FIX ---
+                
+                card.innerHTML = `
+                    ${hiddenFallback}
+                    <div class="flex items-center gap-4 w-full">
+                        ${logoHTML}
+                        <div>
+                            <h2 class="text-lg font-semibold text-indigo-700">${job.title}</h2>
+                            <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
+                            <p class="text-sm text-gray-500 flex items-center gap-1">
+                                <i class="fas fa-map-marker-alt text-red-500"></i> ${job.location || "Location not specified"}
+                            </p>
+                            <p class="text-sm text-gray-500 flex items-center gap-1">
+                                <i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || "Salary not specified"}
+                            </p>
+                            ${postedDate ? `<p class="text-xs text-gray-400">Posted on: ${postedDate.toLocaleDateString("en-IN")}</p>` : ""}
+                        </div>
+                    </div>
+                    <div class="mt-3 md:mt-0">
+                        <a href="job-detail.html?id=${job.id}"
+                           class="bg-green-600 text-white text-sm px-4 py-2 rounded hover:bg-green-700 transition">
+                            Apply Now
+                        </a>
+                    </div>
+                `;
+                jobList.appendChild(card);
+            });
+        }
 
-        jobList.appendChild(card);
-      });
-    }
+        // Search filter
+        searchBtn.addEventListener("click", () => {
+            const type = filterType.value.trim().toLowerCase();
+            const loc = filterLocation.value.trim().toLowerCase();
+            const filtered = jobsData.filter(job => {
+                const matchType = type ? job.title?.toLowerCase().includes(type) : true;
+                const matchLoc = loc ? job.location?.toLowerCase().includes(loc) : true;
+                return matchType && matchLoc;
+            });
+            renderJobs(filtered);
+        });
 
-    // ✅ Search filter
-    searchBtn.addEventListener("click", () => {
-      const selectedType = filterType.value.trim().toLowerCase();
-      const selectedLoc = filterLocation.value.trim().toLowerCase();
+        loadJobs();
 
-      const filteredJobs = jobsData.filter(job => {
-        const matchType = selectedType ? job.title?.toLowerCase().includes(selectedType) : true;
-        const matchLoc = selectedLoc ? job.location?.toLowerCase().includes(selectedLoc) : true;
-        return matchType && matchLoc;
-      });
+        // Notification modal
+        const notifyModal = document.getElementById("notify-modal");
+        const allowBtn = document.getElementById("allow-btn");
+        const denyBtn = document.getElementById("deny-btn");
 
-      renderJobs(filteredJobs);
-    });
+        window.addEventListener("load", () => {
+            if (Notification.permission === "default") {
+                setTimeout(() => notifyModal.classList.remove("hidden"), 1000);
+            }
+        });
 
-    loadJobs();
-  </script>
+        allowBtn.addEventListener("click", async () => {
+            notifyModal.classList.add("hidden");
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                new Notification("✅ You will now receive job alerts from Booterspace!");
+            }
+        });
 
-  <!-- ✅ Tailwind Animation -->
-  <style>
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-    .animate-fade-in {
-      animation: fadeIn 0.3s ease-out;
-    }
-  </style>
+        denyBtn.addEventListener("click", () => {
+            notifyModal.classList.add("hidden");
+        });
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+
 </body>
 </html>
