@@ -1,152 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Navbar</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stylish Navbar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .nav-btn {
-      @apply flex items-center gap-2 px-4 py-2 rounded-xl 
-      transition-all duration-200 
-      text-gray-700 font-medium
-      hover:-translate-y-0.5 hover:shadow-md hover:bg-gray-100;
-    }
-
-    .nav-btn-mobile {
-      @apply flex items-center gap-3 px-4 py-3 rounded-lg
-      transition-all duration-200 hover:bg-gray-100;
-    }
-
-    .join-btn {
-      @apply flex items-center gap-2 px-5 py-2 rounded-xl 
-      font-semibold text-white 
-      bg-gradient-to-r from-blue-600 to-blue-700
-      shadow-md transition-all duration-200 
-      hover:shadow-lg hover:brightness-110;
+    /* Use Inter font for a modern look */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    body {
+        font-family: 'Inter', sans-serif;
     }
   </style>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Desktop Nav Button (Box Design) */
+    .nav-btn {
+      @apply flex items-center gap-2 px-4 py-2 rounded-xl 
+      transition-all duration-200 
+      text-gray-700 font-medium
+      /* Box Styling: solid background, soft shadow, light border */
+      bg-white shadow-sm border border-gray-200
+      hover:bg-blue-50 hover:text-blue-700 hover:shadow-md hover:border-blue-300 active:scale-[0.98];
+    }
+
+    /* Mobile Nav Button (New Box Design for mobile menu) */
+    .nav-btn-mobile {
+      @apply flex items-center gap-3 px-4 py-3 rounded-xl
+      transition-all duration-200
+      /* Mobile Box Styling */
+      bg-gray-50 shadow-sm border border-gray-100 mx-3 mb-2
+      hover:bg-white hover:shadow-md hover:border-blue-300 hover:text-blue-700;
+    }
+
+    /* Enhanced Join Button with a defined shadow and active press effect */
+    .join-btn {
+      @apply flex items-center gap-2 px-5 py-2 rounded-xl 
+      font-semibold text-white 
+      bg-gradient-to-r from-blue-600 to-blue-700
+      shadow-lg shadow-blue-500/50 transition-all duration-300 
+      hover:shadow-xl hover:brightness-105 active:scale-[0.97]
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-50 min-h-screen">
 
 <!-- NAVBAR START -->
-<nav class="bg-white shadow-md sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center h-16">
+<!-- Added backdrop-blur for a modern, sticky header effect -->
+<nav class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
 
-      <!-- Logo -->
-      <a href="index.html" class="text-2xl font-bold text-blue-600">BooterSpace</a>
-
-      <!-- Desktop Menu -->
-      <div class="hidden md:flex space-x-3">
-
-        <a href="index.html" class="nav-btn">
-          <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
-          Home
-        </a>
-
-        <a href="jobs.html" class="nav-btn">
-          <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i>
-          Jobs
-        </a>
-
-        <a href="books.html" class="nav-btn">
-          <i data-lucide="book-open" class="w-5 h-5 text-red-500"></i>
-          Books
-        </a>
-
-        <a href="dashboard.html" class="nav-btn">
-          <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i>
-          Dashboard
-        </a>
-
-        <a href="places-to-hangout.html" class="nav-btn">
-          <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i>
-          Hangouts
-        </a>
-
-        <a href="companies.html" class="nav-btn">
-          <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i>
-          Companies
-        </a>
-
-        <a href="login.html" class="nav-btn">
-          <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i>
-          Login
-        </a>
-
-        <a href="signup.html">
-          <button class="join-btn">
-            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-            Join
-          </button>
-        </a>
-
-      </div>
-
-      <!-- Mobile Hamburger Button -->
-      <button id="menu-btn" class="md:hidden text-gray-700 text-3xl focus:outline-none">
-        ☰
-      </button>
-    </div>
-
-    <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden flex-col bg-white border-t border-gray-200">
-
-      <a href="index.html" class="nav-btn-mobile">
-        <i data-lucide="home" class="w-5 h-5 text-blue-600"></i> Home
+      <!-- Logo -->
+      <a href="index.html" class="text-2xl font-extrabold text-blue-600 tracking-tight flex items-center gap-1">
+        <i data-lucide="rocket" class="w-6 h-6 text-blue-500"></i>
+        BooterSpace
       </a>
 
-      <a href="jobs.html" class="nav-btn-mobile">
-        <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i> Jobs
-      </a>
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex space-x-2 lg:space-x-3">
 
-      <a href="books.html" class="nav-btn-mobile">
-        <i data-lucide="book-open" class="w-5 h-5 text-red-500"></i> Buy Books
-      </a>
+        <a href="index.html" class="nav-btn">
+          <i data-lucide="home" class="w-5 h-5 text-blue-600"></i>
+          <span>Home</span>
+        </a>
 
-      <a href="dashboard.html" class="nav-btn-mobile">
-        <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i> Dashboard
-      </a>
+        <a href="jobs.html" class="nav-btn">
+          <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i>
+          <span>Jobs</span>
+        </a>
 
-      <a href="places-to-hangout.html" class="nav-btn-mobile">
-        <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i> Hangouts
-      </a>
+        <a href="books.html" class="nav-btn">
+          <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i>
+          <span>Books</span>
+        </a>
 
-      <a href="companies.html" class="nav-btn-mobile">
-        <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i> Companies
-      </a>
+        <a href="dashboard.html" class="nav-btn">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i>
+          <span>Dashboard</span>
+        </a>
 
-      <a href="login.html" class="nav-btn-mobile">
-        <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i> Login
-      </a>
+        <a href="places-to-hangout.html" class="nav-btn">
+          <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i>
+          <span>Hangouts</span>
+        </a>
 
-      <a href="signup.html" class="m-3 block">
-        <button class="join-btn w-full justify-center">
-          <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
-          Join Now
-        </button>
-      </a>
-    </div>
-  </div>
+        <a href="companies.html" class="nav-btn">
+          <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i>
+          <span>Companies</span>
+        </a>
+
+        <a href="login.html" class="nav-btn">
+          <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i>
+          <span>Login</span>
+        </a>
+
+        <!-- The Join button is already a strong box design -->
+        <a href="signup.html" class="flex items-center">
+          <button class="join-btn">
+            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+            <span>Join</span>
+          </button>
+        </a>
+
+      </div>
+
+      <!-- Mobile Hamburger Button (Now uses Lucide icons) -->
+      <button id="menu-btn" class="md:hidden text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+        <!-- Initial icon is 'menu' -->
+        <i id="menu-icon" data-lucide="menu" class="w-6 h-6"></i>
+      </button>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden md:hidden flex-col bg-white border-t border-gray-200 py-2">
+
+      <!-- All mobile links now use the box styling defined in .nav-btn-mobile -->
+      <a href="index.html" class="nav-btn-mobile">
+        <i data-lucide="home" class="w-5 h-5 text-blue-600"></i> Home
+      </a>
+
+      <a href="jobs.html" class="nav-btn-mobile">
+        <i data-lucide="briefcase" class="w-5 h-5 text-purple-600"></i> Jobs
+      </a>
+
+      <a href="books.html" class="nav-btn-mobile">
+        <i data-lucide="book-open" class="w-5 h-5 text-red-600"></i> Buy Books
+      </a>
+
+      <a href="dashboard.html" class="nav-btn-mobile">
+        <i data-lucide="layout-dashboard" class="w-5 h-5 text-indigo-600"></i> Dashboard
+      </a>
+
+      <a href="places-to-hangout.html" class="nav-btn-mobile">
+        <i data-lucide="map-pin" class="w-5 h-5 text-green-600"></i> Hangouts
+      </a>
+
+      <a href="companies.html" class="nav-btn-mobile">
+        <i data-lucide="building-2" class="w-5 h-5 text-yellow-600"></i> Companies
+      </a>
+
+      <a href="login.html" class="nav-btn-mobile">
+        <i data-lucide="log-in" class="w-5 h-5 text-teal-600"></i> Login
+      </a>
+
+      <div class="m-3">
+        <!-- The Join button is styled as a full-width call to action -->
+        <a href="signup.html">
+          <button class="join-btn w-full justify-center">
+            <i data-lucide="user-plus" class="w-5 h-5 text-white"></i>
+            <span>Join Now</span>
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
 </nav>
 <!-- NAVBAR END -->
 
 <script>
-  lucide.createIcons();
+  // Initialize Lucide icons
+  lucide.createIcons();
 
-  // Mobile toggle
-  const menuBtn = document.getElementById("menu-btn");
-  const mobileMenu = document.getElementById("mobile-menu");
+  // Mobile menu toggle logic
+  const menuBtn = document.getElementById("menu-btn");
+  const mobileMenu = document.getElementById("mobile-menu");
+  const menuIcon = document.getElementById("menu-icon");
 
-  menuBtn.addEventListener("click", () => {
-    mobileMenu.classList.toggle("hidden");
-  });
+  menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+
+    // Toggle icon between 'menu' and 'x' (close)
+    if (mobileMenu.classList.contains("hidden")) {
+      menuIcon.setAttribute('data-lucide', 'menu');
+    } else {
+      menuIcon.setAttribute('data-lucide', 'x');
+    }
+    // Re-create icons after changing the data attribute
+    lucide.createIcons();
+  });
 </script>
 
 </body>
