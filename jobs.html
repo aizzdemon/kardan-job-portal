@@ -7,22 +7,22 @@
     <meta name="description" content="Discover the latest job opportunities on Booterspace. Search by title, company, or location and apply directly online." />
     <meta name="keywords" content="jobs, careers, Booterspace, job portal, job search, hiring, companies, recruitment" />
 
-    <!-- Tailwind (kept v2 link as in your original) -->
+    <!-- Tailwind -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
     <style>
-      /* small helper to improve tap area on mobile for icon-only buttons */
       .tap-large { padding: .6rem; border-radius: .5rem; }
       @keyframes fadeIn {
         from { opacity: 0; transform: scale(0.95); }
         to { opacity: 1; transform: scale(1); }
       }
       .animate-fade-in { animation: fadeIn 0.26s ease-out; }
-      /* keep nav links same on desktop but collapse on small screens */
-      /* no desktop breaking styles added */
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
+
+  <!-- 🔥 NAVBAR WILL BE INSERTED HERE -->
+  <div id="navbar-container"></div>
 
   <!-- Notification modal -->
   <div id="notify-modal"
@@ -43,66 +43,6 @@
     </div>
   </div>
 
-  <!-- Header -->
-  <header class="bg-white shadow sticky top-0 z-40">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="index.html" class="text-2xl font-bold text-blue-600">Booterspace</a>
-        <!-- small descriptor hidden on very small screens -->
-        <span class="hidden sm:inline text-sm text-gray-500">Find jobs that fit</span>
-      </div>
-
-     <!-- Mobile hamburger -->
-      <div class="md:hidden flex items-center">
-        <button id="mobile-menu-btn" aria-label="menu" class="tap-large text-gray-700 focus:outline-none">
-          <i class="fas fa-bars text-2xl"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Mobile menu (collapsed by default) - keeps same links but stacked with icons -->
-    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200">
-      <div class="px-4 py-3 grid grid-cols-4 gap-2 text-center">
-        <!-- icon-first layout, label under icon -->
-        <a href="index.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-home text-blue-600 text-xl"></i>
-          <span class="mt-1">Home</span>
-        </a>
-        <a href="jobs.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-briefcase text-green-600 text-xl"></i>
-          <span class="mt-1">Jobs</span>
-        </a>
-        <a href="govt-jobs.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-landmark text-indigo-600 text-xl"></i>
-          <span class="mt-1">Govt</span>
-        </a>
-        <a href="books.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-book text-yellow-600 text-xl"></i>
-          <span class="mt-1">Books</span>
-        </a>
-
-        <a href="places-to-hangout.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-utensils text-pink-600 text-xl"></i>
-          <span class="mt-1">Hangouts</span>
-        </a>
-        <a href="companies.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-building text-gray-700 text-xl"></i>
-          <span class="mt-1">Companies</span>
-        </a>
-        <a href="profile.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-user text-indigo-500 text-xl"></i>
-          <span class="mt-1">Profile</span>
-        </a>
-        <a href="login.html" class="flex flex-col items-center justify-center text-sm py-2 hover:bg-gray-50 rounded">
-          <i class="fas fa-right-to-bracket text-blue-500 text-xl"></i>
-          <span class="mt-1">Login</span>
-        </a>
-
-        <a href="signup.html" class="col-span-4 block bg-blue-600 text-white px-3 py-2 rounded text-center mx-2">Join Now</a>
-      </div>
-    </div>
-  </header>
-
   <!-- Main -->
   <main class="max-w-6xl mx-auto p-4 sm:p-6">
     <header class="mb-4 text-center">
@@ -110,8 +50,7 @@
       <p class="text-gray-600 mt-1">Search and apply to jobs tailored to your career goals</p>
     </header>
 
-    <!-- Search area -->
-    <!-- On mobile: stacked inputs, full-width search button; on md+: inline layout (unchanged) -->
+    <!-- Search -->
     <section class="mb-6">
       <form id="search-form" class="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-lg shadow">
         <div class="flex-1 relative">
@@ -128,7 +67,6 @@
           <i class="fas fa-map-marker-alt absolute right-3 top-3 text-gray-400"></i>
         </div>
 
-        <!-- Mobile: full width button; Desktop: sized button inline -->
         <div class="sm:w-auto">
           <button id="search-btn" type="button"
                   class="w-full sm:w-auto bg-green-600 text-white px-6 py-3 rounded-lg shadow hover:bg-green-700 transition flex items-center justify-center">
@@ -138,18 +76,15 @@
       </form>
     </section>
 
-    <!-- Jobs container -->
-    <section id="job-list" class="space-y-4">
-      <!-- job cards injected by JS -->
-    </section>
+    <!-- Jobs -->
+    <section id="job-list" class="space-y-4"></section>
   </main>
 
-  <!-- scripts -->
+  <!-- Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
     import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
-    // Firebase config - keep as your existing values (replace if needed)
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
@@ -167,14 +102,20 @@
     const filterType = document.getElementById("filter-type");
     const filterLocation = document.getElementById("filter-location");
     const searchBtn = document.getElementById("search-btn");
-
     let jobsData = [];
+
     const fallbackLogoHTML = (company) => `
-      <div class="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg" title="${company || 'Company'}">
+      <div class="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-lg">
         <i class="fas fa-building"></i>
       </div>`;
 
-    // Load jobs from Firestore
+    // Load navbar.html 🔥
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById("navbar-container").innerHTML = html;
+      });
+
     async function loadJobs() {
       try {
         const q = query(collection(db, "jobs"), orderBy("timestamp", "desc"));
@@ -183,16 +124,14 @@
         snapshot.forEach(doc => jobsData.push({ id: doc.id, ...doc.data() }));
         renderJobs(jobsData);
       } catch (err) {
-        console.error("Failed to load jobs:", err);
-        jobList.innerHTML = `<p class="text-red-600">Error loading jobs. Check console.</p>`;
+        jobList.innerHTML = `<p class="text-red-600">Error loading jobs.</p>`;
       }
     }
 
-    // Render job cards
     function renderJobs(data) {
       jobList.innerHTML = "";
-      if (!data || data.length === 0) {
-        jobList.innerHTML = `<p class="text-gray-600">No jobs found matching your filters.</p>`;
+      if (data.length === 0) {
+        jobList.innerHTML = `<p class="text-gray-600">No jobs found.</p>`;
         return;
       }
 
@@ -200,38 +139,26 @@
         const postedDate = job.timestamp?.toDate ? job.timestamp.toDate() : null;
         const card = document.createElement("article");
 
-        /* Mobile optimization notes:
-           - Use flex-col default so mobile stacks logo+details then action.
-           - On md and up, card remains inline (md:flex-row).
-           - Increase vertical spacing and button tap area on mobile.
-        */
         card.className = "flex flex-col md:flex-row items-start md:items-center justify-between border rounded-lg p-4 sm:p-5 bg-white shadow hover:shadow-md transition";
 
         const logoHTML = job.logoUrl
-          ? `<img src="${job.logoUrl}" alt="${job.company || 'Company Logo'}" class="w-16 h-16 rounded object-cover border" onerror="this.outerHTML = document.getElementById('fallback-logo-${job.id}').innerHTML; return false;" />`
+          ? `<img src="${job.logoUrl}" class="w-16 h-16 rounded object-cover border" />`
           : fallbackLogoHTML(job.company);
 
-        const hiddenFallback = `<div id="fallback-logo-${job.id}" style="display:none;">${fallbackLogoHTML(job.company)}</div>`;
-
         card.innerHTML = `
-          ${hiddenFallback}
           <div class="flex items-start w-full gap-4">
             ${logoHTML}
             <div class="flex-1">
-              <h2 class="text-lg font-semibold text-indigo-700">${escapeHtml(job.title || "Untitled")}</h2>
-              <p class="text-sm text-gray-700">${escapeHtml(job.company || "Unknown Company")}</p>
-              <p class="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                <i class="fas fa-map-marker-alt text-red-500"></i> ${escapeHtml(job.location || "Location not specified")}
-              </p>
-              <p class="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                <i class="fas fa-money-bill-wave text-green-500"></i> ${escapeHtml(job.salary || "Salary not specified")}
-              </p>
+              <h2 class="text-lg font-semibold text-indigo-700">${job.title || "Untitled"}</h2>
+              <p class="text-sm text-gray-700">${job.company || "Unknown Company"}</p>
+              <p class="text-sm text-gray-500"><i class="fas fa-map-marker-alt text-red-500"></i> ${job.location || ""}</p>
+              <p class="text-sm text-gray-500"><i class="fas fa-money-bill-wave text-green-500"></i> ${job.salary || ""}</p>
               ${postedDate ? `<p class="text-xs text-gray-400 mt-2">Posted on: ${postedDate.toLocaleDateString("en-IN")}</p>` : ""}
             </div>
           </div>
 
           <div class="mt-3 md:mt-0 md:ml-4 flex-shrink-0">
-            <a href="job-detail.html?id=${job.id}" class="block w-full md:w-auto text-center bg-green-600 text-white text-sm px-4 py-3 rounded hover:bg-green-700 transition">
+            <a href="job-detail.html?id=${job.id}" class="block bg-green-600 text-white text-sm px-4 py-3 rounded hover:bg-green-700 transition">
               Apply Now
             </a>
           </div>
@@ -241,18 +168,6 @@
       });
     }
 
-    // Simple safe-escape for inserted text
-    function escapeHtml(unsafe) {
-      if (unsafe === null || unsafe === undefined) return "";
-      return String(unsafe)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // Search filter
     searchBtn.addEventListener("click", () => {
       const type = filterType.value.trim().toLowerCase();
       const loc = filterLocation.value.trim().toLowerCase();
@@ -262,60 +177,17 @@
         return matchType && matchLoc;
       });
       renderJobs(filtered);
-      // On mobile, scroll to results
-      if (window.innerWidth < 640) {
-        document.getElementById("job-list").scrollIntoView({ behavior: "smooth", block: "start" });
-      }
     });
 
-    // load initial dataset
     loadJobs();
-
-    // Notification modal logic
-    const notifyModal = document.getElementById("notify-modal");
-    const allowBtn = document.getElementById("allow-btn");
-    const denyBtn = document.getElementById("deny-btn");
-
-    window.addEventListener("load", () => {
-      // show modal only if permission is default and viewport is not extremely small (avoid annoyance)
-      if (Notification && Notification.permission === "default") {
-        setTimeout(() => notifyModal.classList.remove("hidden"), 900);
-      }
-    });
-
-    allowBtn.addEventListener("click", async () => {
-      notifyModal.classList.add("hidden");
-      if (!("Notification" in window)) return;
-      const permission = await Notification.requestPermission();
-      if (permission === "granted") {
-        new Notification("✅ You will now receive job alerts from Booterspace!");
-      }
-    });
-
-    denyBtn.addEventListener("click", () => {
-      notifyModal.classList.add("hidden");
-    });
-
-    // Mobile menu toggle (keeps desktop nav untouched)
-    const mobileMenuBtn = document.getElementById("mobile-menu-btn");
-    const mobileMenu = document.getElementById("mobile-menu");
-    if (mobileMenuBtn) {
-      mobileMenuBtn.addEventListener("click", () => {
-        mobileMenu.classList.toggle("hidden");
-      });
-    }
   </script>
 
   <style>
-    /* Extra small tweaks just for mobile view */
     @media (max-width: 640px) {
-      /* increase spacing between job cards on mobile */
       #job-list > article { gap: 0.5rem; }
-      /* bigger Apply button on mobile for easier tapping */
       #job-list a { padding-top: .75rem; padding-bottom: .75rem; font-weight: 600; }
-      /* make header compact */
-      header .container { padding-top: .5rem; padding-bottom: .5rem; }
     }
   </style>
+
 </body>
 </html>
