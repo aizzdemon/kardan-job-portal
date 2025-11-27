@@ -7,6 +7,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (menuBtn && mobileMenu) {
     menuBtn.addEventListener("click", () => {
       mobileMenu.classList.toggle("hidden");
+
+      // re-render icons after opening menu
+      setTimeout(() => {
+        if (window.lucide) {
+          lucide.createIcons();
+        }
+      }, 10);
     });
   }
 });
