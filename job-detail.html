@@ -15,21 +15,8 @@
 </head>
 <body class="bg-gray-100">
 
-	<!-- Navbar -->
-	<nav class="bg-white shadow-md py-3">
-		<div class="container mx-auto px-4 flex justify-between items-center">
-			<a href="index.html" class="text-2xl font-bold text-red-600">BooterSpace</a>
-			<div class="space-x-4">
-				<a href="home.html" class="hover:text-red-600">🏠 Home</a>
-				<a href="jobs.html" class="hover:text-red-600">💼 Jobs</a>
-				<a href="companies.html" class="hover:text-red-600">🏢 Companies</a>
-				<a href="places-to-hangout.html" class="hover:text-red-600">☕ Hangouts</a>
-				<a href="dashboard.html" class="hover:text-red-600">📊 Dashboard</a> <!-- Added link for easy navigation -->
-				<a href="settings.html" class="hover:text-red-600">⚙️ Settings</a>
-				<button id="logoutBtn" class="text-red-600 hover:text-red-800 transition duration-150">🚪 Logout</button>
-			</div>
-		</div>
-	</nav>
+	<!-- Navbar Container -->
+	<div id="navbarContainer"></div>
 
 	<!-- Job Details Container -->
 	<div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-8 mt-8 mb-12 border-t-4 border-red-600">
@@ -39,7 +26,31 @@
 	</div>
 
 	<script>
-		// Firebase config (Assumed to be correctly passed by Canvas environment for production use, but using placeholders here)
+		// ----------------------------
+		// Load Navbar from navbar.html
+		// ----------------------------
+		fetch('navbar.html')
+			.then(response => response.text())
+			.then(data => {
+				document.getElementById('navbarContainer').innerHTML = data;
+
+				// Reattach logout event after loading navbar
+				const logoutBtn = document.getElementById('logoutBtn');
+				if(logoutBtn) {
+					logoutBtn.onclick = () => {
+						auth.signOut().then(() => {
+							location.href='login.html';
+						}).catch(error => {
+							console.error("Logout Error:", error);
+						});
+					}
+				}
+			})
+			.catch(err => console.error("Navbar load error:", err));
+
+		// ----------------------------
+		// Firebase config
+		// ----------------------------
 		const firebaseConfig = {
 			apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
 			authDomain: "kar-kardan.firebaseapp.com",
@@ -53,16 +64,9 @@
 		const auth = firebase.auth();
 		const db = firebase.firestore();
 
-		// Logout
-		document.getElementById('logoutBtn').onclick = () => {
-            auth.signOut().then(() => {
-                location.href='login.html';
-            }).catch(error => {
-                console.error("Logout Error:", error);
-            });
-        }
-
+		// ----------------------------
 		// Get jobId from URL
+		// ----------------------------
 		function getJobId() {
 			const params = new URLSearchParams(window.location.search);
 			return params.get('id');
@@ -73,6 +77,9 @@
 			loadJobDetails();
 		});
 
+		// ----------------------------
+		// Load Job Details
+		// ----------------------------
 		async function loadJobDetails() {
 			const jobId = getJobId();
 			const container = document.getElementById('jobDetailsContent');
@@ -90,12 +97,9 @@
                 }
 
                 const job = doc.data();
-                
-                // IMPORTANT FIX: Use companyImageUrl and jobImageUrl which match the keys from the post/edit form.
                 const companyLogoUrl = job.companyImageUrl || '';
                 const jobPhotoUrl = job.jobImageUrl || '';
                 
-                // Get display name for postedBy (optional but good practice)
                 let postedByName = 'Unknown Recruiter';
                 if(job.postedBy) {
                     const userDoc = await db.collection('users').doc(job.postedBy).get();
@@ -108,7 +112,6 @@
                 const datePosted = job.timestamp ? job.timestamp.toDate().toLocaleDateString() : 'Date N/A';
 
                 container.innerHTML = `
-                    <!-- Header Image -->
                     ${jobPhotoUrl ? 
                         `<img src="${jobPhotoUrl}" 
                             alt="Job Header Image" 
@@ -120,7 +123,6 @@
                     <h2 class="text-4xl font-extrabold text-gray-900 mb-2">${job.title}</h2>
                     
                     <div class="flex items-center gap-4 border-b pb-4 mb-4">
-                        <!-- Company Logo -->
                         ${companyLogoUrl ? 
                             `<img src="${companyLogoUrl}" 
                                 alt="${job.companyName} Logo" 
@@ -135,7 +137,6 @@
                         </div>
                     </div>
                     
-                    <!-- Quick Info Pills -->
                     <div class="flex flex-wrap gap-3 mb-6">
                         <span class="bg-indigo-100 text-indigo-800 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm">
                             📍 ${job.location || 'Remote'}
