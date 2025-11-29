@@ -47,18 +47,24 @@ body { font-family: 'Inter', sans-serif; }
 </head>
 <body class="bg-gray-100">
 
-<!-- Navbar Container -->
-<div id="navbarContainer"></div>
+<!-- Navbar -->
+  <div id="navbar"></div>
+  <script>
+    fetch('navbar.html')
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById('navbar').innerHTML = data;
 
-<script>
-  // Dynamically load navbar from navbar.html
-  fetch('navbar.html')
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById('navbarContainer').innerHTML = html;
-    })
-    .catch(err => console.error('Failed to load navbar:', err));
-</script>
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (menuBtn) {
+          menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+          });
+        }
+      });
+  </script>
 
 <!-- Header -->
 <section class="text-center my-6">
