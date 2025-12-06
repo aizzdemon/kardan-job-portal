@@ -1,153 +1,388 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard - BooterSpace Job Portal</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Firebase Compat SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - BooterSpace Job Portal</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJc5f85U3q8dE7W/rWv71+V4ZJ5uL5B4D+vLh5zP+6g1/z6X7rL5Vl4+O5vV0Q==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom Tailwind Configuration */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Spinner CSS for loading state */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'booterspace-primary': '#357ABD', /* BooterSpace Blue */
+                        'booterspace-secondary': '#FF5733', /* BooterSpace Orange */
+                        'booterspace-light': '#f0f0f0',
+                    }
+                }
+            }
+        };
+    </script>
 </head>
+<body class="bg-booterspace-light min-h-screen font-inter antialiased text-gray-800">
 
-<body class="bg-gray-100">
-
-<!-- NAVBAR LOADING (Same as your original code) -->
-<div id="navbar"></div>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  fetch("navbar.html")
-    .then((res) => res.text())
-    .then((data) => {
-      document.getElementById("navbar").innerHTML = data;
-    })
-    .catch((error) => console.error("Error loading navbar:", error));
-});
-</script>
-
-<!-- DASHBOARD UI (Unchanged exactly as you gave) -->
-<div class="max-w-4xl mx-auto mt-10 bg-white p-6 rounded-xl shadow-md">
-  <h1 class="text-3xl font-bold text-gray-800">Welcome, <span id="userName">Loading...</span></h1>
-
-  <div class="mt-6">
-    <h2 class="text-xl font-semibold text-gray-700">Your Posted Jobs</h2>
-    <div id="jobsList" class="mt-4 space-y-4">
-      <p class="text-gray-500">Loading jobs...</p>
-    </div>
-  </div>
-</div>
-
-<!-- FIREBASE + DASHBOARD LOGIC (Fully fixed) -->
-<script>
-// ---------------------------
-// 1. FIREBASE CONFIG
-// ---------------------------
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-  measurementId: "G-RRC3X485KQ"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-
-// ---------------------------
-// 2. LOAD USER PROFILE
-// ---------------------------
-function loadUserProfile(uid) {
-  db.collection("users").doc(uid).get()
-    .then(doc => {
-      if (doc.exists) {
-        document.getElementById("userName").innerText = doc.data().fullName ?? "User";
-      } else {
-        document.getElementById("userName").innerText = "User";
-      }
-    })
-    .catch(err => console.error("User load error:", err));
-}
-
-
-// ---------------------------
-// 3. LOAD POSTED JOBS (Working)
-// ---------------------------
-function loadPostedJobs(uid) {
-  db.collection("jobs")
-    .where("userId", "==", uid)
-    .orderBy("timestamp", "desc")
-    .get()
-    .then(snapshot => {
-      if (snapshot.empty) {
-        document.getElementById("jobsList").innerHTML =
-          "<p class='text-gray-500'>You haven't posted any jobs yet.</p>";
-        return;
-      }
-
-      let html = "";
-      snapshot.forEach(doc => {
-        const job = doc.data();
-        html += `
-          <div class="p-4 border rounded-lg bg-gray-50 shadow">
-            <h3 class="font-bold text-lg">${job.jobTitle}</h3>
-            <p class="text-gray-600">${job.companyName}</p>
-            <p class="text-gray-500 text-sm">${job.location}</p>
-
-            <div class="mt-3 flex gap-3">
-              <button onclick="editJob('${doc.id}')" class="px-3 py-1 bg-blue-600 text-white rounded">Edit</button>
-              <button onclick="deleteJob('${doc.id}')" class="px-3 py-1 bg-red-600 text-white rounded">Delete</button>
+    <!-- Name Edit Modal -->
+    <div id="name-modal" class="fixed inset-0 z-50 hidden bg-gray-900 bg-opacity-70 flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-11/12 max-w-sm transform scale-95 transition-transform duration-300">
+            <h3 class="text-xl font-bold mb-4 text-booterspace-primary">Update Your Display Name</h3>
+            <p class="text-sm text-gray-500 mb-4">This name will be visible to all other users in collaborative spaces (like the chat system).</p>
+            
+            <!-- Loading Indicator for Auth Status -->
+            <div id="auth-loading-status" class="mb-4 hidden text-sm p-3 rounded-lg bg-yellow-50 text-yellow-700 flex items-center justify-center">
+                <div class="spinner mr-2 border-yellow-700 border-t-yellow-900"></div>
+                Waiting for secure connection...
             </div>
-          </div>
-        `;
-      });
 
-      document.getElementById("jobsList").innerHTML = html;
-    })
-    .catch(err => console.error("Job load error:", err));
-}
+            <form id="name-form" onsubmit="handleNameUpdate(event)">
+                <input
+                    type="text"
+                    id="display-name-input"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-booterspace-primary focus:border-booterspace-primary mb-6 text-base"
+                    placeholder="Enter your new display name"
+                    required
+                    maxlength="30"
+                />
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" id="save-name-btn" class="px-4 py-2 bg-booterspace-primary text-white rounded-lg hover:bg-blue-700 transition font-semibold disabled:bg-gray-400 flex items-center justify-center" disabled>
+                        Save
+                    </button>
+                </div>
+            </form>
+            <p id="name-status" class="text-sm mt-3 text-center hidden text-green-600"></p>
+        </div>
+    </div>
+    
+    <!-- Header/Navigation Bar -->
+    <header class="bg-white shadow-lg sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto p-4 flex flex-col md:flex-row md:justify-between md:items-center">
+            <!-- Logo Box -->
+            <div class="font-extrabold text-3xl text-booterspace-secondary mb-3 md:mb-0">BooterSpace</div>
 
+            <!-- Dashboard Title and Profile Area (Mobile/Desktop) -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 w-full md:w-auto">
+                <h1 class="text-2xl font-bold text-gray-700 mb-2 sm:mb-0">Dashboard</h1>
+                <div class="text-sm text-gray-500 flex items-center bg-gray-50 p-2 rounded-lg">
+                    <!-- Icon size increased to look better on a single line -->
+                    <i class="fas fa-user-circle mr-2 text-2xl text-booterspace-primary"></i> 
+                    <div class="flex flex-col min-w-0">
+                        <!-- User ID line removed -->
+                        <span id="display-name" class="font-bold text-booterspace-primary truncate">Loading Name...</span>
+                    </div>
+                    <button onclick="openModal()" class="ml-3 p-1 text-gray-500 hover:text-booterspace-secondary transition">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Navigation Links -->
+        <nav class="bg-gray-50 border-t border-gray-100 py-3 shadow-inner">
+            <ul class="flex justify-center flex-wrap gap-2 sm:gap-4 max-w-7xl mx-auto px-4">
+                <li><a href="index.html" class="nav-button active"><i class="fas fa-home mr-1"></i> Home</a></li>
+                <li><a href="jobs.html" class="nav-button"><i class="fas fa-briefcase mr-1"></i> Jobs</a></li>
+                <li><a href="companies.html" class="nav-button hidden sm:inline-block"><i class="fas fa-building mr-1"></i> Companies</a></li>
+                <li><a href="hangouts.html" class="nav-button hidden md:inline-block"><i class="fas fa-coffee mr-1"></i> Hangouts</a></li>
+                <li><a href="profile.html" class="nav-button"><i class="fas fa-user-tie mr-1"></i> Profile</a></li>
+                <li><a href="settings.html" class="nav-button hidden sm:inline-block"><i class="fas fa-cog mr-1"></i> Settings</a></li>
+                <li><a href="logout.html" class="join-button"><i class="fas fa-sign-out-alt mr-1"></i> Logout</a></li>
+            </ul>
+        </nav>
+    </header>
 
-// ---------------------------
-// 4. AUTH LISTENER
-// ---------------------------
-auth.onAuthStateChanged(user => {
-  if (user) {
-    loadUserProfile(user.uid);
-    loadPostedJobs(user.uid);
-  } else {
-    console.log("Not logged in");
-    window.location.href = "login.html";
-  }
-});
+    <!-- Dashboard Content Container -->
+    <section class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 mt-6">
+        <h2 class="text-3xl font-extrabold mb-6 text-gray-800">Your Overview</h2>
 
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Applications Card -->
+            <div class="dashboard-card bg-white shadow-xl rounded-xl p-6 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center text-booterspace-primary mb-3">
+                    <i class="fas fa-file-alt text-2xl mr-3"></i>
+                    <h3 class="text-xl font-bold">Your Applications</h3>
+                </div>
+                <p class="text-gray-600 mb-4">You have not submitted any applications recently. Time to apply!</p>
+                <button class="w-full bg-booterspace-primary text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+                    <i class="fas fa-plus-circle mr-1"></i> Find Jobs
+                </button>
+            </div>
 
-// ---------------------------
-// 5. EDIT + DELETE JOB
-// ---------------------------
-function editJob(id) {
-  window.location.href = `edit-job.html?id=${id}`;
-}
+            <!-- Saved Jobs Card -->
+            <div class="dashboard-card bg-white shadow-xl rounded-xl p-6 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center text-booterspace-secondary mb-3">
+                    <i class="fas fa-bookmark text-2xl mr-3"></i>
+                    <h3 class="text-xl font-bold">Saved Jobs</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Keep track of your favorites. You haven't saved any jobs yet.</p>
+                <button class="w-full bg-booterspace-secondary text-white py-2 rounded-lg font-semibold hover:bg-orange-700 transition">
+                    <i class="fas fa-search mr-1"></i> Browse Listings
+                </button>
+            </div>
 
-function deleteJob(id) {
-  if (!confirm("Are you sure you want to delete this job?")) return;
+            <!-- Profile Settings Card -->
+            <div class="dashboard-card bg-white shadow-xl rounded-xl p-6 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center text-green-600 mb-3">
+                    <i class="fas fa-cogs text-2xl mr-3"></i>
+                    <h3 class="text-xl font-bold">Profile Management</h3>
+                </div>
+                <p class="text-gray-600 mb-4">Ensure your profile and resume are up-to-date for employers.</p>
+                <a href="profile.html" class="w-full inline-block text-center bg-gray-700 text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition">
+                    <i class="fas fa-edit mr-1"></i> Edit Profile Details
+                </a>
+            </div>
+        </div>
+    </section>
 
-  db.collection("jobs").doc(id).delete()
-    .then(() => {
-      alert("Job deleted");
-      location.reload();
-    })
-    .catch(err => console.error("Delete error:", err));
-}
-</script>
+    <!-- Footer -->
+    <footer class="mt-12 py-6 bg-white border-t border-gray-200 shadow-inner">
+        <div class="max-w-7xl mx-auto text-center px-4">
+            <p class="text-sm text-gray-600 mb-2">&copy; 2025 BooterSpace Job Portal. All rights reserved.</p>
+            <nav>
+                <ul class="flex justify-center space-x-4 text-sm text-booterspace-primary">
+                    <li><a href="contact.html" class="hover:underline">Contact</a></li>
+                    <li><a href="privacy.html" class="hover:underline">Privacy</a></li>
+                    <li><a href="terms.html" class="hover:underline">Terms</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
 
+    <!-- Firebase and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Global Variables (Canvas Environment) ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-kardan-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // --- End Global Variables ---
+
+        // State variables
+        let app;
+        let db;
+        let auth;
+        let currentUserId = null;
+        let profileUnsubscribe = null;
+        let isAuthReady = false; // NEW: Track authentication readiness
+
+        const nameInput = document.getElementById('display-name-input');
+        const saveBtn = document.getElementById('save-name-btn');
+        const displayNameElement = document.getElementById('display-name');
+        const nameStatusElement = document.getElementById('name-status');
+        const nameModal = document.getElementById('name-modal');
+        const authLoadingStatus = document.getElementById('auth-loading-status'); // NEW: Loading status element
+        
+        // --- UTILITY FUNCTIONS ---
+
+        // Helper for exponential backoff (for auth)
+        const exponentialBackoff = async (fn, maxRetries = 5, delay = 1000) => {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    return await fn();
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    await new Promise(resolve => setTimeout(resolve, delay * (2 ** i)));
+                }
+            }
+        };
+
+        // Get the document reference for the current user's profile data
+        const getProfileDocRef = (userId) => {
+            // Path: /artifacts/{appId}/users/{userId}/profile/user_data
+            const profileCollectionPath = `/artifacts/${appId}/users/${userId}/profile`;
+            return doc(db, profileCollectionPath, 'user_data');
+        };
+
+        // FIXED FUNCTION: Checks if the name input is valid AND if Auth is ready.
+        const checkSaveButtonState = () => {
+            const isNameValid = nameInput.value.trim().length > 0;
+            // Button is enabled only if a valid name is entered AND authentication is ready.
+            saveBtn.disabled = !isNameValid || !isAuthReady;
+            
+            // Show/hide loading status
+            if (!isAuthReady) {
+                authLoadingStatus.classList.remove('hidden');
+                nameInput.disabled = true;
+            } else {
+                authLoadingStatus.classList.add('hidden');
+                nameInput.disabled = false;
+            }
+        };
+        
+        // --- MODAL FUNCTIONS ---
+        
+        window.openModal = () => {
+            // Pre-fill input with current name
+            const currentName = displayNameElement.textContent;
+            nameInput.value = currentName === 'Loading Name...' || currentName.startsWith('User-') ? '' : currentName;
+            
+            // Call the check function to update button state based on pre-filled value and auth status
+            checkSaveButtonState();
+            
+            // Clear status message
+            nameStatusElement.classList.add('hidden');
+            nameModal.classList.remove('hidden');
+        };
+
+        window.closeModal = () => {
+            nameModal.classList.add('hidden');
+        };
+        
+        // Update: Use the new check function on input
+        nameInput.addEventListener('input', checkSaveButtonState);
+
+        // --- FIREBASE INITIALIZATION & AUTH ---
+
+        const initializeFirebase = async () => {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is missing. Cannot initialize Firestore.");
+                    return;
+                }
+                
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Initial sign-in attempt
+                const signInPromise = initialAuthToken
+                    ? signInWithCustomToken(auth, initialAuthToken)
+                    : signInAnonymously(auth);
+
+                await exponentialBackoff(() => signInPromise);
+
+                // Listen for auth state changes
+                onAuthStateChanged(auth, (user) => {
+                    isAuthReady = true; // Auth process has completed its check
+                    if (user) {
+                        currentUserId = user.uid;
+                        console.log("Authenticated with UID:", currentUserId);
+                        
+                        // Start listening to profile changes once authenticated
+                        listenToUserProfile();
+                        
+                    } else {
+                        currentUserId = null;
+                        displayNameElement.textContent = "Guest";
+                        console.log("No user signed in.");
+                    }
+                    // Re-check button state after successful authentication/auth check
+                    checkSaveButtonState(); 
+                });
+
+            } catch (error) {
+                console.error("Error during Firebase initialization or sign-in:", error);
+                displayNameElement.textContent = "Error Loading Profile";
+                isAuthReady = true; // Even if it failed, auth check is complete
+                checkSaveButtonState();
+            }
+        };
+
+        // --- FIRESTORE DATA HANDLING ---
+        
+        const listenToUserProfile = () => {
+            if (profileUnsubscribe) {
+                profileUnsubscribe(); // Clean up previous listener if it exists
+            }
+            if (!db || !currentUserId) return;
+
+            const profileDocRef = getProfileDocRef(currentUserId);
+
+            // Set up real-time listener for the user's profile document
+            profileUnsubscribe = onSnapshot(profileDocRef, (doc) => {
+                if (doc.exists() && doc.data().displayName) {
+                    displayNameElement.textContent = doc.data().displayName;
+                } else {
+                    // Default name if no profile or displayName field exists
+                    displayNameElement.textContent = `User-${currentUserId.substring(0, 4)}`;
+                }
+            }, (error) => {
+                console.error("Error listening to profile snapshot:", error);
+            });
+        };
+
+        window.handleNameUpdate = async (event) => {
+            event.preventDefault();
+            const newName = nameInput.value.trim();
+
+            // Guard against empty name 
+            if (newName.length === 0) {
+                nameStatusElement.textContent = "Please enter a display name.";
+                nameStatusElement.classList.remove('hidden', 'text-green-600');
+                nameStatusElement.classList.add('text-red-600');
+                return;
+            }
+            
+            // Guard against authentication not being ready (shouldn't happen now, but safe guard)
+            if (!isAuthReady || !currentUserId || !db) {
+                nameStatusElement.textContent = "Authentication failed. Please check your connection and try reloading.";
+                nameStatusElement.classList.remove('hidden', 'text-green-600');
+                nameStatusElement.classList.add('text-red-600');
+                return;
+            }
+            
+            // Temporary disable button while saving
+            saveBtn.disabled = true;
+            
+            try {
+                const profileDocRef = getProfileDocRef(currentUserId);
+                
+                // Use setDoc with merge: true to update only the displayName field
+                await exponentialBackoff(() => 
+                    setDoc(profileDocRef, { displayName: newName }, { merge: true })
+                );
+                
+                nameStatusElement.textContent = "Name saved successfully!";
+                nameStatusElement.classList.remove('hidden', 'text-red-600');
+                nameStatusElement.classList.add('text-green-600');
+                
+                setTimeout(closeModal, 1500); // Close modal after success message
+
+            } catch (error) {
+                console.error("Error updating display name:", error);
+                nameStatusElement.textContent = `Error saving name: ${error.message}`;
+                nameStatusElement.classList.remove('hidden', 'text-green-600');
+                nameStatusElement.classList.add('text-red-600');
+            } finally {
+                // Re-enable button based on current name input value
+                checkSaveButtonState(); 
+            }
+        };
+
+        // Start the application
+        initializeFirebase();
+
+        // Attach global functions to window for use in HTML attributes
+        window.getProfileDocRef = getProfileDocRef;
+    </script>
 </body>
 </html>
