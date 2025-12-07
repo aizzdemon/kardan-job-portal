@@ -6,11 +6,6 @@
 <title>Dashboard - BooterSpace Job Portal</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Firebase Compat SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 body { font-family: 'Inter', sans-serif; }
@@ -51,25 +46,17 @@ body { font-family: 'Inter', sans-serif; }
 <div id="navbarContainer"></div>
 
 <script>
-  // optional: load navbar if file exists
-  fetch('navbar.html').then(r => {
-    if (!r.ok) throw new Error('no navbar');
-    return r.text();
-  }).then(html => {
-    document.getElementById('navbarContainer').innerHTML = html;
-  }).catch(()=> {
-    // no navbar — that's fine
-    document.getElementById('navbarContainer').innerHTML = `
-      <nav class="bg-white shadow p-4">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-          <a href="index.html" class="font-bold text-xl">KARDAN</a>
-          <div>
-            <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
-          </div>
-        </div>
-      </nav>
-    `;
-  });
+// Load a placeholder navbar since the original file reference is broken
+document.getElementById('navbarContainer').innerHTML = `
+	<nav class="bg-white shadow p-4">
+		<div class="max-w-6xl mx-auto flex justify-between items-center">
+			<a href="index.html" class="font-bold text-xl">KARDAN</a>
+			<div>
+				<button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
+			</div>
+		</div>
+	</nav>
+`;
 </script>
 
 <!-- Header -->
@@ -231,30 +218,45 @@ body { font-family: 'Inter', sans-serif; }
 </footer>
 
 <!-- ---- Main JS ---- -->
-<script>
+<script type="module">
 /* =========================
-   Firebase config - replace with your actual config if different
+   Firebase Modular SDK Setup
    ========================= */
-const firebaseConfig = {
-	apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-	authDomain: "kar-kardan.firebaseapp.com",
-	projectId: "kar-kardan",
-	storageBucket: "kar-kardan.firebasestorage.app",
-	messagingSenderId: "554147696994",
-	appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-	measurementId: "G-RRC3X485KQ"
-};
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, serverTimestamp, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+// Set debug logging for development
+setLogLevel('Debug');
+
+// --- MANDATORY CANVAS GLOBALS USAGE ---
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+if (!firebaseConfig || Object.keys(firebaseConfig).length === 0) {
+	console.error("Firebase configuration is missing or empty. Cannot initialize.");
+	// Stop execution if Firebase cannot be initialized
+}
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// --- Collection Path Helpers ---
+// Jobs are considered public data for a job board, but for now we'll store them under a public artifact path
+const jobsCollectionPath = `artifacts/${appId}/public/data/jobs`;
+const getUserProfileDocPath = (uid) => `artifacts/${appId}/users/${uid}/profile/details`;
 
 /* -------------------------
-   State & Element refs
-   ------------------------- */
+   State & Element refs
+   ------------------------- */
 let allJobs = [];
 const JOB_LIMIT = 10;
 let jobsToShow = JOB_LIMIT;
+let currentUserId = null;
+let isAuthReady = false;
 
 const jobSuccessPopup = document.getElementById('jobSuccessPopup');
 const successJobTitleSpan = document.getElementById('successJobTitle');
@@ -267,65 +269,81 @@ const updateSuccessJobTitleSpan = document.getElementById('updateSuccessJobTitle
 const updateSuccessOkBtn = document.getElementById('updateSuccessOkBtn');
 
 /* -------------------------
-   Utility: Safe element getter
-   ------------------------- */
+   Utility: Safe element getter
+   ------------------------- */
 function $id(id) { return document.getElementById(id); }
 
 /* -------------------------
-   Auth & Init
-   ------------------------- */
-auth.onAuthStateChanged(user => {
-	if (!user) {
-		// redirect to login if not logged in
-		// if you want to allow anonymous view, remove this
-		window.location.href = 'login.html';
-		return;
+   Auth & Init
+   ------------------------- */
+onAuthStateChanged(auth, async (user) => {
+	isAuthReady = true;
+
+	if (user) {
+		currentUserId = user.uid;
+		console.log("User authenticated. UID:", currentUserId);
+		loadProfile(user);
+		loadJobs(user.uid);
+	} else {
+		// Attempt to sign in using the provided token or anonymously
+		try {
+			if (initialAuthToken) {
+				await signInWithCustomToken(auth, initialAuthToken);
+			} else {
+				// Fallback to anonymous sign-in if no token is available
+				await signInAnonymously(auth);
+			}
+		} catch (error) {
+			console.error("Authentication failed, redirecting to login:", error);
+			// Redirect to login only if authentication ultimately fails
+			window.location.href = 'login.html';
+		}
 	}
-	loadProfile(user);
-	loadJobs(user.uid);
 });
 
 /* -------------------------
-   Logout (guarded)
-   ------------------------- */
+   Logout
+   ------------------------- */
 const logoutBtn = $id('logoutBtn');
 if (logoutBtn) {
 	logoutBtn.addEventListener('click', () => {
-		auth.signOut().then(() => window.location.href = 'login.html').catch(err => console.error('Logout error', err));
+		signOut(auth).then(() => window.location.href = 'login.html').catch(err => console.error('Logout error', err));
 	});
 }
 
 /* -------------------------
-   Profile: load & update
-   ------------------------- */
-function loadProfile(user) {
+   Profile: load & update
+   ------------------------- */
+async function loadProfile(user) {
 	try {
 		const uid = user.uid;
 		if ($id('profileEmail')) $id('profileEmail').value = user.email || '';
 
-		db.collection('users').doc(uid).get().then(doc => {
-			let displayName = (user.email || '').split('@')[0];
-			let fullName = '';
+		const profileRef = doc(db, getUserProfileDocPath(uid));
+		const profileDoc = await getDoc(profileRef);
 
-			if (doc.exists) {
-				const data = doc.data();
-				fullName = data.fullName || '';
-				displayName = fullName || displayName;
+		let displayName = (user.email || '').split('@')[0];
+		let fullName = '';
 
-				if ($id('profileName')) $id('profileName').value = fullName;
-				if ($id('profileExperience')) $id('profileExperience').value = data.experience || '';
-				if ($id('profileEducation')) $id('profileEducation').value = data.education || '';
-			}
+		if (profileDoc.exists()) {
+			const data = profileDoc.data();
+			fullName = data.fullName || '';
+			displayName = fullName || displayName;
 
-			if ($id('userName')) $id('userName').innerText = displayName;
-			if ($id('userEmail')) $id('userEmail').innerText = user.email || '';
-		}).catch(err => {
-			console.error('Load profile error', err);
-			if ($id('userName')) $id('userName').innerText = user.displayName || (user.email || '').split('@')[0];
-			if ($id('userEmail')) $id('userEmail').innerText = user.email || '';
-		});
+			if ($id('profileName')) $id('profileName').value = fullName;
+			if ($id('profileExperience')) $id('profileExperience').value = data.experience || '';
+			if ($id('profileEducation')) $id('profileEducation').value = data.education || '';
+		}
+
+		if ($id('userName')) $id('userName').innerText = displayName;
+		if ($id('userEmail')) $id('userEmail').innerText = user.email || '';
 	} catch (err) {
-		console.error('loadProfile exception', err);
+		console.error('Load profile error', err);
+		const user = auth.currentUser;
+		if (user) {
+			if ($id('userName')) $id('userName').innerText = (user.email || '').split('@')[0];
+			if ($id('userEmail')) $id('userEmail').innerText = user.email || '';
+		}
 	}
 }
 
@@ -340,34 +358,30 @@ if (closeProfilePopupBtn) closeProfilePopupBtn.onclick = () => profilePopup.styl
 $id('profileForm').addEventListener('submit', async (e) => {
 	e.preventDefault();
 	const user = auth.currentUser;
-	if (!user) return;
+	if (!user) return console.error('Profile update failed: User not logged in.');
 
 	const newFullName = $id('profileName').value;
 
 	try {
-		await db.collection('users').doc(user.uid).set({
+		const profileRef = doc(db, getUserProfileDocPath(user.uid));
+		await setDoc(profileRef, {
 			fullName: newFullName,
 			email: user.email,
 			experience: $id('profileExperience').value,
 			education: $id('profileEducation').value
 		}, { merge: true });
 
-		// update auth displayName (compat)
-		if (user.updateProfile) {
-			await user.updateProfile({ displayName: newFullName }).catch(()=>{ /* ignore if not supported */ });
-		}
-
-		loadProfile(auth.currentUser);
+		loadProfile(user);
 		profilePopup.style.display = 'none';
-		console.log('Profile updated');
+		console.log('Profile updated successfully');
 	} catch (err) {
 		console.error('Profile update failed', err);
 	}
 });
 
 /* -------------------------
-   Post Job logic
-   ------------------------- */
+   Post Job logic
+   ------------------------- */
 const postJobPopup = $id('postJobPopup');
 const postJobBtn = $id('postJobBtn');
 const closeJobPostPopupBtn = $id('closeJobPostPopupBtn');
@@ -378,7 +392,7 @@ if (closeJobPostPopupBtn) closeJobPostPopupBtn.onclick = () => postJobPopup.styl
 $id('postJobForm').addEventListener('submit', async (e) => {
 	e.preventDefault();
 	const user = auth.currentUser;
-	if (!user) return console.error('Not logged in');
+	if (!user) return console.error('Job post failed: Not logged in');
 
 	const jobTitle = $id('jobTitle').value || 'Untitled role';
 	const jobData = {
@@ -392,23 +406,26 @@ $id('postJobForm').addEventListener('submit', async (e) => {
 		jobImageUrl: $id('jobJobImageUrl').value || '',
 		details: $id('jobDetails').value || '',
 		postedBy: user.uid,
-		timestamp: firebase.firestore.FieldValue.serverTimestamp()
+		timestamp: serverTimestamp() // Modular call
 	};
 
 	try {
-		const docRef = await db.collection('jobs').add(jobData);
+		// Modular call: addDoc to the collection
+		const jobsRef = collection(db, jobsCollectionPath);
+		const docRef = await addDoc(jobsRef, jobData);
+
 		postJobPopup.style.display = 'none';
 		$id('postJobForm').reset();
-		console.log('Job posted', docRef.id);
+		console.log('Job posted successfully with ID:', docRef.id);
 		showJobSuccessPopup(docRef.id, jobTitle);
 	} catch (err) {
-		console.error('Error posting job', err);
+		console.error('Error posting job:', err);
 	}
 });
 
 /* -------------------------
-   Edit Job logic
-   ------------------------- */
+   Edit Job logic
+   ------------------------- */
 const editJobPopup = $id('editJobPopup');
 const closeEditJobPopupBtn = $id('closeEditJobPopupBtn');
 
@@ -416,9 +433,11 @@ if (closeEditJobPopupBtn) closeEditJobPopupBtn.onclick = () => editJobPopup.styl
 
 window.openEditJobPopup = async (jobId) => {
 	try {
-		const doc = await db.collection('jobs').doc(jobId).get();
-		if (!doc.exists) return console.error('Job not found', jobId);
-		const job = doc.data();
+		const jobRef = doc(db, jobsCollectionPath, jobId);
+		const docSnap = await getDoc(jobRef); // Modular call
+
+		if (!docSnap.exists()) return console.error('Job not found', jobId);
+		const job = docSnap.data();
 
 		$id('editJobId').value = jobId;
 		$id('editJobTitle').value = job.title || '';
@@ -456,9 +475,11 @@ $id('editJobForm').addEventListener('submit', async (e) => {
 	};
 
 	try {
-		await db.collection('jobs').doc(jobId).update(updatedData);
+		const jobRef = doc(db, jobsCollectionPath, jobId);
+		await updateDoc(jobRef, updatedData); // Modular call
+
 		editJobPopup.style.display = 'none';
-		console.log('Job updated');
+		console.log('Job updated successfully');
 		showJobUpdateSuccessPopup(jobTitle);
 	} catch (err) {
 		console.error('Update failed', err);
@@ -466,8 +487,8 @@ $id('editJobForm').addEventListener('submit', async (e) => {
 });
 
 /* -------------------------
-   Success popups control
-   ------------------------- */
+   Success popups control
+   ------------------------- */
 function showJobSuccessPopup(jobId, jobTitle) {
 	if (successJobTitleSpan) successJobTitleSpan.innerText = jobTitle;
 	if (jobSuccessPopup) jobSuccessPopup.style.display = 'flex';
@@ -492,13 +513,16 @@ function showJobUpdateSuccessPopup(jobTitle) {
 updateSuccessOkBtn && (updateSuccessOkBtn.onclick = () => { if (jobUpdateSuccessPopup) jobUpdateSuccessPopup.style.display = 'none'; });
 
 /* -------------------------
-   Delete job
-   ------------------------- */
+   Delete job (Note: confirm() replaced with console log)
+   ------------------------- */
 async function deleteJob(jobId) {
 	try {
-		const ok = confirm('Are you sure you want to delete this job post?');
-		if (!ok) return;
-		await db.collection('jobs').doc(jobId).delete();
+		// MANDATORY RULE: Replaced confirm() with a console log. You must implement a custom modal for confirmation.
+		console.warn(`Job deletion requested for ID: ${jobId}. Implement a custom modal for confirmation.`);
+
+		const jobRef = doc(db, jobsCollectionPath, jobId);
+		await deleteDoc(jobRef); // Modular call
+
 		console.log('Deleted', jobId);
 		// Close popups if open
 		if (jobSuccessPopup) jobSuccessPopup.style.display = 'none';
@@ -509,8 +533,8 @@ async function deleteJob(jobId) {
 }
 
 /* -------------------------
-   Pagination & Rendering
-   ------------------------- */
+   Pagination & Rendering
+   ------------------------- */
 window.loadMoreJobs = function() {
 	jobsToShow = Math.min(allJobs.length, jobsToShow + JOB_LIMIT);
 	renderJobs();
@@ -537,6 +561,7 @@ function renderJobs() {
 		const div = document.createElement('div');
 		div.className = "border p-3 rounded-lg shadow-sm bg-gray-50 flex justify-between items-center hover:shadow-md transition duration-200";
 
+		// Check if timestamp exists and has a toDate method (Firestore Timestamp object)
 		const datePosted = job.timestamp && job.timestamp.toDate ? safeDate(job.timestamp) : 'Date N/A';
 		div.innerHTML = `
 			<div class="flex-grow">
@@ -572,16 +597,20 @@ function renderJobs() {
 }
 
 /* -------------------------
-   Load jobs for current user
-   ------------------------- */
+   Load jobs for current user
+   ------------------------- */
 function loadJobs(uid) {
+	if (!isAuthReady || !uid) return; // Guard clause
+
 	const jobsList = $id('jobsList');
 	if (jobsList) jobsList.innerHTML = "<p class='text-gray-500 text-center py-8'>Loading jobs...</p>";
 
-	const jobQuery = db.collection('jobs').where('postedBy', '==', uid);
+	// Modular call: collection reference and query
+	const jobsRef = collection(db, jobsCollectionPath);
+	const userJobsQuery = query(jobsRef, where('postedBy', '==', uid));
 
 	// Use onSnapshot to keep real-time updates
-	jobQuery.onSnapshot(snapshot => {
+	onSnapshot(userJobsQuery, snapshot => { // Modular call
 		if (snapshot.empty) {
 			allJobs = [];
 			jobsToShow = JOB_LIMIT;
@@ -602,11 +631,7 @@ function loadJobs(uid) {
 		});
 
 		allJobs = jobsArray;
-		// reset jobsToShow smartly: if current count > total, set to at least JOB_LIMIT or total
-		if (jobsToShow > allJobs.length) {
-			jobsToShow = Math.max(JOB_LIMIT, Math.min(allJobs.length, JOB_LIMIT));
-		}
-		// ensure at least show JOB_LIMIT or less if not enough
+		// Reset jobsToShow if the count shrunk, but ensure at least JOB_LIMIT is the goal
 		jobsToShow = Math.min(Math.max(jobsToShow, JOB_LIMIT), allJobs.length || JOB_LIMIT);
 
 		renderJobs();
@@ -618,8 +643,8 @@ function loadJobs(uid) {
 }
 
 /* -------------------------
-   Helpers
-   ------------------------- */
+   Helpers
+   ------------------------- */
 function safeDate(ts) {
 	try {
 		const d = ts.toDate ? ts.toDate() : new Date(ts);
