@@ -3,17 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Next Level Navbar 🚀</title>
+<title>Navbar with Live Search</title>
 
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide -->
 <script src="https://unpkg.com/lucide@0.230.0/dist/lucide.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 body { font-family: 'Inter', sans-serif; }
 .active { color: #1d4ed8; font-weight: 600; }
+.suggestion-item:hover { background-color: #f0f0f0; cursor: pointer; }
 </style>
-
 </head>
 <body class="bg-gray-50">
 
@@ -21,99 +27,105 @@ body { font-family: 'Inter', sans-serif; }
 <nav class="bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm border-b">
   <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
 
-    <!-- LOGO -->
-    <a href="index.html" class="text-2xl font-bold text-blue-600 flex items-center gap-1">
+    <!-- Logo -->
+    <a href="index.html" class="flex items-center gap-2 text-2xl font-bold text-blue-600">
       <i data-lucide="rocket" class="w-6 h-6"></i> BooterSpace
     </a>
 
-    <!-- DESKTOP MENU -->
+    <!-- Desktop Menu -->
     <div class="hidden md:flex items-center gap-4">
 
-      <!-- SEARCH -->
-      <div class="relative flex items-center">
+      <!-- Search Box -->
+      <div class="relative">
         <input id="searchInput" type="text" placeholder="Search people…"
-          class="w-60 p-2 pl-10 border rounded-xl text-sm outline-none focus:border-blue-500 transition" />
-        <i data-lucide="search" class="absolute left-3 text-gray-400"></i>
+          class="w-64 p-2 pl-10 border rounded-xl text-sm outline-none focus:border-blue-500 transition" />
+        <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400"></i>
 
-        <!-- SUGGESTIONS BOX -->
-        <div id="searchSuggest" class="absolute top-full left-0 w-full bg-white border rounded-lg mt-1 hidden">
-          <!-- populate dynamically -->
+        <!-- Suggestions -->
+        <div id="searchSuggest" class="absolute top-full left-0 w-full bg-white border rounded-lg mt-1 hidden max-h-64 overflow-y-auto z-50">
+          <!-- suggestions populated by JS -->
         </div>
       </div>
 
-      <!-- LINK BUTTONS -->
+      <!-- Navigation Links -->
       <a href="index.html" class="nav-link">Home</a>
       <a href="jobs.html" class="nav-link">Jobs</a>
       <a href="books.html" class="nav-link">Books</a>
       <a href="places-to-hangout.html" class="nav-link">Hangouts</a>
       <a href="companies.html" class="nav-link">Companies</a>
-
     </div>
 
-    <!-- AUTH BUTTONS / USER AVATAR -->
+    <!-- Auth / User Avatar -->
     <div class="hidden md:flex items-center gap-3">
-
-      <!-- If NOT logged in -->
       <div id="authBtns" class="flex gap-3">
         <a href="login.html" class="text-gray-700 hover:text-blue-600 font-medium">Login</a>
         <a href="signup.html" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold">Join</a>
       </div>
-
-      <!-- If logged in -->
       <div id="userMenu" class="relative hidden">
-
         <button id="avatarBtn" class="flex items-center gap-2 hover:shadow-md p-1 rounded-xl">
           <img id="avatarImg" class="w-8 h-8 rounded-full" src="" alt="user" />
           <i data-lucide="chevron-down" class="w-4 h-4"></i>
         </button>
-
-        <!-- DROPDOWN -->
         <div id="avatarDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white border rounded-lg shadow-lg">
           <a href="profile.html" class="block px-4 py-2 hover:bg-gray-100">Profile</a>
           <button id="logoutBtn" class="w-full text-left px-4 py-2 hover:bg-gray-100">Logout</button>
         </div>
-
       </div>
-
     </div>
 
-    <!-- MOBILE HAMBURGER -->
+    <!-- Mobile Hamburger -->
     <button id="menuBtnMobile" class="md:hidden p-2 text-gray-700">
       <i id="mobileIcon" data-lucide="menu" class="w-6 h-6"></i>
     </button>
 
   </div>
 
-  <!-- MOBILE MENU -->
-  <div id="mobileMenu" class="hidden md:hidden border-t bg-white py-3">
-
-    <!-- mobile search -->
-    <div class="px-4 pb-2">
-      <input id="mobileSearch" type="search" placeholder="Search people…"
-        class="w-full p-2 border rounded-xl text-sm outline-none" />
-    </div>
-
-    <div class="flex flex-col gap-2 px-4">
-      <a href="index.html" class="mobile-link">Home</a>
-      <a href="jobs.html" class="mobile-link">Jobs</a>
-      <a href="books.html" class="mobile-link">Books</a>
-      <a href="places-to-hangout.html" class="mobile-link">Hangouts</a>
-      <a href="companies.html" class="mobile-link">Companies</a>
-    </div>
-
-    <div class="px-4 pt-3">
-      <a href="login.html" class="block text-center py-2 border rounded-xl mb-2">Login</a>
-      <a href="signup.html" class="block text-center py-2 bg-blue-600 text-white rounded-xl">Join</a>
-    </div>
-
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden border-t bg-white py-3 px-4 space-y-2">
+    <input id="mobileSearch" type="search" placeholder="Search people…"
+      class="w-full p-2 border rounded-xl text-sm outline-none" />
+    <a href="index.html" class="mobile-link">Home</a>
+    <a href="jobs.html" class="mobile-link">Jobs</a>
+    <a href="books.html" class="mobile-link">Books</a>
+    <a href="places-to-hangout.html" class="mobile-link">Hangouts</a>
+    <a href="companies.html" class="mobile-link">Companies</a>
+    <a href="login.html" class="block text-center py-2 border rounded-xl">Login</a>
+    <a href="signup.html" class="block text-center py-2 bg-blue-600 text-white rounded-xl">Join</a>
   </div>
-
 </nav>
 
 <script>
 lucide.createIcons();
 
-// ========== MOBILE MENU ==========
+// ================= FIREBASE CONFIG =================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ================= USER AUTH =================
+let user = auth.currentUser;
+
+auth.onAuthStateChanged((u) => {
+  user = u;
+  if (user) {
+    document.getElementById("authBtns").classList.add("hidden");
+    document.getElementById("userMenu").classList.remove("hidden");
+    document.getElementById("avatarImg").src = user.photoURL || "https://ui-avatars.com/api/?name=" + (user.displayName || "U");
+  } else {
+    document.getElementById("authBtns").classList.remove("hidden");
+    document.getElementById("userMenu").classList.add("hidden");
+  }
+});
+
+// ================= MOBILE MENU =================
 const menuBtnMobile = document.getElementById("menuBtnMobile");
 const mobileMenu = document.getElementById("mobileMenu");
 const mobileIcon = document.getElementById("mobileIcon");
@@ -127,49 +139,56 @@ menuBtnMobile.onclick = () => {
   lucide.createIcons();
 };
 
-// ========== ACTIVE LINK ==========
-const links = document.querySelectorAll(".nav-link");
-links.forEach(link => {
-  if (location.href.includes(link.getAttribute("href"))) {
-    link.classList.add("active");
+// ================= SEARCH SUGGESTIONS =================
+const searchInput = document.getElementById("searchInput");
+const searchSuggest = document.getElementById("searchSuggest");
+
+searchInput.addEventListener("input", async () => {
+  const query = searchInput.value.trim().toLowerCase();
+  searchSuggest.innerHTML = "";
+  if (query === "") {
+    searchSuggest.classList.add("hidden");
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection("users")
+      .orderBy("nameLower")
+      .startAt(query)
+      .endAt(query + "\uf8ff")
+      .limit(5)
+      .get();
+
+    if (snapshot.empty) {
+      searchSuggest.innerHTML = `<div class="px-4 py-2 text-gray-400">No users found</div>`;
+    } else {
+      snapshot.forEach(doc => {
+        const userData = doc.data();
+        const div = document.createElement("div");
+        div.className = "px-4 py-2 suggestion-item flex items-center gap-2";
+        div.innerHTML = `
+          <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + userData.name}" class="w-6 h-6 rounded-full">
+          <span>${userData.name}</span>
+        `;
+        div.onclick = () => {
+          window.location.href = `profile.html?uid=${doc.id}`;
+        };
+        searchSuggest.appendChild(div);
+      });
+    }
+    searchSuggest.classList.remove("hidden");
+
+  } catch (err) {
+    console.error(err);
   }
 });
 
-// ========== USER MENU ==========
-const authBtns = document.getElementById("authBtns");
-const userMenu = document.getElementById("userMenu");
-const avatarBtn = document.getElementById("avatarBtn");
-const avatarDropdown = document.getElementById("avatarDropdown");
-
-// STUB: replace this with real auth state
-let user = null; // set to object to simulate login
-
-function updateNavbar() {
-  if (user) {
-    authBtns.classList.add("hidden");
-    userMenu.classList.remove("hidden");
-
-    // set avatar
-    document.getElementById("avatarImg").src = user.photoURL || "https://ui-avatars.com/api/?name=" + user.displayName;
-
-  } else {
-    authBtns.classList.remove("hidden");
-    userMenu.classList.add("hidden");
+// Hide suggestions when clicking outside
+document.addEventListener("click", (e) => {
+  if (!searchSuggest.contains(e.target) && e.target !== searchInput) {
+    searchSuggest.classList.add("hidden");
   }
-}
-
-avatarBtn.addEventListener("click", () => {
-  avatarDropdown.classList.toggle("hidden");
 });
-
-// LOGOUT BUTTON
-document.getElementById("logoutBtn").addEventListener("click", () => {
-  user = null;
-  updateNavbar();
-});
-
-// INITIALIZE
-updateNavbar();
 </script>
 
 </body>
