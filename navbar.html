@@ -3,13 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Navbar with Live Search</title>
+<title>Navbar with Search Button</title>
 
-<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
-<!-- Lucide -->
 <script src="https://unpkg.com/lucide@0.230.0/dist/lucide.min.js"></script>
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -23,7 +20,6 @@ body { font-family: 'Inter', sans-serif; }
 </head>
 <body class="bg-gray-50">
 
-<!-- NAVBAR -->
 <nav class="bg-white/95 backdrop-blur sticky top-0 z-50 shadow-sm border-b">
   <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
 
@@ -35,15 +31,18 @@ body { font-family: 'Inter', sans-serif; }
     <!-- Desktop Menu -->
     <div class="hidden md:flex items-center gap-4">
 
-      <!-- Search Box -->
-      <div class="relative">
+      <!-- Search Box + Button -->
+      <div class="relative flex items-center gap-1">
         <input id="searchInput" type="text" placeholder="Search people…"
           class="w-64 p-2 pl-10 border rounded-xl text-sm outline-none focus:border-blue-500 transition" />
         <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+        <button id="searchBtn" class="px-3 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+          Search
+        </button>
 
         <!-- Suggestions -->
         <div id="searchSuggest" class="absolute top-full left-0 w-full bg-white border rounded-lg mt-1 hidden max-h-64 overflow-y-auto z-50">
-          <!-- suggestions populated by JS -->
+          <!-- populated dynamically -->
         </div>
       </div>
 
@@ -82,8 +81,11 @@ body { font-family: 'Inter', sans-serif; }
 
   <!-- Mobile Menu -->
   <div id="mobileMenu" class="hidden md:hidden border-t bg-white py-3 px-4 space-y-2">
-    <input id="mobileSearch" type="search" placeholder="Search people…"
-      class="w-full p-2 border rounded-xl text-sm outline-none" />
+    <div class="relative flex items-center gap-1">
+      <input id="mobileSearch" type="search" placeholder="Search people…"
+        class="w-full p-2 border rounded-xl text-sm outline-none" />
+      <button id="mobileSearchBtn" class="px-3 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition">Search</button>
+    </div>
     <a href="index.html" class="mobile-link">Home</a>
     <a href="jobs.html" class="mobile-link">Jobs</a>
     <a href="books.html" class="mobile-link">Books</a>
@@ -97,7 +99,7 @@ body { font-family: 'Inter', sans-serif; }
 <script>
 lucide.createIcons();
 
-// ================= FIREBASE CONFIG =================
+// =============== FIREBASE CONFIG ===============
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -112,7 +114,6 @@ const db = firebase.firestore();
 
 // ================= USER AUTH =================
 let user = auth.currentUser;
-
 auth.onAuthStateChanged((u) => {
   user = u;
   if (user) {
@@ -129,36 +130,27 @@ auth.onAuthStateChanged((u) => {
 const menuBtnMobile = document.getElementById("menuBtnMobile");
 const mobileMenu = document.getElementById("mobileMenu");
 const mobileIcon = document.getElementById("mobileIcon");
-
 menuBtnMobile.onclick = () => {
   mobileMenu.classList.toggle("hidden");
-  mobileIcon.setAttribute(
-    "data-lucide",
-    mobileMenu.classList.contains("hidden") ? "menu" : "x"
-  );
+  mobileIcon.setAttribute("data-lucide", mobileMenu.classList.contains("hidden") ? "menu" : "x");
   lucide.createIcons();
 };
 
-// ================= SEARCH SUGGESTIONS =================
+// ================= SEARCH FUNCTION =================
 const searchInput = document.getElementById("searchInput");
+const searchBtn = document.getElementById("searchBtn");
 const searchSuggest = document.getElementById("searchSuggest");
 
-searchInput.addEventListener("input", async () => {
-  const query = searchInput.value.trim().toLowerCase();
+async function performSearch(query) {
+  if (!query) return;
   searchSuggest.innerHTML = "";
-  if (query === "") {
-    searchSuggest.classList.add("hidden");
-    return;
-  }
-
   try {
     const snapshot = await db.collection("users")
       .orderBy("nameLower")
-      .startAt(query)
-      .endAt(query + "\uf8ff")
+      .startAt(query.toLowerCase())
+      .endAt(query.toLowerCase() + "\uf8ff")
       .limit(5)
       .get();
-
     if (snapshot.empty) {
       searchSuggest.innerHTML = `<div class="px-4 py-2 text-gray-400">No users found</div>`;
     } else {
@@ -166,22 +158,23 @@ searchInput.addEventListener("input", async () => {
         const userData = doc.data();
         const div = document.createElement("div");
         div.className = "px-4 py-2 suggestion-item flex items-center gap-2";
-        div.innerHTML = `
-          <img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + userData.name}" class="w-6 h-6 rounded-full">
-          <span>${userData.name}</span>
-        `;
-        div.onclick = () => {
-          window.location.href = `profile.html?uid=${doc.id}`;
-        };
+        div.innerHTML = `<img src="${userData.photoURL || 'https://ui-avatars.com/api/?name=' + userData.name}" class="w-6 h-6 rounded-full">
+                         <span>${userData.name}</span>`;
+        div.onclick = () => { window.location.href = `profile.html?uid=${doc.id}`; };
         searchSuggest.appendChild(div);
       });
     }
     searchSuggest.classList.remove("hidden");
-
   } catch (err) {
     console.error(err);
   }
-});
+}
+
+// Live suggestions while typing
+searchInput.addEventListener("input", () => performSearch(searchInput.value));
+
+// Search button click
+searchBtn.addEventListener("click", () => performSearch(searchInput.value));
 
 // Hide suggestions when clicking outside
 document.addEventListener("click", (e) => {
