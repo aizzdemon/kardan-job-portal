@@ -24,31 +24,70 @@
 <nav class="bg-white shadow sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
 
+    <!-- Logo -->
     <a href="index.html" class="text-xl font-bold text-blue-600 flex gap-2">
       <i data-lucide="users"></i> BooterSpace
     </a>
 
-    <!-- Search -->
-    <div class="relative w-80 hidden md:block">
-      <input id="searchInput" placeholder="Search people..."
-        class="w-full border rounded-xl px-10 py-2 text-sm" />
-      <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+    <!-- Desktop Nav -->
+    <div class="hidden md:flex items-center gap-4">
 
-      <div id="searchSuggest"
-        class="absolute w-full bg-white border rounded-xl mt-1 hidden shadow max-h-80 overflow-y-auto"></div>
+      <!-- Search -->
+      <div class="relative w-80">
+        <input id="searchInput" placeholder="Search people..."
+          class="w-full border rounded-xl px-10 py-2 text-sm" />
+        <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+
+        <div id="searchSuggest"
+          class="absolute w-full bg-white border rounded-xl mt-1 hidden shadow max-h-80 overflow-y-auto"></div>
+      </div>
+
+      <!-- Always visible -->
+      <a href="jobs.html" class="text-sm font-medium hover:text-blue-600">Jobs</a>
+
+      <!-- Logged-in only -->
+      <a href="dashboard.html" id="dashboardBtn"
+         class="hidden text-sm font-medium hover:text-blue-600">Dashboard</a>
+
+      <!-- Logged-out only -->
+      <a href="login.html" id="loginBtn"
+         class="text-sm font-medium hover:text-blue-600">Login</a>
+
+      <a href="signup.html" id="signupBtn"
+         class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm hidden">
+        Sign Up
+      </a>
     </div>
 
+    <!-- Mobile Menu Button -->
     <button id="menuBtn" class="md:hidden">
       <i data-lucide="menu"></i>
     </button>
   </div>
 
-  <!-- Mobile Search -->
-  <div id="mobileMenu" class="hidden md:hidden p-4 border-t bg-white">
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden p-4 border-t bg-white space-y-3">
+
     <input id="mobileSearch" placeholder="Search people..."
       class="w-full border rounded-xl px-4 py-2 text-sm" />
+
     <div id="mobileSuggest"
-      class="bg-white border rounded-xl mt-2 hidden max-h-80 overflow-y-auto"></div>
+      class="bg-white border rounded-xl hidden max-h-80 overflow-y-auto"></div>
+
+    <a href="jobs.html" class="block">Jobs</a>
+
+    <a href="dashboard.html" id="mDashboardBtn" class="hidden block">
+      Dashboard
+    </a>
+
+    <a href="login.html" id="mLoginBtn" class="block">
+      Login
+    </a>
+
+    <a href="signup.html" id="mSignupBtn"
+       class="hidden block text-center bg-blue-600 text-white py-2 rounded-xl">
+      Sign Up
+    </a>
   </div>
 </nav>
 
@@ -56,7 +95,7 @@
 <script>
 lucide.createIcons();
 
-/* 🔥 FIREBASE */
+/* 🔥 FIREBASE INIT */
 firebase.initializeApp({
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -66,9 +105,31 @@ firebase.initializeApp({
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 });
 
+const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* 🔁 DEBOUNCE */
+/* ================= AUTH UI TOGGLE ================= */
+auth.onAuthStateChanged(user => {
+  if (user) {
+    loginBtn.classList.add("hidden");
+    signupBtn.classList.add("hidden");
+    mLoginBtn.classList.add("hidden");
+    mSignupBtn.classList.add("hidden");
+
+    dashboardBtn.classList.remove("hidden");
+    mDashboardBtn.classList.remove("hidden");
+  } else {
+    loginBtn.classList.remove("hidden");
+    signupBtn.classList.remove("hidden");
+    mLoginBtn.classList.remove("hidden");
+    mSignupBtn.classList.remove("hidden");
+
+    dashboardBtn.classList.add("hidden");
+    mDashboardBtn.classList.add("hidden");
+  }
+});
+
+/* ================= DEBOUNCE ================= */
 let debounceTimer;
 function debounce(fn, delay = 400) {
   return (...args) => {
@@ -77,7 +138,7 @@ function debounce(fn, delay = 400) {
   };
 }
 
-/* 🔍 SEARCH CORE */
+/* ================= SEARCH ================= */
 async function searchUsers(text, container) {
   container.innerHTML = "";
   if (!text || text.length < 2) {
@@ -86,7 +147,7 @@ async function searchUsers(text, container) {
   }
 
   const q = text.toLowerCase();
-  let results = new Map();
+  const results = new Map();
 
   const queries = [
     db.collection("users").orderBy("nameLower").startAt(q).endAt(q+"\uf8ff").limit(4),
@@ -102,12 +163,6 @@ async function searchUsers(text, container) {
   if (results.size === 0) {
     container.innerHTML = `<div class="px-4 py-2 text-gray-400">No users found</div>`;
   } else {
-    container.innerHTML += `
-      <div class="px-4 py-2 text-xs text-gray-500">
-        ${results.size} result(s)
-      </div>
-    `;
-
     results.forEach((u, uid) => {
       const div = document.createElement("div");
       div.className = "px-4 py-2 flex gap-3 items-center suggestion";
@@ -122,13 +177,6 @@ async function searchUsers(text, container) {
       div.onclick = () => location.href = `profile.html?uid=${uid}`;
       container.appendChild(div);
     });
-
-    container.innerHTML += `
-      <div onclick="location.href='search.html?q=${text}'"
-           class="px-4 py-2 text-blue-600 text-sm font-medium hover:bg-gray-100 cursor-pointer">
-        View all results →
-      </div>
-    `;
   }
 
   container.classList.remove("hidden");
@@ -144,13 +192,14 @@ mobileSearch.addEventListener("input",
   debounce(e => searchUsers(e.target.value, mobileSuggest))
 );
 
-/* TOGGLE MOBILE */
+/* MOBILE MENU */
 menuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
 
-/* CLOSE */
+/* CLOSE SEARCH */
 document.addEventListener("click", e => {
-  if (!searchSuggest.contains(e.target) && e.target !== searchInput)
+  if (!searchSuggest.contains(e.target) && e.target !== searchInput) {
     searchSuggest.classList.add("hidden");
+  }
 });
 </script>
 
