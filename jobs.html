@@ -55,6 +55,14 @@
 
   <!-- Jobs List -->
   <div class="max-w-5xl mx-auto py-10">
+    <!-- Date Result Info -->
+    <div id="dateResultBar" class="hidden mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <p id="dateResultText" class="text-blue-800 font-medium"></p>
+      <button id="showAllBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+        Show All Jobs
+      </button>
+    </div>
+
     <div id="jobsList" class="space-y-4"></div>
     <div class="text-center mt-6">
       <button id="loadMoreBtn"
@@ -91,6 +99,9 @@
     const searchLocation = document.getElementById('searchLocation');
     const searchDate = document.getElementById('searchDate');
     const searchBtn = document.getElementById('searchBtn');
+    const dateResultBar = document.getElementById('dateResultBar');
+    const dateResultText = document.getElementById('dateResultText');
+    const showAllBtn = document.getElementById('showAllBtn');
     const titleSuggestions = document.getElementById('titleSuggestions');
     const locationSuggestions = document.getElementById('locationSuggestions');
 
@@ -163,6 +174,15 @@
       currentIndex = visibleJobs.length;
       displayJobs(visibleJobs);
       loadMoreBtn.classList.toggle('hidden', currentIndex >= filtered.length);
+
+      // 📅 DATE RESULT INFO
+      if (date) {
+        const readableDate = new Date(date).toLocaleDateString();
+        dateResultText.textContent = `Jobs posted on ${readableDate}: ${filtered.length}`;
+        dateResultBar.classList.remove('hidden');
+      } else {
+        dateResultBar.classList.add('hidden');
+      }
     });
 
     function viewJob(id) { window.location.href = `job-detail.html?id=${id}`; }
@@ -209,6 +229,18 @@
     document.addEventListener('click', e => {
       if (!searchTitle.contains(e.target) && !titleSuggestions.contains(e.target)) titleSuggestions.classList.add('hidden');
       if (!searchLocation.contains(e.target) && !locationSuggestions.contains(e.target)) locationSuggestions.classList.add('hidden');
+    });
+
+    // 🔁 SHOW ALL JOBS
+    showAllBtn.addEventListener('click', () => {
+      searchTitle.value = '';
+      searchLocation.value = '';
+      searchDate.value = '';
+      dateResultBar.classList.add('hidden');
+      currentIndex = 0;
+      visibleJobs = [];
+      loadMoreBtn.classList.remove('hidden');
+      loadMoreJobs();
     });
 
     fetchJobs();
