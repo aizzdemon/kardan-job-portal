@@ -32,60 +32,66 @@
     <!-- Desktop Nav -->
     <div class="hidden md:flex items-center gap-4">
 
-      <!-- Search -->
-      <div class="relative w-80">
-        <input id="searchInput" placeholder="Search people..."
-          class="w-full border rounded-xl px-10 py-2 text-sm" />
-        <i data-lucide="search" class="absolute left-3 top-2.5 text-gray-400"></i>
+      <!-- Search Box -->
+      <div class="relative w-96 z-50">
+        <div class="flex">
+          <input id="searchInput"
+            placeholder="Search people..."
+            class="w-full border rounded-l-xl px-4 py-2 text-sm focus:outline-none" />
 
+          <button id="searchBtn"
+            class="px-4 bg-blue-600 text-white rounded-r-xl">
+            <i data-lucide="search"></i>
+          </button>
+        </div>
+
+        <!-- Suggestions -->
         <div id="searchSuggest"
-          class="absolute w-full bg-white border rounded-xl mt-1 hidden shadow max-h-80 overflow-y-auto"></div>
+          class="absolute left-0 right-0 bg-white border rounded-xl mt-1 hidden shadow max-h-80 overflow-y-auto z-50"></div>
       </div>
 
-      <!-- Always visible -->
-      <a href="jobs.html" class="text-sm font-medium hover:text-blue-600">Jobs</a>
+      <a href="jobs.html" class="text-sm font-medium">Jobs</a>
 
-      <!-- Logged-in only -->
       <a href="dashboard.html" id="dashboardBtn"
-         class="hidden text-sm font-medium hover:text-blue-600">Dashboard</a>
+         class="hidden text-sm font-medium">Dashboard</a>
 
-      <!-- Logged-out only -->
       <a href="login.html" id="loginBtn"
-         class="text-sm font-medium hover:text-blue-600">Login</a>
+         class="text-sm font-medium">Login</a>
 
       <a href="signup.html" id="signupBtn"
-         class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm hidden">
+         class="hidden px-4 py-2 bg-blue-600 text-white rounded-xl text-sm">
         Sign Up
       </a>
     </div>
 
-    <!-- Mobile Menu Button -->
+    <!-- Mobile Menu -->
     <button id="menuBtn" class="md:hidden">
       <i data-lucide="menu"></i>
     </button>
   </div>
 
-  <!-- Mobile Menu -->
+  <!-- Mobile -->
   <div id="mobileMenu" class="hidden md:hidden p-4 border-t bg-white space-y-3">
+    <div class="relative z-50">
+      <div class="flex">
+        <input id="mobileSearch"
+          placeholder="Search people..."
+          class="w-full border rounded-l-xl px-4 py-2 text-sm" />
+        <button id="mobileSearchBtn"
+          class="px-4 bg-blue-600 text-white rounded-r-xl">
+          <i data-lucide="search"></i>
+        </button>
+      </div>
 
-    <input id="mobileSearch" placeholder="Search people..."
-      class="w-full border rounded-xl px-4 py-2 text-sm" />
+      <div id="mobileSuggest"
+        class="absolute left-0 right-0 bg-white border rounded-xl mt-1 hidden shadow max-h-80 overflow-y-auto z-50"></div>
+    </div>
 
-    <div id="mobileSuggest"
-      class="bg-white border rounded-xl hidden max-h-80 overflow-y-auto"></div>
-
-    <a href="jobs.html" class="block">Jobs</a>
-
-    <a href="dashboard.html" id="mDashboardBtn" class="hidden block">
-      Dashboard
-    </a>
-
-    <a href="login.html" id="mLoginBtn" class="block">
-      Login
-    </a>
-
+    <a href="jobs.html">Jobs</a>
+    <a href="dashboard.html" id="mDashboardBtn" class="hidden">Dashboard</a>
+    <a href="login.html" id="mLoginBtn">Login</a>
     <a href="signup.html" id="mSignupBtn"
-       class="hidden block text-center bg-blue-600 text-white py-2 rounded-xl">
+       class="hidden bg-blue-600 text-white py-2 rounded-xl text-center">
       Sign Up
     </a>
   </div>
@@ -95,54 +101,32 @@
 <script>
 lucide.createIcons();
 
-/* 🔥 FIREBASE INIT */
+/* FIREBASE */
 firebase.initializeApp({
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  projectId: "kar-kardan"
 });
 
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ================= AUTH UI TOGGLE ================= */
+/* AUTH TOGGLE */
 auth.onAuthStateChanged(user => {
-  if (user) {
-    loginBtn.classList.add("hidden");
-    signupBtn.classList.add("hidden");
-    mLoginBtn.classList.add("hidden");
-    mSignupBtn.classList.add("hidden");
+  loginBtn.classList.toggle("hidden", !!user);
+  signupBtn.classList.toggle("hidden", !!user);
+  dashboardBtn.classList.toggle("hidden", !user);
 
-    dashboardBtn.classList.remove("hidden");
-    mDashboardBtn.classList.remove("hidden");
-  } else {
-    loginBtn.classList.remove("hidden");
-    signupBtn.classList.remove("hidden");
-    mLoginBtn.classList.remove("hidden");
-    mSignupBtn.classList.remove("hidden");
-
-    dashboardBtn.classList.add("hidden");
-    mDashboardBtn.classList.add("hidden");
-  }
+  mLoginBtn.classList.toggle("hidden", !!user);
+  mSignupBtn.classList.toggle("hidden", !!user);
+  mDashboardBtn.classList.toggle("hidden", !user);
 });
 
-/* ================= DEBOUNCE ================= */
-let debounceTimer;
-function debounce(fn, delay = 400) {
-  return (...args) => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => fn(...args), delay);
-  };
-}
-
-/* ================= SEARCH ================= */
-async function searchUsers(text, container) {
-  container.innerHTML = "";
+/* SEARCH FUNCTION */
+async function searchUsers(text, box) {
+  box.innerHTML = "";
   if (!text || text.length < 2) {
-    container.classList.add("hidden");
+    box.classList.add("hidden");
     return;
   }
 
@@ -150,9 +134,9 @@ async function searchUsers(text, container) {
   const results = new Map();
 
   const queries = [
-    db.collection("users").orderBy("nameLower").startAt(q).endAt(q+"\uf8ff").limit(4),
-    db.collection("users").orderBy("usernameLower").startAt(q).endAt(q+"\uf8ff").limit(4),
-    db.collection("users").orderBy("emailLower").startAt(q).endAt(q+"\uf8ff").limit(4)
+    db.collection("users").orderBy("nameLower").startAt(q).endAt(q+"\uf8ff").limit(5),
+    db.collection("users").orderBy("usernameLower").startAt(q).endAt(q+"\uf8ff").limit(5),
+    db.collection("users").orderBy("emailLower").startAt(q).endAt(q+"\uf8ff").limit(5)
   ];
 
   for (const query of queries) {
@@ -161,44 +145,46 @@ async function searchUsers(text, container) {
   }
 
   if (results.size === 0) {
-    container.innerHTML = `<div class="px-4 py-2 text-gray-400">No users found</div>`;
+    box.innerHTML = `<div class="px-4 py-2 text-gray-400">No users found</div>`;
   } else {
     results.forEach((u, uid) => {
       const div = document.createElement("div");
       div.className = "px-4 py-2 flex gap-3 items-center suggestion";
       div.innerHTML = `
         <img src="${u.photoURL || `https://ui-avatars.com/api/?name=${u.name}`}"
-             class="w-8 h-8 rounded-full">
+          class="w-8 h-8 rounded-full">
         <div>
           <div class="font-medium">${u.name}</div>
           <div class="text-xs text-gray-500">@${u.username || u.email}</div>
         </div>
       `;
       div.onclick = () => location.href = `profile.html?uid=${uid}`;
-      container.appendChild(div);
+      box.appendChild(div);
     });
   }
 
-  container.classList.remove("hidden");
+  box.classList.remove("hidden");
 }
 
-/* DESKTOP */
-searchInput.addEventListener("input",
-  debounce(e => searchUsers(e.target.value, searchSuggest))
-);
+/* EVENTS */
+searchInput.oninput = e => searchUsers(e.target.value, searchSuggest);
+searchBtn.onclick = () => searchUsers(searchInput.value, searchSuggest);
 
-/* MOBILE */
-mobileSearch.addEventListener("input",
-  debounce(e => searchUsers(e.target.value, mobileSuggest))
-);
+searchInput.onkeydown = e => {
+  if (e.key === "Enter")
+    searchUsers(searchInput.value, searchSuggest);
+};
 
-/* MOBILE MENU */
+mobileSearch.oninput = e => searchUsers(e.target.value, mobileSuggest);
+mobileSearchBtn.onclick = () => searchUsers(mobileSearch.value, mobileSuggest);
+
 menuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
 
-/* CLOSE SEARCH */
+/* CLICK OUTSIDE FIX */
 document.addEventListener("click", e => {
-  if (!searchSuggest.contains(e.target) && e.target !== searchInput) {
+  if (!e.target.closest(".relative")) {
     searchSuggest.classList.add("hidden");
+    mobileSuggest.classList.add("hidden");
   }
 });
 </script>
