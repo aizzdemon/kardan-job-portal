@@ -1,130 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up - KARDAN</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #f8f9fa, #e0f7fa);
-      margin: 0;
-      padding: 0;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sign Up - KARDAN</title>
 
-    .logo-text {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      font-size: 28px;
-      font-weight: bold;
-      color: #ff5733;
-      text-decoration: none;
-      font-family: 'Georgia', serif;
-    }
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    .vision-top {
-      max-width: 700px;
-      margin: 90px auto 10px;
-      padding: 20px;
-      background-color: #fff8f2;
-      border-left: 5px solid #ff5733;
-      box-shadow: 0 4px 12px rgba(255, 87, 51, 0.1);
-      border-radius: 10px;
-      font-family: 'Georgia', serif;
-      text-align: center;
-    }
-
-    .vision-top h2 {
-      color: #ff5733;
-      margin-bottom: 10px;
-      font-size: 28px;
-    }
-
-    .vision-top p {
-      color: #333;
-      font-size: 16px;
-      line-height: 1.6;
-    }
-
-    .container {
-      max-width: 400px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-
-    input, select {
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      padding: 10px;
-      background-color: #ff5733;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #e64a19;
-    }
-
-    .google-signin {
-      background-color: #4285F4;
-      margin-top: 10px;
-    }
-
-    .google-signin:hover {
-      background-color: #3367D6;
-    }
-  </style>
+<style>
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #f8f9fa, #e0f7fa);
+  margin: 0;
+}
+.logo-text {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff5733;
+  text-decoration: none;
+}
+.vision-top {
+  max-width: 700px;
+  margin: 90px auto 10px;
+  padding: 20px;
+  background-color: #fff8f2;
+  border-left: 5px solid #ff5733;
+  border-radius: 10px;
+  text-align: center;
+}
+.container {
+  max-width: 400px;
+  margin: 20px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+}
+input, select, button {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+button {
+  background: #ff5733;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.google-signin {
+  background: #4285F4;
+}
+</style>
 </head>
+
 <body>
-  <!-- Text logo in top-left corner -->
-  <a href="index.html" class="logo-text">KARDAN</a>
 
-  <div class="vision-top">
-    <h2>Our Vision</h2>
-    <p>
-      At <strong>KARDAN</strong>, we aim to provide a wide variety of <strong>work-from-home jobs</strong> sourced from trusted websites — all in one place. 
-      No more switching between multiple job portals. Find everything here, organized and accessible for your convenience.
-    </p>
-  </div>
+<a href="index.html" class="logo-text">KARDAN</a>
 
-  <div class="container">
-    <h2>Sign Up</h2>
-    <form>
-      <input type="text" placeholder="Full Name" required />
-      <input type="email" placeholder="Email" required />
-      <input type="tel" placeholder="Mobile Number" required />
-      <select required>
-        <option value="">Select Gender</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="other">Other</option>
-      </select>
-      <input type="password" placeholder="Password" required />
-      <button type="submit">Create Account</button>
-      <button type="button" class="google-signin">Sign Up with Google</button>
-    </form>
-  </div>
+<div class="vision-top">
+  <h2>Our Vision</h2>
+  <p>
+    At <strong>KARDAN</strong>, we provide trusted work-from-home jobs — all in one place.
+  </p>
+</div>
+
+<div class="container">
+  <h2>Sign Up</h2>
+
+  <form id="signupForm">
+    <input id="name" type="text" placeholder="Full Name" required />
+    <input id="email" type="email" placeholder="Email" required />
+    <input id="mobile" type="tel" placeholder="Mobile Number" required />
+
+    <select id="gender" required>
+      <option value="">Select Gender</option>
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+      <option value="other">Other</option>
+    </select>
+
+    <input id="password" type="password" placeholder="Password" required />
+    <button type="submit">Create Account</button>
+    <button type="button" id="googleBtn" class="google-signin">
+      Sign Up with Google
+    </button>
+  </form>
+</div>
+
+<script>
+/* 🔥 FIREBASE CONFIG */
+firebase.initializeApp({
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+});
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* 🔐 EMAIL SIGNUP */
+document.getElementById("signupForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = name.value.trim();
+  const email = signupForm.email.value.trim();
+  const mobile = mobile.value.trim();
+  const gender = gender.value;
+  const password = password.value;
+
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    const user = cred.user;
+
+    await db.collection("users").doc(user.uid).set({
+      name,
+      username: name.replace(/\s+/g, "").toLowerCase(), // auto username
+      email,
+      mobile,
+      gender,
+
+      /* 🔑 SEARCH FIELDS */
+      nameLower: name.toLowerCase(),
+      usernameLower: name.replace(/\s+/g, "").toLowerCase(),
+      emailLower: email.toLowerCase(),
+
+      photoURL: "",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    alert(err.message);
+  }
+});
+
+/* 🔐 GOOGLE SIGNUP */
+document.getElementById("googleBtn").onclick = async () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  try {
+    const result = await auth.signInWithPopup(provider);
+    const user = result.user;
+
+    await db.collection("users").doc(user.uid).set({
+      name: user.displayName,
+      username: user.displayName.replace(/\s+/g, "").toLowerCase(),
+      email: user.email,
+
+      nameLower: user.displayName.toLowerCase(),
+      usernameLower: user.displayName.replace(/\s+/g, "").toLowerCase(),
+      emailLower: user.email.toLowerCase(),
+
+      photoURL: user.photoURL,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    window.location.href = "dashboard.html";
+  } catch (err) {
+    alert(err.message);
+  }
+};
+</script>
+
 </body>
 </html>
