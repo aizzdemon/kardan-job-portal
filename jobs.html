@@ -26,7 +26,7 @@
         <input id="searchTitle" type="text" placeholder="Search by job title"
           class="w-full border rounded-lg p-2">
         <ul id="titleSuggestions"
-          class="absolute bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto hidden z-10"></ul>
+          class="absolute bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto hidden z-50"></ul>
       </div>
 
       <!-- Location -->
@@ -34,7 +34,7 @@
         <input id="searchLocation" type="text" placeholder="Search by location"
           class="w-full border rounded-lg p-2">
         <ul id="locationSuggestions"
-          class="absolute bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto hidden z-10"></ul>
+          class="absolute bg-white border rounded-lg w-full mt-1 max-h-40 overflow-y-auto hidden z-50"></ul>
       </div>
 
       <!-- Date -->
@@ -73,7 +73,6 @@
 
   <!-- Firebase & Jobs Script -->
   <script>
-    // 🔥 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
       authDomain: "kar-kardan.firebaseapp.com",
@@ -93,80 +92,47 @@
     const searchDate = document.getElementById('searchDate');
     const searchBtn = document.getElementById('searchBtn');
     const titleSuggestions = document.getElementById('titleSuggestions');
+    const locationSuggestions = document.getElementById('locationSuggestions');
 
     let allJobs = [];
     let visibleJobs = [];
     let jobsPerPage = 20;
     let currentIndex = 0;
 
-    // 🔥 Fetch Jobs
     async function fetchJobs() {
       jobsList.innerHTML = 'Loading jobs...';
-
-      const snapshot = await db
-        .collection('jobs')
-        .orderBy('timestamp', 'desc')
-        .get();
-
-      allJobs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
+      const snapshot = await db.collection('jobs').orderBy('timestamp', 'desc').get();
+      allJobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       currentIndex = 0;
       visibleJobs = [];
       loadMoreJobs();
     }
 
-    // 🔥 Display Jobs
     function displayJobs(jobs) {
       jobsList.innerHTML = '';
-
       if (jobs.length === 0) {
-        jobsList.innerHTML =
-          '<p class="text-center text-gray-500">No jobs found</p>';
+        jobsList.innerHTML = '<p class="text-center text-gray-500">No jobs found</p>';
         return;
       }
 
       jobs.forEach(job => {
         const div = document.createElement('div');
-        div.className =
-          "border p-3 rounded-lg shadow bg-white flex justify-between items-center";
-
-        const postedDate = job.timestamp
-          ? job.timestamp.toDate().toLocaleDateString()
-          : 'N/A';
+        div.className = 'border p-3 rounded-lg shadow bg-white flex justify-between items-center';
+        const postedDate = job.timestamp ? job.timestamp.toDate().toLocaleDateString() : 'N/A';
 
         div.innerHTML = `
           <div class="flex gap-3 items-center">
-            <img src="${job.companyImageUrl || 'default-logo.png'}"
-              class="w-12 h-12 rounded border object-cover"
-              alt="${job.companyName} logo">
-
+            <img src="${job.companyImageUrl || 'default-logo.png'}" class="w-12 h-12 rounded border object-cover">
             <div>
               <h3 class="font-semibold text-lg">${job.title}</h3>
-              <p class="text-sm text-gray-600">
-                @ ${job.companyName} | ${job.location || 'N/A'}
-              </p>
-              <p class="text-xs text-gray-400">
-                Posted on: ${postedDate}
-              </p>
+              <p class="text-sm text-gray-600">@ ${job.companyName} | ${job.location || 'N/A'}</p>
+              <p class="text-xs text-gray-400">Posted on: ${postedDate}</p>
             </div>
           </div>
-
           <div class="flex gap-2">
-            <button onclick="viewJob('${job.id}')"
-              class="bg-green-100 text-green-700 px-3 py-1 rounded">
-              📄 Details
-            </button>
-
-            <button onclick="applyJob('${job.id}')"
-              class="bg-blue-100 text-blue-700 px-3 py-1 rounded">
-              📝 Apply
-            </button>
-          </div>
-        `;
-
+            <button onclick="viewJob('${job.id}')" class="bg-green-100 text-green-700 px-3 py-1 rounded">📄 Details</button>
+            <button onclick="applyJob('${job.id}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded">📝 Apply</button>
+          </div>`;
         jobsList.appendChild(div);
       });
     }
@@ -176,13 +142,11 @@
       visibleJobs = visibleJobs.concat(next);
       displayJobs(visibleJobs);
       currentIndex += jobsPerPage;
-
       loadMoreBtn.classList.toggle('hidden', currentIndex >= allJobs.length);
     }
 
     loadMoreBtn.addEventListener('click', loadMoreJobs);
 
-    // 🔍 Search
     searchBtn.addEventListener('click', () => {
       const title = searchTitle.value.toLowerCase();
       const location = searchLocation.value.toLowerCase();
@@ -201,54 +165,50 @@
       loadMoreBtn.classList.toggle('hidden', currentIndex >= filtered.length);
     });
 
-    function viewJob(id) {
-      window.location.href = `job-detail.html?id=${id}`;
-    }
+    function viewJob(id) { window.location.href = `job-detail.html?id=${id}`; }
+    function applyJob(id) { window.location.href = `job-detail.html?id=${id}`; }
 
-    function applyJob(id) {
-      window.location.href = `job-detail.html?id=${id}`;
-    }
-
-    // ✨ Realtime Title Suggestions
-    searchTitle.addEventListener('input', async () => {
+    // 🔍 LIVE TITLE SUGGESTIONS
+    searchTitle.addEventListener('input', () => {
       const query = searchTitle.value.trim().toLowerCase();
-      if (!query) {
-        titleSuggestions.classList.add('hidden');
-        return;
-      }
-
-      const snapshot = await db.collection('jobs')
-        .orderBy('title')
-        .startAt(query)
-        .endAt(query + '\uf8ff')
-        .limit(5)
-        .get();
-
       titleSuggestions.innerHTML = '';
-      if (snapshot.empty) {
-        titleSuggestions.classList.add('hidden');
-        return;
-      }
+      if (!query) return titleSuggestions.classList.add('hidden');
 
-      snapshot.docs.forEach(doc => {
+      const matches = [...new Set(allJobs.map(j => j.title).filter(t => t && t.toLowerCase().includes(query)))].slice(0,6);
+      if (!matches.length) return titleSuggestions.classList.add('hidden');
+
+      matches.forEach(t => {
         const li = document.createElement('li');
+        li.textContent = t;
         li.className = 'p-2 hover:bg-gray-100 cursor-pointer';
-        li.textContent = doc.data().title;
-        li.addEventListener('click', () => {
-          searchTitle.value = doc.data().title;
-          titleSuggestions.classList.add('hidden');
-        });
+        li.onclick = () => { searchTitle.value = t; titleSuggestions.classList.add('hidden'); };
         titleSuggestions.appendChild(li);
       });
-
       titleSuggestions.classList.remove('hidden');
     });
 
-    // Hide suggestions when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!searchTitle.contains(e.target) && !titleSuggestions.contains(e.target)) {
-        titleSuggestions.classList.add('hidden');
-      }
+    // 📍 LIVE LOCATION SUGGESTIONS
+    searchLocation.addEventListener('input', () => {
+      const query = searchLocation.value.trim().toLowerCase();
+      locationSuggestions.innerHTML = '';
+      if (!query) return locationSuggestions.classList.add('hidden');
+
+      const matches = [...new Set(allJobs.map(j => j.location).filter(l => l && l.toLowerCase().includes(query)))].slice(0,6);
+      if (!matches.length) return locationSuggestions.classList.add('hidden');
+
+      matches.forEach(l => {
+        const li = document.createElement('li');
+        li.textContent = l;
+        li.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+        li.onclick = () => { searchLocation.value = l; locationSuggestions.classList.add('hidden'); };
+        locationSuggestions.appendChild(li);
+      });
+      locationSuggestions.classList.remove('hidden');
+    });
+
+    document.addEventListener('click', e => {
+      if (!searchTitle.contains(e.target) && !titleSuggestions.contains(e.target)) titleSuggestions.classList.add('hidden');
+      if (!searchLocation.contains(e.target) && !locationSuggestions.contains(e.target)) locationSuggestions.classList.add('hidden');
     });
 
     fetchJobs();
