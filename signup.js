@@ -1,108 +1,131 @@
 // signup.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  GoogleAuthProvider, 
-  signInWithPopup 
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  setDoc 
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// Firebase Configuration
+/* 🔥 FIREBASE CONFIG */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
   projectId: "kar-kardan",
   storageBucket: "kar-kardan.appspot.com",
   messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-  measurementId: "G-RRC3X485KQ"
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
-// Initialize Firebase
+/* INIT */
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-window.onload = function () {
+/* UTIL: username generator */
+function generateUsername(name) {
+  return name.replace(/\s+/g, "").toLowerCase();
+}
+
+window.onload = () => {
   const form = document.getElementById("signup-form");
   const googleBtn = document.getElementById("googleSignInBtn");
 
-  // Normal Email/Password Signup
-  form.addEventListener("submit", async function (event) {
-    event.preventDefault();
+  /* ================= EMAIL / PASSWORD SIGNUP ================= */
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-    const name = document.getElementById("name").value;
+    const name = document.getElementById("name").value.trim();
     const gender = document.getElementById("gender").value;
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
-    const mobile = document.getElementById("mobile").value;
+    const mobile = document.getElementById("mobile").value.trim();
     const profilePicInput = document.getElementById("profile-pic");
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const userId = userCredential.user.uid;
-      let profilePicURL = "";
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = cred.user.uid;
 
-      // Upload profile picture if available
-      if (profilePicInput.files.length > 0) {
-        const profilePic = profilePicInput.files[0];
-        const storageRef = ref(storage, `profile_pictures/${userId}`);
-        await uploadBytes(storageRef, profilePic);
-        profilePicURL = await getDownloadURL(storageRef);
+      let photoURL = "";
+
+      /* 📤 UPLOAD PROFILE PIC */
+      if (profilePicInput?.files?.length > 0) {
+        const file = profilePicInput.files[0];
+        const imgRef = ref(storage, `profile_pictures/${uid}`);
+        await uploadBytes(imgRef, file);
+        photoURL = await getDownloadURL(imgRef);
       }
 
-      // Save user in Firestore
-      await setDoc(doc(db, "users", userId), {
+      const username = generateUsername(name);
+
+      /* 💾 SAVE USER (SEARCH READY) */
+      await setDoc(doc(db, "users", uid), {
         name,
-        gender,
+        username,
         email,
         mobile,
-        profilePicURL,
-        timestamp: new Date()
+        gender,
+        photoURL,
+
+        /* 🔑 SEARCH FIELDS */
+        nameLower: name.toLowerCase(),
+        usernameLower: username,
+        emailLower: email.toLowerCase(),
+
+        createdAt: serverTimestamp()
       });
 
-      alert("Sign-up successful! ✅ Redirecting to your home page...");
-      window.location.href = "home.html"; // ⬅️ redirect here
+      alert("Signup successful ✅");
+      window.location.href = "home.html";
 
-    } catch (error) {
-      console.error("Signup Error:", error);
-      alert("Signup Failed: " + error.message);
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
     }
   });
 
-  // Google Sign-In
-  googleBtn.addEventListener("click", async function () {
+  /* ================= GOOGLE SIGNUP ================= */
+  googleBtn.addEventListener("click", async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Save user in Firestore
+      const username = generateUsername(user.displayName || "user");
+
       await setDoc(doc(db, "users", user.uid), {
         name: user.displayName,
+        username,
         email: user.email,
-        profilePic: user.photoURL,
-        timestamp: new Date()
-      });
+        photoURL: user.photoURL,
 
-      alert(`Welcome, ${user.displayName}! ✅ Redirecting to your home page...`);
-      window.location.href = "home.html"; // ⬅️ redirect here
+        /* 🔑 SEARCH FIELDS */
+        nameLower: user.displayName.toLowerCase(),
+        usernameLower: username,
+        emailLower: user.email.toLowerCase(),
 
-    } catch (error) {
-      console.error("Google Sign-In Error:", error);
-      alert("Sign-in failed. Try again.");
+        createdAt: serverTimestamp()
+      }, { merge: true });
+
+      alert(`Welcome ${user.displayName} ✅`);
+      window.location.href = "home.html";
+
+    } catch (err) {
+      console.error(err);
+      alert("Google sign-in failed");
     }
   });
 };
