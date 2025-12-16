@@ -40,13 +40,24 @@
   import "https://unpkg.com/lucide@0.230.0/dist/lucide.min.js";
 
   /* ---------------- Load Navbar HTML ---------------- */
-  fetch('./components/navbar.html')
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
+  // components/navbar.js
+fetch('./components/navbar.html')
+  .then(res => {
+    if (!res.ok) throw new Error('Navbar not found');
+    return res.text();
+  })
+  .then(html => {
+    document.getElementById('navbar').innerHTML = html;
+
+    // Lucide icons init
+    if (window.lucide) {
       lucide.createIcons();
-      initNavbar();
-    });
+    }
+  })
+  .catch(err => {
+    console.error('Navbar load error:', err);
+  });
+
 
   function initNavbar() {
 
