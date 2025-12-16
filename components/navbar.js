@@ -40,7 +40,7 @@
   import "https://unpkg.com/lucide@0.230.0/dist/lucide.min.js";
 
   /* ---------------- Load Navbar HTML ---------------- */
-  fetch("/components/navbar.html")
+  fetch('./components/navbar.html')
     .then(res => res.text())
     .then(html => {
       document.getElementById("navbar").innerHTML = html;
