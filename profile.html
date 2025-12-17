@@ -21,7 +21,16 @@
 
   <!-- ========== NAVBAR COMPONENT ========== -->
   <div id="navbar"></div>
-  <script type="module" src="./navbar.js"></script>
+
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById("navbar").innerHTML = html;
+      lucide.createIcons(); // VERY IMPORTANT
+    })
+    .catch(err => console.error("Navbar load error:", err));
+</script>
 
   <!-- ========== MAIN PROFILE ========== -->
   <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -213,5 +222,6 @@
 
 </body>
 </html>
+
 
 
