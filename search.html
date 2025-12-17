@@ -1,119 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Search Results</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search People - BooterSpace</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@0.230.0/dist/lucide.min.js"></script>
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-50">
 
-<!-- ================= HEADER ================= -->
-<header class="bg-white shadow sticky top-0 z-40">
-  <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
-    <a href="index.html" class="text-lg font-bold text-blue-600 flex gap-2">
-      <i data-lucide="users"></i> BooterSpace
-    </a>
+<!-- NAVBAR -->
+<div id="navbar"></div>
 
-    <div class="text-sm text-gray-600" id="resultCount"></div>
+<!-- SEARCH PAGE -->
+<div class="max-w-3xl mx-auto mt-10 p-4">
+
+  <div class="bg-white shadow-lg rounded-xl p-4">
+    <input
+      id="searchBox"
+      placeholder="Search people by name..."
+      class="w-full px-4 py-3 border rounded-xl text-lg focus:ring-2 focus:ring-blue-500"
+      autofocus
+    />
+
+    <div
+      id="results"
+      class="mt-4 border rounded-xl hidden max-h-96 overflow-y-auto"
+    ></div>
   </div>
-</header>
 
-<!-- ================= RESULTS ================= -->
-<main class="max-w-5xl mx-auto px-4 py-6">
-  <h2 class="text-xl font-semibold mb-4">
-    Results for "<span id="queryText"></span>"
-  </h2>
+</div>
 
-  <div id="results" class="space-y-3"></div>
+<!-- FIREBASE + SEARCH SCRIPT -->
+<script type="module">
+  /* ---------- LOAD NAVBAR ---------- */
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(data => {
+      document.getElementById("navbar").innerHTML = data;
+      lucide.createIcons();
+    });
 
-  <button id="loadMoreBtn"
-    class="hidden mx-auto mt-6 px-6 py-2 bg-blue-600 text-white rounded-xl">
-    Load more
-  </button>
-</main>
+  /* ---------- FIREBASE ---------- */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    startAt,
+    endAt,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-<script>
-lucide.createIcons();
+  const firebaseConfig = {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan",
+    storageBucket: "kar-kardan.firebasestorage.app",
+    messagingSenderId: "554147696994",
+    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  };
 
-/* FIREBASE */
-firebase.initializeApp({
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan"
-});
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-const db = firebase.firestore();
+  /* ---------- SEARCH ---------- */
+  const searchBox = document.getElementById("searchBox");
+  const results = document.getElementById("results");
 
-/* GET QUERY */
-const params = new URLSearchParams(window.location.search);
-const query = params.get("q")?.toLowerCase() || "";
+  async function searchPeople(keyword) {
+    results.innerHTML = "";
+    if (!keyword) {
+      results.classList.add("hidden");
+      return;
+    }
 
-document.getElementById("queryText").textContent = query;
+    const q = query(
+      collection(db, "users"),
+      orderBy("name"),
+      startAt(keyword),
+      endAt(keyword + "\uf8ff")
+    );
 
-/* STATE */
-let lastDoc = null;
-let pageSize = 8;
-let totalResults = 0;
-let loadedIds = new Set();
+    const snap = await getDocs(q);
 
-/* SEARCH */
-async function fetchResults(loadMore = false) {
-  if (!query) return;
-
-  const queries = [
-    db.collection("users").orderBy("nameLower").startAt(query).endAt(query+"\uf8ff").limit(pageSize),
-    db.collection("users").orderBy("usernameLower").startAt(query).endAt(query+"\uf8ff").limit(pageSize),
-    db.collection("users").orderBy("emailLower").startAt(query).endAt(query+"\uf8ff").limit(pageSize)
-  ];
-
-  let resultsBox = document.getElementById("results");
-
-  for (const q of queries) {
-    const snap = await q.get();
+    if (snap.empty) {
+      results.innerHTML = `<p class="p-4 text-gray-500">No users found</p>`;
+      results.classList.remove("hidden");
+      return;
+    }
 
     snap.forEach(doc => {
-      if (loadedIds.has(doc.id)) return;
-      loadedIds.add(doc.id);
-      totalResults++;
-
-      const u = doc.data();
+      const user = doc.data();
 
       const div = document.createElement("div");
-      div.className = "bg-white p-4 rounded-xl shadow flex gap-4 items-center cursor-pointer hover:bg-gray-50";
+      div.className =
+        "flex items-center gap-3 p-3 hover:bg-blue-50 cursor-pointer";
+
       div.innerHTML = `
-        <img src="${u.photoURL || `https://ui-avatars.com/api/?name=${u.name}`}"
-          class="w-12 h-12 rounded-full">
+        <img src="${user.photoURL || 'https://via.placeholder.com/40'}"
+          class="w-10 h-10 rounded-full object-cover" />
         <div>
-          <div class="font-semibold">${u.name}</div>
-          <div class="text-sm text-gray-500">@${u.username || u.email}</div>
+          <p class="font-medium">${user.name}</p>
+          <p class="text-sm text-gray-500">${user.email || ""}</p>
         </div>
       `;
 
-      div.onclick = () => location.href = `profile.html?uid=${doc.id}`;
-      resultsBox.appendChild(div);
+      div.onclick = () => {
+        window.location.href = `profile.html?uid=${doc.id}`;
+      };
+
+      results.appendChild(div);
     });
+
+    results.classList.remove("hidden");
   }
 
-  document.getElementById("resultCount").textContent =
-    `${totalResults} result(s) found`;
-
-  document.getElementById("loadMoreBtn").classList.remove("hidden");
-}
-
-/* LOAD MORE */
-document.getElementById("loadMoreBtn").onclick = () => fetchResults(true);
-
-/* INIT */
-fetchResults();
+  searchBox.addEventListener("input", e => {
+    searchPeople(e.target.value.trim());
+  });
 </script>
 
 </body>
