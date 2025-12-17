@@ -132,22 +132,12 @@
 
   <!-- Navbar -->
   <div id="navbar"></div>
-  <script>
-    fetch('navbar-search.html')
-      .then(res => res.text())
-      .then(data => {
-        document.getElementById('navbar').innerHTML = data;
 
-        const menuBtn = document.getElementById('menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        if (menuBtn) {
-          menuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-          });
-        }
-      });
-  </script>
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("navbar").innerHTML = html);
+</script>
 
   <!-- MAIN GRID -->
   <div class="max-w-7xl mx-auto mt-6 grid md:grid-cols-3 gap-6 px-3 sm:px-4">
@@ -174,4 +164,5 @@
 
 </body>
 </html>
+
 
