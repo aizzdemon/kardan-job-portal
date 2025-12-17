@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BooterSpace Navbar</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="bg-white shadow-lg sticky top-0 z-50 border-b border-blue-100">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+
+    <!-- Logo -->
+    <a href="/index.html" class="text-2xl font-extrabold text-blue-700 flex items-center gap-2">
+      <i data-lucide="users" class="w-6 h-6"></i>
+      BooterSpace
+    </a>
+
+    <!-- Desktop Nav -->
+    <div class="hidden md:flex items-center gap-6">
+
+      <!-- Search -->
+      <div class="relative w-96">
+        <div class="flex rounded-xl shadow-md">
+          <input
+            id="searchInput"
+            placeholder="Search people..."
+            class="w-full px-4 py-2 border rounded-l-xl text-sm focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            id="searchBtn"
+            class="px-4 bg-blue-600 text-white rounded-r-xl flex items-center gap-1"
+          >
+            <i data-lucide="search" class="w-4 h-4"></i>
+            Search
+          </button>
+        </div>
+
+        <!-- Suggestions -->
+        <div
+          id="searchSuggest"
+          class="absolute left-0 right-0 bg-white border rounded-xl mt-2 hidden shadow-lg max-h-80 overflow-y-auto z-50"
+        ></div>
+      </div>
+
+      <a href="/jobs.html" class="text-sm font-medium text-gray-700 hover:text-blue-600">Jobs</a>
+
+      <a href="/dashboard.html" id="dashboardBtn"
+        class="hidden text-sm font-medium text-gray-700 hover:text-blue-600">
+        Dashboard
+      </a>
+
+      <a href="/profile.html" id="profileBtn"
+        class="hidden text-sm font-medium text-gray-700 hover:text-blue-600">
+        Profile
+      </a>
+
+      <a href="/login.html" id="loginBtn"
+        class="text-sm font-medium text-gray-700 hover:text-blue-600">
+        Login
+      </a>
+
+      <a href="/signup.html" id="signupBtn"
+        class="hidden px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium">
+        Sign Up
+      </a>
+
+      <button id="logoutBtn"
+        class="hidden text-sm font-medium text-red-500 hover:text-red-700">
+        Logout
+      </button>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button id="menuBtn" class="md:hidden">
+      <i data-lucide="menu"></i>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden p-4 bg-white space-y-3 border-t">
+
+    <input id="mobileSearch" placeholder="Search people..."
+      class="w-full px-4 py-2 border rounded-xl">
+
+    <div id="mobileSuggest"
+      class="bg-white border rounded-xl hidden max-h-60 overflow-y-auto"></div>
+
+    <a href="/jobs.html" class="block">Jobs</a>
+    <a href="/dashboard.html" id="mDashboardBtn" class="hidden block">Dashboard</a>
+    <a href="/profile.html" id="mProfileBtn" class="hidden block">Profile</a>
+    <a href="/login.html" id="mLoginBtn" class="block">Login</a>
+    <a href="/signup.html" id="mSignupBtn" class="hidden block">Sign Up</a>
+
+    <button id="mLogoutBtn"
+      class="hidden block text-left text-red-500">
+      Logout
+    </button>
+  </div>
+</nav>
+<!-- ================= END NAVBAR ================= -->
+
+
+<!-- ================= SCRIPT ================= -->
+<script>
+  // Lucide init
+  lucide.createIcons();
+
+  /* ---------------- MOBILE MENU TOGGLE ---------------- */
+  const menuBtn = document.getElementById("menuBtn");
+  const mobileMenu = document.getElementById("mobileMenu");
+
+  menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+  });
+
+  /* ---------------- DUMMY LOGIN STATE ---------------- */
+  // Replace this with Firebase auth later
+  const isLoggedIn = false; // true = logged in
+
+  function updateAuthUI() {
+    if (isLoggedIn) {
+      dashboardBtn.classList.remove("hidden");
+      profileBtn.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+
+      mDashboardBtn.classList.remove("hidden");
+      mProfileBtn.classList.remove("hidden");
+      mLogoutBtn.classList.remove("hidden");
+
+      loginBtn.classList.add("hidden");
+      signupBtn.classList.add("hidden");
+      mLoginBtn.classList.add("hidden");
+      mSignupBtn.classList.add("hidden");
+    }
+  }
+  updateAuthUI();
+
+  /* ---------------- SEARCH SUGGESTIONS ---------------- */
+  const people = [
+    "Aman Sharma",
+    "Rohit Verma",
+    "Naaz Khan",
+    "Priya Singh",
+    "Ankit Patel",
+    "Sara Ali",
+    "Rahul Mehta"
+  ];
+
+  function showSuggestions(input, box) {
+    const value = input.value.toLowerCase();
+    box.innerHTML = "";
+
+    if (!value) {
+      box.classList.add("hidden");
+      return;
+    }
+
+    const filtered = people.filter(p =>
+      p.toLowerCase().includes(value)
+    );
+
+    if (filtered.length === 0) {
+      box.classList.add("hidden");
+      return;
+    }
+
+    filtered.forEach(name => {
+      const div = document.createElement("div");
+      div.textContent = name;
+      div.className =
+        "px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm";
+      div.onclick = () => {
+        input.value = name;
+        box.classList.add("hidden");
+      };
+      box.appendChild(div);
+    });
+
+    box.classList.remove("hidden");
+  }
+
+  searchInput.addEventListener("input", () =>
+    showSuggestions(searchInput, searchSuggest)
+  );
+
+  mobileSearch.addEventListener("input", () =>
+    showSuggestions(mobileSearch, mobileSuggest)
+  );
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#searchInput")) {
+      searchSuggest.classList.add("hidden");
+    }
+    if (!e.target.closest("#mobileSearch")) {
+      mobileSuggest.classList.add("hidden");
+    }
+  });
+</script>
+
+</body>
+</html>
