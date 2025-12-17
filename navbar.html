@@ -5,11 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BooterSpace Navbar</title>
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Lucide Icons -->
+  <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Blur background when search active */
+    body.search-active > *:not(nav):not(#searchOverlay) {
+      filter: blur(6px);
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50">
@@ -24,197 +33,141 @@
       BooterSpace
     </a>
 
-    <!-- DESKTOP MENU -->
-    <div class="hidden md:flex items-center gap-6">
-
-      <!-- SEARCH -->
-      <div class="relative w-96">
-        <div class="flex rounded-xl shadow-md">
-          <input
-            id="searchInput"
-            placeholder="Search people..."
-            class="w-full px-4 py-2 border rounded-l-xl text-sm focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            class="px-4 bg-blue-600 text-white rounded-r-xl flex items-center gap-1"
-          >
-            <i data-lucide="search" class="w-4 h-4"></i>
-            Search
-          </button>
-        </div>
-
-        <div
-          id="searchSuggest"
-          class="absolute left-0 right-0 bg-white border rounded-xl mt-2 hidden shadow-lg max-h-80 overflow-y-auto z-50"
-        ></div>
+    <!-- SEARCH -->
+    <div class="relative w-96 hidden md:block">
+      <div class="flex rounded-xl shadow-md">
+        <input
+          id="searchInput"
+          placeholder="Search people..."
+          class="w-full px-4 py-2 border rounded-l-xl text-sm focus:ring-2 focus:ring-blue-500"
+        />
+        <button class="px-4 bg-blue-600 text-white rounded-r-xl">
+          <i data-lucide="search" class="w-4 h-4"></i>
+        </button>
       </div>
 
-      <!-- LINKS -->
-      <a href="jobs.html" class="nav-link">Jobs</a>
-      <a href="dashboard.html" id="dashboardBtn" class="nav-link hidden">Dashboard</a>
-      <a href="profile.html" id="profileBtn" class="nav-link hidden">Profile</a>
-      <a href="login.html" id="loginBtn" class="nav-link">Login</a>
-
-      <a
-        href="signup.html"
-        id="signupBtn"
-        class="hidden px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium"
-      >
-        Sign Up
-      </a>
-
-      <button
-        id="logoutBtn"
-        class="hidden text-sm font-medium text-red-500 hover:text-red-700"
-      >
-        Logout
-      </button>
+      <!-- Dropdown -->
+      <div
+        id="searchSuggest"
+        class="absolute left-0 right-0 bg-white border rounded-xl mt-2 hidden shadow-lg max-h-96 overflow-y-auto z-50"
+      ></div>
     </div>
 
-    <!-- MOBILE MENU BUTTON -->
-    <button id="menuBtn" class="md:hidden">
-      <i data-lucide="menu"></i>
-    </button>
-  </div>
-
-  <!-- ================= MOBILE MENU ================= -->
-  <div id="mobileMenu" class="hidden md:hidden p-4 bg-white space-y-3 border-t">
-
-    <input
-      id="mobileSearch"
-      placeholder="Search people..."
-      class="w-full px-4 py-2 border rounded-xl"
-    />
-
-    <div
-      id="mobileSuggest"
-      class="bg-white border rounded-xl hidden max-h-60 overflow-y-auto"
-    ></div>
-
-    <a href="jobs.html" class="block">Jobs</a>
-    <a href="dashboard.html" id="mDashboardBtn" class="hidden block">Dashboard</a>
-    <a href="profile.html" id="mProfileBtn" class="hidden block">Profile</a>
-    <a href="login.html" id="mLoginBtn" class="block">Login</a>
-    <a href="signup.html" id="mSignupBtn" class="hidden block">Sign Up</a>
-
-    <button id="mLogoutBtn" class="hidden text-left text-red-500">
-      Logout
-    </button>
+    <!-- LINKS -->
+    <div class="hidden md:flex items-center gap-6">
+      <a href="jobs.html" class="text-sm font-medium text-gray-700 hover:text-blue-600">Jobs</a>
+      <a href="dashboard.html" id="dashboardBtn" class="hidden text-sm">Dashboard</a>
+      <a href="profile.html" id="profileBtn" class="hidden text-sm">Profile</a>
+      <a href="login.html" id="loginBtn" class="text-sm">Login</a>
+      <a href="signup.html" id="signupBtn"
+        class="hidden px-4 py-2 bg-blue-600 text-white rounded-xl text-sm">
+        Sign Up
+      </a>
+      <button id="logoutBtn" class="hidden text-sm text-red-500">Logout</button>
+    </div>
   </div>
 </nav>
-<!-- ================= END NAVBAR ================= -->
 
+<!-- Invisible overlay for click-out -->
+<div id="searchOverlay" class="fixed inset-0 hidden z-40"></div>
 
 <!-- ================= SCRIPT ================= -->
-<script>
-  /* INIT ICONS */
+<script type="module">
+  /* Icons */
   lucide.createIcons();
 
-  /* MOBILE MENU */
-  const menuBtn = document.getElementById("menuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
+  /* Firebase */
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    query,
+    orderBy,
+    startAt,
+    endAt,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  menuBtn.addEventListener("click", () => {
-    mobileMenu.classList.toggle("hidden");
-  });
+  const firebaseConfig = {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan",
+    storageBucket: "kar-kardan.firebasestorage.app",
+    messagingSenderId: "554147696994",
+    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  };
 
-  /* AUTH STATE (replace with Firebase later) */
-  const isLoggedIn = false;
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  const dashboardBtn = document.getElementById("dashboardBtn");
-  const profileBtn = document.getElementById("profileBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const loginBtn = document.getElementById("loginBtn");
-  const signupBtn = document.getElementById("signupBtn");
-
-  const mDashboardBtn = document.getElementById("mDashboardBtn");
-  const mProfileBtn = document.getElementById("mProfileBtn");
-  const mLogoutBtn = document.getElementById("mLogoutBtn");
-  const mLoginBtn = document.getElementById("mLoginBtn");
-  const mSignupBtn = document.getElementById("mSignupBtn");
-
-  function updateAuthUI() {
-    if (isLoggedIn) {
-      dashboardBtn.classList.remove("hidden");
-      profileBtn.classList.remove("hidden");
-      logoutBtn.classList.remove("hidden");
-
-      mDashboardBtn.classList.remove("hidden");
-      mProfileBtn.classList.remove("hidden");
-      mLogoutBtn.classList.remove("hidden");
-
-      loginBtn.classList.add("hidden");
-      signupBtn.classList.add("hidden");
-      mLoginBtn.classList.add("hidden");
-      mSignupBtn.classList.add("hidden");
-    }
-  }
-  updateAuthUI();
-
-  /* SEARCH */
-  const people = [
-    "Aman Sharma",
-    "Rohit Verma",
-    "Naaz Khan",
-    "Priya Singh",
-    "Ankit Patel",
-    "Sara Ali",
-    "Rahul Mehta"
-  ];
-
+  /* Elements */
   const searchInput = document.getElementById("searchInput");
   const searchSuggest = document.getElementById("searchSuggest");
-  const mobileSearch = document.getElementById("mobileSearch");
-  const mobileSuggest = document.getElementById("mobileSuggest");
+  const overlay = document.getElementById("searchOverlay");
 
-  function showSuggestions(input, box) {
-    const value = input.value.toLowerCase();
-    box.innerHTML = "";
-
-    if (!value) {
-      box.classList.add("hidden");
-      return;
-    }
-
-    const filtered = people.filter(p =>
-      p.toLowerCase().includes(value)
-    );
-
-    if (!filtered.length) {
-      box.classList.add("hidden");
-      return;
-    }
-
-    filtered.forEach(name => {
-      const div = document.createElement("div");
-      div.textContent = name;
-      div.className =
-        "px-4 py-2 cursor-pointer hover:bg-blue-50 text-sm";
-      div.onclick = () => {
-        input.value = name;
-        box.classList.add("hidden");
-      };
-      box.appendChild(div);
-    });
-
-    box.classList.remove("hidden");
+  /* Activate blur */
+  function openSearch() {
+    document.body.classList.add("search-active");
+    searchSuggest.classList.remove("hidden");
+    overlay.classList.remove("hidden");
   }
 
-  searchInput.addEventListener("input", () =>
-    showSuggestions(searchInput, searchSuggest)
-  );
+  function closeSearch() {
+    document.body.classList.remove("search-active");
+    searchSuggest.classList.add("hidden");
+    overlay.classList.add("hidden");
+    searchInput.value = "";
+  }
 
-  mobileSearch.addEventListener("input", () =>
-    showSuggestions(mobileSearch, mobileSuggest)
-  );
+  searchInput.addEventListener("focus", openSearch);
+  overlay.addEventListener("click", closeSearch);
 
-  document.addEventListener("click", e => {
-    if (!e.target.closest("#searchInput")) {
-      searchSuggest.classList.add("hidden");
+  /* Firestore Search */
+  async function searchPeople(text) {
+    searchSuggest.innerHTML = "";
+    if (!text) return;
+
+    const q = query(
+      collection(db, "users"),
+      orderBy("name"),
+      startAt(text),
+      endAt(text + "\uf8ff")
+    );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) {
+      searchSuggest.innerHTML =
+        `<p class="p-4 text-gray-500 text-sm">No results found</p>`;
+      return;
     }
-    if (!e.target.closest("#mobileSearch")) {
-      mobileSuggest.classList.add("hidden");
-    }
+
+    snap.forEach(doc => {
+      const user = doc.data();
+
+      const div = document.createElement("div");
+      div.className =
+        "flex items-center gap-3 p-3 hover:bg-blue-50 cursor-pointer";
+
+      div.innerHTML = `
+        <img src="${user.photoURL || 'https://via.placeholder.com/40'}"
+          class="w-10 h-10 rounded-full object-cover" />
+        <div>
+          <p class="font-medium">${user.name}</p>
+          <p class="text-xs text-gray-500">${user.email || ""}</p>
+        </div>
+      `;
+
+      div.onclick = () => {
+        window.location.href = \`profile.html?uid=\${doc.id}\`;
+      };
+
+      searchSuggest.appendChild(div);
+    });
+  }
+
+  searchInput.addEventListener("input", e => {
+    searchPeople(e.target.value.trim());
   });
 </script>
 
