@@ -48,28 +48,12 @@ body { font-family: 'Inter', sans-serif; }
 <body class="bg-gray-100">
 
 <!-- Navbar Container (optional) -->
-<div id="navbarContainer"></div>
+ <div id="navbar"></div>
 
 <script>
-  // optional: load navbar if file exists
-  fetch('navbar-search.html').then(r => {
-    if (!r.ok) throw new Error('no navbar');
-    return r.text();
-  }).then(html => {
-    document.getElementById('navbarContainer').innerHTML = html;
-  }).catch(()=> {
-    // no navbar — that's fine
-    document.getElementById('navbarContainer').innerHTML = `
-      <nav class="bg-white shadow p-4">
-        <div class="max-w-6xl mx-auto flex justify-between items-center">
-          <a href="index.html" class="font-bold text-xl">KARDAN</a>
-          <div>
-            <button id="logoutBtn" class="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
-          </div>
-        </div>
-      </nav>
-    `;
-  });
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("navbar").innerHTML = html);
 </script>
 
 <!-- Header -->
