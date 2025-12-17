@@ -13,7 +13,13 @@
 <body class="bg-gray-100">
 
   <!-- Navbar -->
-  <div id="navbar-placeholder"></div>
+  <div id="navbar"></div>
+
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("navbar").innerHTML = html);
+</script>
 
   <!-- Search Section -->
   <div class="max-w-5xl mx-auto py-6">
