@@ -1,51 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Booterspace Navbar</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Booterspace Navbar</title>
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Lucide -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+<style>
+body { background:#f3f2f1; }
+.nav-item::after{
+  content:'';
+  position:absolute;
+  bottom:-2px;
+  left:0;
+  width:0;
+  height:2px;
+  background:#2563eb;
+  transition:.2s;
+}
+.nav-item:hover::after{ width:100%; }
 
-  <!-- Firebase -->
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
-
-  <style>
-    body { background:#f3f2f1; }
-    .nav-item::after {
-      content:'';
-      position:absolute;
-      bottom:-2px;
-      left:0;
-      width:0;
-      height:2px;
-      background:#2563eb;
-      transition:0.2s;
-    }
-    .nav-item:hover::after { width:100%; }
-
-    .search-results {
-      display:none;
-      position:absolute;
-      top:100%;
-      left:0;
-      right:0;
-      background:white;
-      border-radius:8px;
-      box-shadow:0 10px 20px rgba(0,0,0,.1);
-      margin-top:6px;
-      z-index:50;
-      max-height:380px;
-      overflow-y:auto;
-      border:1px solid #e5e7eb;
-    }
-  </style>
+.search-results{
+  display:none;
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  background:white;
+  border-radius:8px;
+  margin-top:6px;
+  border:1px solid #e5e7eb;
+  box-shadow:0 10px 20px rgba(0,0,0,.1);
+  max-height:400px;
+  overflow-y:auto;
+  z-index:50;
+}
+</style>
 </head>
 
 <body>
@@ -57,42 +51,27 @@
     <div class="flex items-center gap-4 flex-1">
 
       <!-- Logo -->
-      <div onclick="location.href='dashboard.html'"
-        class="flex items-center gap-2 cursor-pointer">
+      <div onclick="location.href='dashboard.html'" class="flex items-center gap-2 cursor-pointer">
         <div class="bg-blue-600 p-2 rounded-lg">
           <i data-lucide="rocket" class="text-white w-5 h-5"></i>
         </div>
-        <span class="text-xl font-bold text-blue-600 hidden lg:block">
-          Booterspace
-        </span>
+        <span class="text-xl font-bold text-blue-600 hidden lg:block">Booterspace</span>
       </div>
 
-      <!-- SEARCH -->
+      <!-- Search -->
       <div class="relative hidden sm:block w-72 search-container">
-        <div class="flex items-center bg-gray-100 rounded-lg overflow-hidden border focus-within:bg-white focus-within:border-blue-500">
+        <div class="flex items-center bg-gray-100 rounded-lg border focus-within:bg-white focus-within:border-blue-500">
           <div class="pl-3">
             <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
           </div>
-
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Search jobs or users"
-            class="w-full px-2 py-2 bg-transparent outline-none text-sm"
-            autocomplete="off"
-          />
-
-          <button id="search-btn"
-            class="bg-blue-600 hover:bg-blue-700 px-3 py-2 flex items-center gap-1 text-white">
-            <i data-lucide="search" class="w-4 h-4"></i>
+          <input id="search-input" type="text" placeholder="Search jobs or users" class="w-full px-2 py-2 bg-transparent outline-none text-sm" autocomplete="off"/>
+          <button id="search-btn" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 text-white">
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
           </button>
         </div>
 
-        <!-- DROPDOWN -->
+        <!-- Dropdown -->
         <div id="search-results" class="search-results">
-
-          <!-- Tabs -->
           <div class="flex border-b text-xs font-medium sticky top-0 bg-white">
             <button class="tab-btn px-4 py-2 text-blue-600 border-b-2 border-blue-600" data-type="all">All</button>
             <button class="tab-btn px-4 py-2" data-type="job">Jobs</button>
@@ -100,9 +79,7 @@
           </div>
 
           <div id="results-list"></div>
-
-          <div id="view-all"
-            class="p-3 text-center text-sm text-blue-600 hover:bg-gray-100 cursor-pointer">
+          <div id="view-all" class="p-3 text-center text-sm text-blue-600 hover:bg-gray-100 cursor-pointer">
             View all results →
           </div>
         </div>
@@ -115,12 +92,10 @@
         <i data-lucide="layout-dashboard"></i>
         <span class="text-[11px]">Dashboard</span>
       </a>
-
       <a href="jobs.html" class="nav-item relative flex flex-col items-center text-gray-600 hover:text-blue-600">
         <i data-lucide="briefcase"></i>
         <span class="text-[11px]">Jobs</span>
       </a>
-
       <a href="profile.html" class="nav-item relative flex flex-col items-center text-gray-600 hover:text-blue-600">
         <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
           <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
@@ -132,84 +107,118 @@
   </div>
 </nav>
 
-<!-- FIREBASE + SEARCH SCRIPT -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  const app = initializeApp(JSON.parse(window.__firebase_config || '{}'));
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+/* 🔴 Replace with your Firebase config */
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "XXXX",
+  appId: "XXXX"
+};
 
-  const input = document.getElementById("search-input");
-  const btn = document.getElementById("search-btn");
-  const dropdown = document.getElementById("search-results");
-  const list = document.getElementById("results-list");
-  const viewAll = document.getElementById("view-all");
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  let allData = [];
-  let activeTab = "all";
+const input = document.getElementById("search-input");
+const btn = document.getElementById("search-btn");
+const dropdown = document.getElementById("search-results");
+const list = document.getElementById("results-list");
+const viewAll = document.getElementById("view-all");
 
-  function debounce(fn, d=300){
-    let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d);}
-  }
+let allData = [];
+let activeTab = "all";
 
-  signInAnonymously(auth).then(async()=>{
-    const snap = await getDocs(collection(db,"jobs"));
-    allData = snap.docs.map(d=>({id:d.id,type:"job",...d.data()}));
+const debounce = (fn,d=300)=>{
+  let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d);}
+};
+
+// Fetch Jobs + Users
+signInAnonymously(auth).then(async()=>{
+  const jobsSnap = await getDocs(collection(db,"jobs"));
+  const usersSnap = await getDocs(collection(db,"users"));
+
+  const jobs = jobsSnap.docs.map(d=>({id:d.id,type:"job", ...d.data()}));
+  const users = usersSnap.docs.map(d=>({id:d.id,type:"user", ...d.data()}));
+
+  allData = [...jobs, ...users];
+});
+
+function search(){
+  const q = input.value.toLowerCase().trim();
+  if(!q){ dropdown.style.display="none"; return; }
+
+  const res = allData.filter(i=>{
+    if(i.type==="job"){
+      return (i.title||"").toLowerCase().includes(q) || (i.company||"").toLowerCase().includes(q);
+    }
+    if(i.type==="user"){
+      return (i.name||"").toLowerCase().includes(q) || (i.username||"").toLowerCase().includes(q);
+    }
   });
 
-  function search(){
-    const q = input.value.toLowerCase().trim();
-    if(!q){ dropdown.style.display="none"; return; }
+  render(res);
+  dropdown.style.display="block";
+}
 
-    const res = allData.filter(i =>
-      (i.title||"").toLowerCase().includes(q) ||
-      (i.company||"").toLowerCase().includes(q)
-    );
+function render(data){
+  const filtered = activeTab==="all" ? data : data.filter(d=>d.type===activeTab);
 
-    render(res);
-    dropdown.style.display="block";
+  if(!filtered.length){
+    list.innerHTML = `<div class="p-4 text-sm text-gray-500">No results</div>`;
+    return;
   }
 
-  function render(data){
-    const filtered = activeTab==="all"?data:data.filter(d=>d.type===activeTab);
-    if(!filtered.length){
-      list.innerHTML = `<div class="p-4 text-sm text-gray-500">No results</div>`;
-      return;
-    }
-
-    list.innerHTML = filtered.map(i=>`
-      <div onclick="location.href='job-detail.html?id=${i.id}'"
-        class="p-3 hover:bg-blue-50 cursor-pointer border-b">
+  list.innerHTML = filtered.map(i=>{
+    if(i.type==="job"){
+      return `<div class="p-3 hover:bg-blue-50 cursor-pointer border-b"
+                  onclick="location.href='search.html?q=${encodeURIComponent(i.title)}'">
         <div class="text-sm font-semibold">${i.title}</div>
         <div class="text-xs text-gray-500">${i.company||""}</div>
-      </div>
-    `).join("");
-  }
-
-  input.addEventListener("input", debounce(search));
-  btn.addEventListener("click", search);
-
-  document.addEventListener("click",e=>{
-    if(!e.target.closest(".search-container"))
-      dropdown.style.display="none";
-  });
-
-  document.querySelectorAll(".tab-btn").forEach(b=>{
-    b.onclick=()=>{
-      document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("text-blue-600","border-b-2","border-blue-600"));
-      b.classList.add("text-blue-600","border-b-2","border-blue-600");
-      activeTab=b.dataset.type;
-      search();
+      </div>`;
+    } else {
+      const photo = i.photoURL || "https://via.placeholder.com/32";
+      const username = i.username || "Member";
+      return `<div class="p-3 hover:bg-blue-50 cursor-pointer border-b flex gap-3 items-center"
+                  onclick="location.href='search.html?q=${encodeURIComponent(username)}'">
+        <img src="${photo}" class="w-8 h-8 rounded-full object-cover"/>
+        <div>
+          <div class="text-sm font-semibold">${i.name}</div>
+          <div class="text-xs text-gray-500">${username}</div>
+        </div>
+      </div>`;
     }
-  });
-
-  viewAll.onclick=()=>location.href=`search.html?q=${input.value}`;
+  }).join("");
 
   lucide.createIcons();
-</script>
+}
 
+input.addEventListener("input", debounce(search));
+btn.addEventListener("click", search);
+
+document.addEventListener("click", e=>{
+  if(!e.target.closest(".search-container"))
+    dropdown.style.display="none";
+});
+
+document.querySelectorAll(".tab-btn").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("text-blue-600","border-b-2","border-blue-600"));
+    b.classList.add("text-blue-600","border-b-2","border-blue-600");
+    activeTab=b.dataset.type;
+    search();
+  }
+});
+
+viewAll.onclick=()=>location.href=`search.html?q=${encodeURIComponent(input.value)}`;
+
+lucide.createIcons();
+</script>
 </body>
 </html>
