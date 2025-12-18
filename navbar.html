@@ -5,211 +5,184 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BooterSpace Navbar</title>
 
-<!-- Tailwind CSS -->
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <!-- Lucide Icons -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
-  /* Blur background when search active */
   body.search-active > *:not(nav):not(#searchOverlay) {
     filter: blur(6px);
     pointer-events: none;
-    user-select: none;
+  }
+  .active-link {
+    color: #2563eb;
+    font-weight: 600;
   }
 </style>
 </head>
+
 <body class="bg-gray-50">
 
 <!-- ================= NAVBAR ================= -->
-<nav class="bg-white shadow-lg sticky top-0 z-50 border-b border-blue-100">
+<nav class="bg-white shadow-md sticky top-0 z-50 border-b">
   <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
 
     <!-- LOGO -->
-    <a href="index.html" class="text-2xl font-extrabold text-blue-700 flex items-center gap-2">
+    <a href="index.html" class="flex items-center gap-2 text-xl font-extrabold text-blue-700">
       <i data-lucide="users" class="w-6 h-6"></i>
       BooterSpace
     </a>
 
     <!-- SEARCH -->
-    <div class="relative w-96 hidden md:block">
-      <div class="flex rounded-xl shadow-md">
-        <input id="searchInput" placeholder="Search people..."
-          class="w-full px-4 py-2 border rounded-l-xl text-sm focus:ring-2 focus:ring-blue-500" />
+    <div class="relative hidden md:block w-96">
+      <div class="flex shadow rounded-xl">
+        <input id="searchInput"
+          placeholder="Search people..."
+          class="w-full px-4 py-2 text-sm border rounded-l-xl focus:ring-2 focus:ring-blue-500"/>
         <button class="px-4 bg-blue-600 text-white rounded-r-xl">
           <i data-lucide="search" class="w-4 h-4"></i>
         </button>
       </div>
 
-      <!-- Dropdown -->
       <div id="searchSuggest"
-        class="absolute left-0 right-0 bg-white border rounded-xl mt-2 hidden shadow-lg max-h-96 overflow-y-auto z-50"></div>
+        class="absolute hidden mt-2 w-full bg-white rounded-xl shadow-lg max-h-80 overflow-y-auto z-50"></div>
     </div>
 
-    <!-- LINKS -->
-    <div class="hidden md:flex items-center gap-6">
-      <a href="jobs.html" class="text-sm font-medium text-gray-700 hover:text-blue-600">Jobs</a>
-      <a href="dashboard.html" id="dashboardBtn" class="hidden text-sm">Dashboard</a>
-      <a href="profile.html" id="profileBtn" class="hidden text-sm">Profile</a>
-      <a href="login.html" id="loginBtn" class="text-sm">Login</a>
+    <!-- DESKTOP LINKS -->
+    <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+
+      <a href="jobs.html" class="nav-link flex items-center gap-1 text-gray-700 hover:text-blue-600">
+        <i data-lucide="briefcase" class="w-4 h-4"></i> Jobs
+      </a>
+
+      <a href="dashboard.html" id="dashboardBtn"
+        class="nav-link hidden flex items-center gap-1 text-gray-700 hover:text-blue-600">
+        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+      </a>
+
+      <a href="profile.html" id="profileBtn"
+        class="nav-link hidden flex items-center gap-1 text-gray-700 hover:text-blue-600">
+        <i data-lucide="user" class="w-4 h-4"></i> Profile
+      </a>
+
+      <a href="login.html" id="loginBtn"
+        class="flex items-center gap-1 text-gray-700 hover:text-blue-600">
+        <i data-lucide="log-in" class="w-4 h-4"></i> Login
+      </a>
+
       <a href="signup.html" id="signupBtn"
-        class="hidden px-4 py-2 bg-blue-600 text-white rounded-xl text-sm">Sign Up</a>
-      <button id="logoutBtn" class="hidden text-sm text-red-500">Logout</button>
+        class="hidden flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-xl">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> Sign Up
+      </a>
+
+      <button id="logoutBtn"
+        class="hidden flex items-center gap-1 text-red-500 hover:text-red-600">
+        <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+      </button>
     </div>
 
-    <!-- MOBILE MENU BUTTON -->
-    <button id="mobileMenuBtn" class="md:hidden px-2 py-1 rounded-md border">
-      <i data-lucide="menu" class="w-6 h-6"></i>
+    <!-- MOBILE MENU BTN -->
+    <button id="mobileMenuBtn" class="md:hidden border rounded-md p-2">
+      <i data-lucide="menu"></i>
     </button>
   </div>
 
   <!-- MOBILE MENU -->
-  <div id="mobileMenu" class="md:hidden hidden px-4 pb-4 space-y-2">
-    <a href="jobs.html" class="block text-gray-700 hover:text-blue-600">Jobs</a>
-    <a href="dashboard.html" id="dashboardBtnMobile" class="hidden block">Dashboard</a>
-    <a href="profile.html" id="profileBtnMobile" class="hidden block">Profile</a>
-    <a href="login.html" id="loginBtnMobile" class="block">Login</a>
-    <a href="signup.html" id="signupBtnMobile" class="hidden block px-4 py-2 bg-blue-600 text-white rounded-xl">Sign Up</a>
-    <button id="logoutBtnMobile" class="hidden text-red-500 block">Logout</button>
+  <div id="mobileMenu" class="hidden md:hidden px-4 pb-4 space-y-2 text-sm">
+
+    <a href="jobs.html" class="block flex items-center gap-2">
+      <i data-lucide="briefcase"></i> Jobs
+    </a>
+
+    <a href="dashboard.html" id="dashboardBtnMobile" class="hidden block flex items-center gap-2">
+      <i data-lucide="layout-dashboard"></i> Dashboard
+    </a>
+
+    <a href="profile.html" id="profileBtnMobile" class="hidden block flex items-center gap-2">
+      <i data-lucide="user"></i> Profile
+    </a>
+
+    <a href="login.html" id="loginBtnMobile" class="block flex items-center gap-2">
+      <i data-lucide="log-in"></i> Login
+    </a>
+
+    <a href="signup.html" id="signupBtnMobile"
+      class="hidden block bg-blue-600 text-white px-4 py-2 rounded-xl">
+      Sign Up
+    </a>
+
+    <button id="logoutBtnMobile" class="hidden text-red-500 flex items-center gap-2">
+      <i data-lucide="log-out"></i> Logout
+    </button>
   </div>
 </nav>
 
-<!-- Invisible overlay for click-out -->
 <div id="searchOverlay" class="fixed inset-0 hidden z-40"></div>
 
 <!-- ================= SCRIPT ================= -->
 <script type="module">
-  lucide.createIcons();
+lucide.createIcons();
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import {
-    getAuth, onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-  import {
-    getFirestore, collection, query, orderBy, startAt, endAt, getDocs
-  } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from
+"https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, startAt, endAt, getDocs } from
+"https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-    authDomain: "kar-kardan.firebaseapp.com",
-    projectId: "kar-kardan",
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+};
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  // Elements
-  const searchInput = document.getElementById("searchInput");
-  const searchSuggest = document.getElementById("searchSuggest");
-  const overlay = document.getElementById("searchOverlay");
+// ELEMENTS
+const dashboardBtns = [dashboardBtn, dashboardBtnMobile];
+const profileBtns = [profileBtn, profileBtnMobile];
+const loginBtns = [loginBtn, loginBtnMobile];
+const signupBtns = [signupBtn, signupBtnMobile];
+const logoutBtns = [logoutBtn, logoutBtnMobile];
 
-  const loginBtns = [document.getElementById("loginBtn"), document.getElementById("loginBtnMobile")];
-  const signupBtns = [document.getElementById("signupBtn"), document.getElementById("signupBtnMobile")];
-  const profileBtns = [document.getElementById("profileBtn"), document.getElementById("profileBtnMobile")];
-  const dashboardBtns = [document.getElementById("dashboardBtn"), document.getElementById("dashboardBtnMobile")];
-  const logoutBtns = [document.getElementById("logoutBtn"), document.getElementById("logoutBtnMobile")];
+// MOBILE TOGGLE
+mobileMenuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
 
-  // Mobile menu toggle
-  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
-  mobileMenuBtn.addEventListener("click", () => mobileMenu.classList.toggle("hidden"));
-
-  // Search overlay
-  function openSearch() {
-    document.body.classList.add("search-active");
-    searchSuggest.classList.remove("hidden");
-    overlay.classList.remove("hidden");
+// AUTH STATE
+onAuthStateChanged(auth, user => {
+  if (user) {
+    loginBtns.forEach(b => b.classList.add("hidden"));
+    signupBtns.forEach(b => b.classList.add("hidden"));
+    dashboardBtns.forEach(b => b.classList.remove("hidden"));
+    profileBtns.forEach(b => b.classList.remove("hidden"));
+    logoutBtns.forEach(b => b.classList.remove("hidden"));
+  } else {
+    loginBtns.forEach(b => b.classList.remove("hidden"));
+    signupBtns.forEach(b => b.classList.remove("hidden"));
+    dashboardBtns.forEach(b => b.classList.add("hidden"));
+    profileBtns.forEach(b => b.classList.add("hidden"));
+    logoutBtns.forEach(b => b.classList.add("hidden"));
   }
-  function closeSearch() {
-    document.body.classList.remove("search-active");
-    searchSuggest.classList.add("hidden");
-    overlay.classList.add("hidden");
-    searchInput.value = "";
-  }
-  searchInput.addEventListener("focus", openSearch);
-  overlay.addEventListener("click", closeSearch);
+});
 
-  // Debounce function
-  function debounce(func, delay) {
-    let timer;
-    return (...args) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => func.apply(this, args), delay);
-    };
-  }
-
-  // Search function (case-insensitive)
-  async function searchPeople(text) {
-    searchSuggest.innerHTML = "";
-    if (!text) return;
-
-    const searchText = text.toLowerCase();
-
-    try {
-      const q = query(
-        collection(db, "users"),
-        orderBy("name_lower"),
-        startAt(searchText),
-        endAt(searchText + "\uf8ff")
-      );
-
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        searchSuggest.innerHTML = `<p class="p-4 text-gray-500 text-sm">No results found</p>`;
-        return;
-      }
-
-      snap.forEach(doc => {
-        const user = doc.data();
-        const div = document.createElement("div");
-        div.className = "flex items-center gap-3 p-3 hover:bg-blue-50 cursor-pointer";
-        div.innerHTML = `
-          <img src="${user.photoURL || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover" />
-          <div>
-            <p class="font-medium">${user.name}</p>
-            <p class="text-xs text-gray-500">${user.email || ""}</p>
-          </div>
-        `;
-        div.onclick = () => window.location.href = `profile.html?uid=${doc.id}`;
-        searchSuggest.appendChild(div);
-      });
-
-    } catch (err) {
-      console.error("Search error:", err);
-      searchSuggest.innerHTML = `<p class="p-4 text-red-500 text-sm">Search failed. Check index!</p>`;
-    }
-  }
-
-  const debouncedSearch = debounce(e => searchPeople(e.target.value.trim()), 300);
-  searchInput.addEventListener("input", debouncedSearch);
-
-  // Firebase Auth state
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      loginBtns.forEach(btn => btn.classList.add("hidden"));
-      signupBtns.forEach(btn => btn.classList.add("hidden"));
-      profileBtns.forEach(btn => btn.classList.remove("hidden"));
-      dashboardBtns.forEach(btn => btn.classList.remove("hidden"));
-      logoutBtns.forEach(btn => btn.classList.remove("hidden"));
-    } else {
-      loginBtns.forEach(btn => btn.classList.remove("hidden"));
-      signupBtns.forEach(btn => btn.classList.remove("hidden"));
-      profileBtns.forEach(btn => btn.classList.add("hidden"));
-      dashboardBtns.forEach(btn => btn.classList.add("hidden"));
-      logoutBtns.forEach(btn => btn.classList.add("hidden"));
-    }
-  });
-
-  // Logout
-  logoutBtns.forEach(btn => btn.addEventListener("click", async () => {
+// LOGOUT
+logoutBtns.forEach(btn =>
+  btn.onclick = async () => {
     await signOut(auth);
     location.reload();
-  }));
+  }
+);
 
+// ACTIVE LINK
+document.querySelectorAll(".nav-link").forEach(link => {
+  if (link.href === location.href) {
+    link.classList.add("active-link");
+  }
+});
 </script>
+
 </body>
 </html>
