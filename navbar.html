@@ -19,7 +19,7 @@
         .nav-item:hover::after { width: 100%; }
 
         /* Search expansion */
-        .search-container:focus-within { width: 350px !important; }
+        .search-container:focus-within { width: 400px !important; }
         
         /* Dropdown styling */
         .search-results-dropdown {
@@ -33,11 +33,13 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             margin-top: 0.5rem;
             z-index: 100;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             border: 1px solid #e5e7eb;
         }
-        .search-container:focus-within .search-results-dropdown:not(:empty) {
+        
+        /* Show dropdown when input is focused or dropdown is hovered */
+        .search-container:focus-within #search-results:not(:empty) {
             display: block;
         }
     </style>
@@ -50,23 +52,30 @@
             <div class="flex items-center flex-1 space-x-4">
                 <!-- Booterspace Logo -->
                 <div class="flex items-center space-x-2 flex-shrink-0">
-                    <div class="bg-blue-600 rounded-lg p-1.5 flex items-center justify-center shadow-sm">
+                    <div class="bg-blue-600 rounded-lg p-1.5 flex items-center justify-center shadow-sm cursor-pointer" onclick="window.location.href='dashboard.html'">
                         <i data-lucide="rocket" class="text-white w-5 h-5"></i>
                     </div>
-                    <span class="text-blue-600 font-bold text-xl tracking-tight hidden lg:block text-nowrap">Booterspace</span>
+                    <span class="text-blue-600 font-bold text-xl tracking-tight hidden lg:block text-nowrap cursor-pointer" onclick="window.location.href='dashboard.html'">Booterspace</span>
                 </div>
 
-                <!-- Search Bar with Dropdown -->
-                <div class="search-container transition-all duration-300 ease-in-out w-40 md:w-64 relative hidden sm:block">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i data-lucide="search" id="search-icon" class="h-4 w-4 text-gray-400"></i>
+                <!-- Search Bar with Button and Dropdown -->
+                <div class="search-container transition-all duration-300 ease-in-out w-48 md:w-72 relative hidden sm:flex items-center">
+                    <div class="relative w-full flex items-center bg-gray-100 rounded-lg overflow-hidden border border-transparent focus-within:border-blue-500 focus-within:bg-white transition-all">
+                        <div class="pl-3 flex items-center pointer-events-none">
+                            <i data-lucide="search" class="h-4 w-4 text-gray-400"></i>
+                        </div>
+                        <input 
+                            type="text" 
+                            id="search-input"
+                            placeholder="Search users or jobs..." 
+                            class="block w-full pl-3 pr-2 py-2 bg-transparent border-none focus:ring-0 text-sm outline-none"
+                            autocomplete="off"
+                        >
+                        <button id="search-btn" class="px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
                     </div>
-                    <input 
-                        type="text" 
-                        id="search-input"
-                        placeholder="Search for jobs..." 
-                        class="block w-full pl-10 pr-3 py-2 bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent rounded-lg text-sm transition-all"
-                    >
+
                     <!-- Search Results Dropdown -->
                     <div id="search-results" class="search-results-dropdown">
                         <!-- Results populated by JS -->
@@ -118,8 +127,10 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
         const resultsBox = document.getElementById('search-results');
-        let allJobs = [];
+        
+        let allData = [];
 
         // 2. Auth First (Mandatory Rule 3)
         const init = async () => {
@@ -139,49 +150,72 @@
         async function fetchInitialData() {
             if (!auth.currentUser) return;
             try {
-                // Using the strict path format (Rule 1)
+                // Fetching from 'jobs' and 'users' if available. 
+                // For now targeting the 'jobs' collection as per previous context
                 const jobsRef = collection(db, 'artifacts', appId, 'public', 'data', 'jobs');
                 const snapshot = await getDocs(jobsRef);
-                allJobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                allData = snapshot.docs.map(doc => ({ id: doc.id, type: 'job', ...doc.data() }));
+                
+                // If you have a users collection, you can fetch it similarly:
+                // const usersRef = collection(db, 'artifacts', appId, 'public', 'data', 'users');
+                // const userSnapshot = await getDocs(usersRef);
+                // const users = userSnapshot.docs.map(doc => ({ id: doc.id, type: 'user', ...doc.data() }));
+                // allData = [...allData, ...users];
+
+                console.log("Data loaded:", allData.length, "items");
             } catch (err) {
                 console.error("Firestore error", err);
             }
         }
 
-        // 4. Handle Input & Filter
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
+        // 4. Handle Search Logic
+        const performSearch = () => {
+            const query = searchInput.value.toLowerCase().trim();
             if (!query) {
                 resultsBox.innerHTML = '';
                 return;
             }
 
-            const filtered = allJobs.filter(job => 
-                (job.title && job.title.toLowerCase().includes(query)) || 
-                (job.company && job.company.toLowerCase().includes(query))
-            );
+            const filtered = allData.filter(item => {
+                const nameMatch = (item.name && item.name.toLowerCase().includes(query));
+                const titleMatch = (item.title && item.title.toLowerCase().includes(query));
+                const companyMatch = (item.company && item.company.toLowerCase().includes(query));
+                const usernameMatch = (item.username && item.username.toLowerCase().includes(query));
+                
+                return nameMatch || titleMatch || companyMatch || usernameMatch;
+            });
 
             renderResults(filtered);
-        });
+        };
+
+        searchInput.addEventListener('input', performSearch);
+        searchBtn.addEventListener('click', performSearch);
 
         function renderResults(results) {
             if (results.length === 0) {
-                resultsBox.innerHTML = `<div class="p-4 text-sm text-gray-500">No results found</div>`;
+                resultsBox.innerHTML = `<div class="p-4 text-sm text-gray-500">No matching users or jobs found</div>`;
                 return;
             }
 
-            resultsBox.innerHTML = results.map(item => `
-                <div class="p-3 hover:bg-gray-50 cursor-pointer border-b last:border-0 flex items-center space-x-3 transition" 
-                     onclick="window.location.href='jobs.html?id=${item.id}'">
-                    <div class="bg-blue-100 p-2 rounded">
-                        <i data-lucide="briefcase" class="w-4 h-4 text-blue-600"></i>
+            resultsBox.innerHTML = results.map(item => {
+                const displayName = item.name || item.title || item.username || 'Unknown';
+                const subText = item.company || (item.type === 'user' ? 'Member' : 'Position');
+                const icon = item.type === 'user' ? 'user' : 'briefcase';
+                const link = item.type === 'user' ? `profile.html?id=${item.id}` : `jobs.html?id=${item.id}`;
+
+                return `
+                    <div class="p-3 hover:bg-blue-50 cursor-pointer border-b last:border-0 flex items-center space-x-3 transition" 
+                         onclick="window.location.href='${link}'">
+                        <div class="bg-gray-100 p-2 rounded-full">
+                            <i data-lucide="${icon}" class="w-4 h-4 text-gray-600"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold text-gray-800">${displayName}</div>
+                            <div class="text-xs text-gray-500">${subText}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-sm font-semibold text-gray-800">${item.title || 'Untitled Job'}</div>
-                        <div class="text-xs text-gray-500">${item.company || 'Unknown Company'}</div>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             // Re-run Lucide for new icons in dropdown
             lucide.createIcons();
