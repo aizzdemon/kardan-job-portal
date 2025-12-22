@@ -1,224 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Booterspace Navbar</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobPortal - Navigation</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Lucide Icons (via CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+        }
 
-<!-- Tailwind -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Lucide -->
-<script src="https://unpkg.com/lucide@latest"></script>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+        }
 
-<style>
-body { background:#f3f2f1; }
-.nav-item::after{
-  content:'';
-  position:absolute;
-  bottom:-2px;
-  left:0;
-  width:0;
-  height:2px;
-  background:#2563eb;
-  transition:.2s;
-}
-.nav-item:hover::after{ width:100%; }
+        .navbar {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background: white !important;
+            padding: 0.75rem 0;
+        }
 
-.search-results{
-  display:none;
-  position:absolute;
-  top:100%;
-  left:0;
-  right:0;
-  background:white;
-  border-radius:8px;
-  margin-top:6px;
-  border:1px solid #e5e7eb;
-  box-shadow:0 10px 20px rgba(0,0,0,.1);
-  max-height:400px;
-  overflow-y:auto;
-  z-index:50;
-}
-</style>
+        .navbar-brand {
+            font-size: 1.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--secondary-color) !important;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary-color) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            font-weight: 600;
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+        }
+
+        .btn-login {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .btn-login:hover {
+            color: var(--primary-color);
+        }
+    </style>
 </head>
-
 <body>
 
-<nav class="bg-white border-b sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-    <!-- LEFT -->
-    <div class="flex items-center gap-4 flex-1">
-
-      <!-- Logo -->
-      <div onclick="location.href='dashboard.html'" class="flex items-center gap-2 cursor-pointer">
-        <div class="bg-blue-600 p-2 rounded-lg">
-          <i data-lucide="rocket" class="text-white w-5 h-5"></i>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <!-- Brand Logo -->
+            <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="#">
+                <i data-lucide="briefcase" class="me-2"></i> JobPortal
+            </a>
+            
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Navigation Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Browse Jobs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Companies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Salaries</a>
+                    </li>
+                </ul>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex align-items-center gap-4 mt-3 mt-lg-0">
+                    <a href="#" class="btn-login">Login</a>
+                    <a href="#" class="btn btn-primary">Post a Job</a>
+                </div>
+            </div>
         </div>
-        <span class="text-xl font-bold text-blue-600 hidden lg:block">Booterspace</span>
-      </div>
+    </nav>
 
-      <!-- Search -->
-      <div class="relative hidden sm:block w-72 search-container">
-        <div class="flex items-center bg-gray-100 rounded-lg border focus-within:bg-white focus-within:border-blue-500">
-          <div class="pl-3">
-            <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
-          </div>
-          <input id="search-input" type="text" placeholder="Search jobs or users" class="w-full px-2 py-2 bg-transparent outline-none text-sm" autocomplete="off"/>
-          <button id="search-btn" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 text-white">
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
-          </button>
-        </div>
-
-        <!-- Dropdown -->
-        <div id="search-results" class="search-results">
-          <div class="flex border-b text-xs font-medium sticky top-0 bg-white">
-            <button class="tab-btn px-4 py-2 text-blue-600 border-b-2 border-blue-600" data-type="all">All</button>
-            <button class="tab-btn px-4 py-2" data-type="job">Jobs</button>
-            <button class="tab-btn px-4 py-2" data-type="user">Users</button>
-          </div>
-
-          <div id="results-list"></div>
-          <div id="view-all" class="p-3 text-center text-sm text-blue-600 hover:bg-gray-100 cursor-pointer">
-            View all results →
-          </div>
-        </div>
-      </div>
+    <!-- Content Placeholder -->
+    <div class="container mt-5 text-center text-muted">
+        <p>Main page content starts here...</p>
     </div>
 
-    <!-- RIGHT -->
-    <div class="flex items-center gap-6">
-      <a href="dashboard.html" class="nav-item relative flex flex-col items-center text-gray-600 hover:text-blue-600">
-        <i data-lucide="layout-dashboard"></i>
-        <span class="text-[11px]">Dashboard</span>
-      </a>
-      <a href="jobs.html" class="nav-item relative flex flex-col items-center text-gray-600 hover:text-blue-600">
-        <i data-lucide="briefcase"></i>
-        <span class="text-[11px]">Jobs</span>
-      </a>
-      <a href="profile.html" class="nav-item relative flex flex-col items-center text-gray-600 hover:text-blue-600">
-        <div class="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
-          <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
-        </div>
-        <span class="text-[11px]">Me</span>
-      </a>
-    </div>
-
-  </div>
-</nav>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-/* 🔴 Replace with your Firebase config */
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const input = document.getElementById("search-input");
-const btn = document.getElementById("search-btn");
-const dropdown = document.getElementById("search-results");
-const list = document.getElementById("results-list");
-const viewAll = document.getElementById("view-all");
-
-let allData = [];
-let activeTab = "all";
-
-const debounce = (fn,d=300)=>{
-  let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),d);}
-};
-
-// Fetch Jobs + Users
-signInAnonymously(auth).then(async()=>{
-  const jobsSnap = await getDocs(collection(db,"jobs"));
-  const usersSnap = await getDocs(collection(db,"users"));
-
-  const jobs = jobsSnap.docs.map(d=>({id:d.id,type:"job", ...d.data()}));
-  const users = usersSnap.docs.map(d=>({id:d.id,type:"user", ...d.data()}));
-
-  allData = [...jobs, ...users];
-});
-
-function search(){
-  const q = input.value.toLowerCase().trim();
-  if(!q){ dropdown.style.display="none"; return; }
-
-  const res = allData.filter(i=>{
-    if(i.type==="job"){
-      return (i.title||"").toLowerCase().includes(q) || (i.company||"").toLowerCase().includes(q);
-    }
-    if(i.type==="user"){
-      return (i.name||"").toLowerCase().includes(q) || (i.username||"").toLowerCase().includes(q);
-    }
-  });
-
-  render(res);
-  dropdown.style.display="block";
-}
-
-function render(data){
-  const filtered = activeTab==="all" ? data : data.filter(d=>d.type===activeTab);
-
-  if(!filtered.length){
-    list.innerHTML = `<div class="p-4 text-sm text-gray-500">No results</div>`;
-    return;
-  }
-
-  list.innerHTML = filtered.map(i=>{
-    if(i.type==="job"){
-      return `<div class="p-3 hover:bg-blue-50 cursor-pointer border-b"
-                  onclick="location.href='search.html?q=${encodeURIComponent(i.title)}'">
-        <div class="text-sm font-semibold">${i.title}</div>
-        <div class="text-xs text-gray-500">${i.company||""}</div>
-      </div>`;
-    } else {
-      const photo = i.photoURL || "https://via.placeholder.com/32";
-      const username = i.username || "Member";
-      return `<div class="p-3 hover:bg-blue-50 cursor-pointer border-b flex gap-3 items-center"
-                  onclick="location.href='search.html?q=${encodeURIComponent(username)}'">
-        <img src="${photo}" class="w-8 h-8 rounded-full object-cover"/>
-        <div>
-          <div class="text-sm font-semibold">${i.name}</div>
-          <div class="text-xs text-gray-500">${username}</div>
-        </div>
-      </div>`;
-    }
-  }).join("");
-
-  lucide.createIcons();
-}
-
-input.addEventListener("input", debounce(search));
-btn.addEventListener("click", search);
-
-document.addEventListener("click", e=>{
-  if(!e.target.closest(".search-container"))
-    dropdown.style.display="none";
-});
-
-document.querySelectorAll(".tab-btn").forEach(b=>{
-  b.onclick=()=>{
-    document.querySelectorAll(".tab-btn").forEach(x=>x.classList.remove("text-blue-600","border-b-2","border-blue-600"));
-    b.classList.add("text-blue-600","border-b-2","border-blue-600");
-    activeTab=b.dataset.type;
-    search();
-  }
-});
-
-viewAll.onclick=()=>location.href=`search.html?q=${encodeURIComponent(input.value)}`;
-
-lucide.createIcons();
-</script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+    </script>
 </body>
 </html>
