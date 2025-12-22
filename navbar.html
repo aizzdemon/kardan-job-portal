@@ -1,115 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobPortal - Navigation</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Lucide Icons (via CDN) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --primary-color: #2563eb;
-            --secondary-color: #64748b;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KARDAN Navbar</title>
 
-        body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #f8fafc;
-        }
+<!-- Bootstrap 5 -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        .navbar {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            background: white !important;
-            padding: 0.75rem 0;
-        }
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
-        .navbar-brand {
-            font-size: 1.25rem;
-            letter-spacing: -0.02em;
-        }
+<style>
+  :root {
+    --primary: #2563eb;
+    --text: #475569;
+  }
 
-        .nav-link {
-            font-weight: 500;
-            color: var(--secondary-color) !important;
-            transition: color 0.2s ease;
-        }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    background: #f8fafc;
+  }
 
-        .nav-link:hover, .nav-link.active {
-            color: var(--primary-color) !important;
-        }
+  .navbar {
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    padding: 10px 0;
+  }
 
-        .btn-primary {
-            background-color: var(--primary-color);
-            border: none;
-            font-weight: 600;
-            padding: 0.5rem 1.25rem;
-            border-radius: 8px;
-        }
+  .navbar-brand {
+    font-weight: 800;
+    color: var(--primary) !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-        .btn-login {
-            color: var(--secondary-color);
-            text-decoration: none;
-            font-weight: 600;
-        }
+  .nav-link {
+    font-weight: 600;
+    color: var(--text) !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
 
-        .btn-login:hover {
-            color: var(--primary-color);
-        }
-    </style>
+  .nav-link:hover,
+  .nav-link.active {
+    color: var(--primary) !important;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    border: none;
+    border-radius: 10px;
+    padding: 7px 16px;
+    font-weight: 600;
+  }
+
+  /* Mobile menu spacing */
+  @media (max-width: 991px) {
+    .navbar-collapse {
+      margin-top: 12px;
+    }
+  }
+</style>
 </head>
+
 <body>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container">
-            <!-- Brand Logo -->
-            <a class="navbar-brand d-flex align-items-center fw-bold text-primary" href="#">
-                <i data-lucide="briefcase" class="me-2"></i> JobPortal
-            </a>
-            
-            <!-- Mobile Toggle -->
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <!-- Navigation Links -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Browse Jobs</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Companies</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Salaries</a>
-                    </li>
-                </ul>
-                
-                <!-- Action Buttons -->
-                <div class="d-flex align-items-center gap-4 mt-3 mt-lg-0">
-                    <a href="#" class="btn-login">Login</a>
-                    <a href="#" class="btn btn-primary">Post a Job</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container">
 
-    <!-- Content Placeholder -->
-    <div class="container mt-5 text-center text-muted">
-        <p>Main page content starts here...</p>
+    <!-- LOGO -->
+    <a class="navbar-brand" href="index.html">
+      <i data-lucide="briefcase"></i> KARDAN
+    </a>
+
+    <!-- BURGER (MOBILE ONLY) -->
+    <button class="navbar-toggler border-0" type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- MENU -->
+    <div class="collapse navbar-collapse" id="mainNavbar">
+
+      <!-- LEFT LINKS -->
+      <ul class="navbar-nav ms-lg-4 me-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="index.html">
+            <i data-lucide="home"></i> Home
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="jobs.html">
+            <i data-lucide="search"></i> Jobs
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="companies.html">
+            <i data-lucide="building-2"></i> Companies
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link" href="places-to-hangout.html">
+            <i data-lucide="map-pin"></i> Hangouts
+          </a>
+        </li>
+      </ul>
+
+      <!-- RIGHT ACTIONS -->
+      <div class="d-flex gap-3 mt-3 mt-lg-0">
+        <a href="login.html" class="nav-link">
+          <i data-lucide="log-in"></i> Login
+        </a>
+
+        <a href="post-job.html" class="btn btn-primary">
+          <i data-lucide="plus-circle" class="me-1"></i> Post Job
+        </a>
+      </div>
+
     </div>
+  </div>
+</nav>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Initialize Icons
-        lucide.createIcons();
-    </script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  lucide.createIcons();
+</script>
+
 </body>
 </html>
