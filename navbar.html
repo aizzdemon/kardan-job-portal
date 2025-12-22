@@ -23,9 +23,8 @@
   }
 
   .navbar {
-    background: #ffffff;
+    background: #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    padding: 10px 0;
   }
 
   .navbar-brand {
@@ -56,13 +55,6 @@
     padding: 7px 16px;
     font-weight: 600;
   }
-
-  /* Mobile menu spacing */
-  @media (max-width: 991px) {
-    .navbar-collapse {
-      margin-top: 12px;
-    }
-  }
 </style>
 </head>
 
@@ -76,18 +68,21 @@
       <i data-lucide="briefcase"></i> KARDAN
     </a>
 
-    <!-- BURGER (MOBILE ONLY) -->
-    <button class="navbar-toggler border-0" type="button"
+    <!-- BURGER (only visible < lg) -->
+    <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse"
-            data-bs-target="#mainNavbar">
+            data-bs-target="#mainNavbar"
+            aria-controls="mainNavbar"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <!-- MENU -->
     <div class="collapse navbar-collapse" id="mainNavbar">
 
-      <!-- LEFT LINKS -->
-      <ul class="navbar-nav ms-lg-4 me-auto">
+      <!-- LEFT MENU -->
+      <ul class="navbar-nav ms-lg-4 me-auto mb-2 mb-lg-0">
         <li class="nav-item">
           <a class="nav-link active" href="index.html">
             <i data-lucide="home"></i> Home
@@ -113,8 +108,8 @@
         </li>
       </ul>
 
-      <!-- RIGHT ACTIONS -->
-      <div class="d-flex gap-3 mt-3 mt-lg-0">
+      <!-- RIGHT MENU -->
+      <div class="d-flex align-items-center gap-3">
         <a href="login.html" class="nav-link">
           <i data-lucide="log-in"></i> Login
         </a>
@@ -128,9 +123,10 @@
   </div>
 </nav>
 
-<!-- Bootstrap JS -->
+<!-- Bootstrap JS (REQUIRED) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Lucide -->
 <script>
   lucide.createIcons();
 </script>
