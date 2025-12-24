@@ -138,11 +138,24 @@
 
         const getAvatarUrl = (seed) => `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
 
+        // Implementation of exponential backoff for Auth
+        const signInWithRetry = async (retries = 5, delay = 1000) => {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(res => setTimeout(res, delay));
+                    return signInWithRetry(retries - 1, delay * 2);
+                }
+                console.error("Auth failed after retries:", error);
+            }
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 navProfileImg.src = getAvatarUrl(user.uid);
             } else {
-                signInAnonymously(auth);
+                signInWithRetry();
             }
         });
 
@@ -154,20 +167,26 @@
 
             try {
                 const usersRef = collection(db, 'users');
+                // Rule 2: No Complex Queries to avoid index requirements.
+                // Simplified query: just filter by searchName range.
                 const q = query(
                     usersRef,
                     orderBy('searchName'),
-                    orderBy('name'), 
                     startAt(term),
                     endAt(term + '\uf8ff'),
-                    limit(10)
+                    limit(20) // Fetch a few more to filter in memory
                 );
 
                 const snapshot = await getDocs(q);
-                const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Perform sorting/filtering in JS to avoid composite index error
+                const results = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .slice(0, 10);
+
                 renderResults(results);
             } catch (err) {
-                console.error("Search failed. If you see an index error, follow the link in the console to create the composite index.", err);
+                console.error("Search error:", err);
             } finally {
                 setLoading(false);
             }
