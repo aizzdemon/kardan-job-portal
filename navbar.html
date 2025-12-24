@@ -6,27 +6,11 @@
     <title>User Search Navbar - Firebase</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom scrollbar for the dropdown */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(8px);
-        }
-
-        /* Nav item hover effect */
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -46,7 +30,6 @@
                 
                 <!-- Left Section: Logo & Search -->
                 <div class="flex items-center flex-1 space-x-6">
-                    <!-- Logo -->
                     <div class="flex-shrink-0 flex items-center">
                         <a href="index.html" class="flex items-center space-x-2">
                             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -60,8 +43,13 @@
                     <div class="relative w-full max-w-md group">
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="search-icon" class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <!-- Loading Spinner -->
+                                <svg id="search-spinner" class="hidden animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             </div>
                             <input id="user-search" name="search" class="block w-full pl-10 pr-4 py-2 bg-slate-100 border-transparent border focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl text-sm transition-all duration-200 outline-none" placeholder="Search community..." type="search" autocomplete="off">
@@ -69,9 +57,7 @@
 
                         <!-- Suggestions Dropdown -->
                         <div id="search-results" class="hidden absolute mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 z-50 overflow-hidden ring-1 ring-black ring-opacity-5">
-                            <ul id="results-list" class="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-slate-50">
-                                <!-- Results will be injected here -->
-                            </ul>
+                            <ul id="results-list" class="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-slate-50"></ul>
                             <div id="no-results" class="hidden p-6 text-center">
                                 <p class="text-sm text-slate-500">No matches found</p>
                             </div>
@@ -79,34 +65,17 @@
                     </div>
                 </div>
 
-                <!-- Right Section: Navigation Links -->
+                <!-- Right Section -->
                 <div class="flex items-center space-x-1 sm:space-x-4">
                     <div class="flex items-center space-x-1">
-                        <!-- Home -->
                         <a href="index.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                            </svg>
+                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
                         </a>
-
-                        <!-- Dashboard -->
                         <a href="dashboard.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
+                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                             <span class="text-[10px] font-bold uppercase tracking-wider">Dashboard</span>
                         </a>
-
-                        <!-- Books -->
-                        <a href="books.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Books</span>
-                        </a>
-
-                        <!-- Profile (Clip Art) -->
                         <a href="profile.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
                             <div class="w-7 h-7 mb-0.5 rounded-lg overflow-hidden border-2 border-slate-200 group-hover:border-blue-400 transition-colors bg-white shadow-sm">
                                 <img id="nav-profile-img" src="https://api.dicebear.com/7.x/adventurer/svg?seed=profile" class="w-full h-full object-cover" alt="Profile">
@@ -114,117 +83,148 @@
                             <span class="text-[10px] font-bold uppercase tracking-wider">Profile</span>
                         </a>
                     </div>
-
-                    <div class="h-8 w-[1px] bg-slate-200 mx-2 hidden lg:block"></div>
-
-                    <!-- Post Button -->
-                    <button id="create-btn" class="hidden sm:flex bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 items-center shadow-sm">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Post
-                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div class="fixed bottom-4 right-4 opacity-0 hover:opacity-100 transition-opacity">
-            <button id="seed-data" class="text-[10px] text-slate-400 underline bg-white/50 px-2 py-1 rounded">Setup Community Data</button>
+            <button id="seed-data" class="hidden text-[10px] text-slate-400 underline bg-white/50 px-2 py-1 rounded">Setup Community Data (Scalable Mode)</button>
         </div>
-        <div id="auth-status" class="hidden"></div>
     </main>
 
     <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, query, where, limit, getDocs, orderBy, startAt, endAt } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+            authDomain: "kar-kardan.firebaseapp.com",
+            projectId: "kar-kardan",
+            storageBucket: "kar-kardan.firebasestorage.app",
+            messagingSenderId: "554147696994",
+            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-
-        let allUsers = []; 
-        let currentUser = null;
 
         const searchInput = document.getElementById('user-search');
         const resultsContainer = document.getElementById('search-results');
         const resultsList = document.getElementById('results-list');
         const noResults = document.getElementById('no-results');
+        const searchSpinner = document.getElementById('search-spinner');
+        const searchIcon = document.getElementById('search-icon');
         const navProfileImg = document.getElementById('nav-profile-img');
         const seedBtn = document.getElementById('seed-data');
 
-        // Helper to get a random clip-art style avatar
         const getAvatarUrl = (seed) => `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
 
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Auth error", error);
-            }
-        };
-
         onAuthStateChanged(auth, (user) => {
-            currentUser = user;
             if (user) {
-                // Update the nav profile image with a clip art based on the user's unique ID
                 navProfileImg.src = getAvatarUrl(user.uid);
-                startDataListener(); 
+            } else {
+                signInAnonymously(auth);
             }
         });
 
-        function startDataListener() {
-            if (!currentUser) return;
-            const usersCollection = collection(db, 'artifacts', appId, 'public', 'data', 'users');
-            onSnapshot(usersCollection, (snapshot) => {
-                allUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            }, (error) => console.error(error));
+        /**
+         * COMPOSITE INDEX PREFIX SEARCH
+         * To require a composite index, we order by searchName (for the prefix range)
+         * AND then by another field (e.g., 'name' or 'role').
+         * This combination MUST be indexed as a composite in the Firebase Console.
+         */
+        async function executeSearch(searchText) {
+            const term = searchText.toLowerCase().trim();
+            if (!term) return;
+
+            setLoading(true);
+
+            try {
+                const usersRef = collection(db, 'users');
+                
+                // Prefix query with 'startAt' and 'endAt'.
+                // The \uf8ff character is a very high unicode value, ensuring we capture all strings 
+                // starting with the prefix.
+                // orderBy('name') is added here to FORCE a composite index requirement.
+                const q = query(
+                    usersRef,
+                    orderBy('searchName'),
+                    orderBy('name'), 
+                    startAt(term),
+                    endAt(term + '\uf8ff'),
+                    limit(10)
+                );
+
+                const snapshot = await getDocs(q);
+                const results = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderResults(results);
+            } catch (err) {
+                console.error("Search failed. If you see an index error, follow the link in the console to create the composite index.", err);
+            } finally {
+                setLoading(false);
+            }
         }
 
+        // Debounce prevents hitting the DB on every character
+        function debounce(func, timeout = 300) {
+            let timer;
+            return (...args) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => { func.apply(this, args); }, timeout);
+            };
+        }
+
+        const debouncedSearch = debounce((val) => executeSearch(val));
+
         searchInput.addEventListener('input', (e) => {
-            const queryVal = e.target.value.toLowerCase().trim();
-            if (queryVal.length === 0) {
+            const val = e.target.value;
+            if (val.trim().length === 0) {
                 hideDropdown();
                 return;
             }
-            const filtered = allUsers.filter(user => 
-                (user.name?.toLowerCase().includes(queryVal)) || 
-                (user.handle?.toLowerCase().includes(queryVal)) ||
-                (user.role?.toLowerCase().includes(queryVal))
-            );
-            renderResults(filtered);
+            debouncedSearch(val);
         });
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                searchSpinner.classList.remove('hidden');
+                searchIcon.classList.add('hidden');
+            } else {
+                searchSpinner.classList.add('hidden');
+                searchIcon.classList.remove('hidden');
+            }
+        }
 
         function renderResults(results) {
             resultsList.innerHTML = '';
             resultsContainer.classList.remove('hidden');
+            
             if (results.length === 0) {
                 noResults.classList.remove('hidden');
                 return;
             }
+            
             noResults.classList.add('hidden');
             results.forEach(user => {
                 const li = document.createElement('li');
-                li.className = "px-5 py-4 hover:bg-slate-50 cursor-pointer flex items-center transition duration-150 group";
+                li.className = "px-5 py-4 hover:bg-slate-50 cursor-pointer flex items-center transition group";
                 const avatarSrc = getAvatarUrl(user.handle || user.name);
                 
                 li.innerHTML = `
-                    <div class="h-10 w-10 rounded-xl overflow-hidden bg-slate-100 mr-4 transition-transform group-hover:scale-105 border border-slate-100">
-                        <img src="${avatarSrc}" class="w-full h-full object-cover" alt="${user.name}">
+                    <div class="h-10 w-10 rounded-xl overflow-hidden bg-slate-100 mr-4 border border-slate-100">
+                        <img src="${avatarSrc}" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <div class="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">${user.name}</div>
                         <div class="text-[11px] text-slate-500 font-medium">${user.handle} • ${user.role || 'Member'}</div>
                     </div>
                 `;
+                
                 li.addEventListener('click', () => {
                     searchInput.value = user.name;
                     hideDropdown();
@@ -238,8 +238,7 @@
         }
 
         seedBtn.addEventListener('click', async () => {
-            if (!currentUser) return;
-            seedBtn.innerText = "Populating...";
+            seedBtn.innerText = "Populating Scalable Indices...";
             const communityUsers = [
                 { name: "Alice Thompson", handle: "@alice_tech", role: "Staff Engineer" },
                 { name: "John Smith", handle: "@jsmith_dev", role: "Product Designer" },
@@ -247,26 +246,23 @@
                 { name: "Michael Jordan", handle: "@mj_designs", role: "UI Lead" },
                 { name: "Emma Wilson", handle: "@em_codes", role: "Fullstack Developer" },
                 { name: "David Chen", handle: "@dchen_ai", role: "ML Researcher" },
-                { name: "Sofia Rodriguez", handle: "@sofia_ops", role: "DevOps Engineer" },
-                { name: "James Maxwell", handle: "@jmax_pm", role: "Senior PM" },
-                { name: "Olivia Taylor", handle: "@oli_taylor", role: "Frontend Lead" },
-                { name: "Liam Brown", handle: "@lb_backend", role: "Node.js Expert" },
-                { name: "Isabella Garcia", handle: "@isabella_g", role: "UX Researcher" },
-                { name: "Noah Williams", handle: "@noah_w", role: "Mobile Developer" },
-                { name: "Mia Martinez", handle: "@mia_m", role: "Data Scientist" },
-                { name: "Ethan Anderson", handle: "@ethan_a", role: "Cloud Architect" }
+                { name: "Sofia Rodriguez", handle: "@sofia_ops", role: "DevOps Engineer" }
             ];
+
             try {
                 const promises = communityUsers.map(user => {
                     const docId = user.handle.replace('@', '');
-                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', docId);
-                    return setDoc(docRef, user);
+                    const docRef = doc(db, 'users', docId);
+                    // searchName (lowercase) is essential for prefix matching logic
+                    return setDoc(docRef, {
+                        ...user,
+                        searchName: user.name.toLowerCase() 
+                    });
                 });
                 await Promise.all(promises);
-                seedBtn.innerText = "Data Populated!";
+                seedBtn.innerText = "Done!";
                 setTimeout(() => seedBtn.innerText = "Setup Community Data", 3000);
             } catch (error) {
-                seedBtn.innerText = "Error: Check Console";
                 console.error(error);
             }
         });
@@ -274,8 +270,6 @@
         document.addEventListener('click', (e) => {
             if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) hideDropdown();
         });
-
-        initAuth();
     </script>
 </body>
 </html>
