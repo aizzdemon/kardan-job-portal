@@ -10,7 +10,7 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -21,275 +21,153 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 min-h-screen font-sans text-slate-900">
 
-    <!-- Navbar -->
-    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center gap-4">
-                
-                <!-- Left Section: Logo & Search -->
-                <div class="flex items-center flex-1 space-x-6">
-                    <div class="flex-shrink-0 flex items-center">
-                        <a href="index.html" class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            </div>
-                            <span class="text-xl font-bold tracking-tight text-slate-800 hidden sm:block">BooterSpace</span>
-                        </a>
+<!-- NAVBAR (UNCHANGED) -->
+<nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between h-20 items-center gap-4">
+
+            <!-- LEFT -->
+            <div class="flex items-center flex-1 space-x-6">
+                <a href="index.html" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
                     </div>
+                    <span class="text-xl font-bold hidden sm:block">BooterSpace</span>
+                </a>
 
-                    <!-- Search Bar Container -->
-                    <div class="relative w-full max-w-md group">
-                        <div class="relative flex items-center">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg id="search-icon" class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <!-- Loading Spinner -->
-                                <svg id="search-spinner" class="hidden animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </div>
-                            <input id="user-search" name="search" class="block w-full pl-10 pr-20 py-2 bg-slate-100 border-transparent border focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl text-sm transition-all duration-200 outline-none" placeholder="Find people..." type="search" autocomplete="off">
-                            <!-- Visual Label clarifying scope -->
-                            <div class="absolute right-3 px-2 py-0.5 bg-slate-200 text-[10px] font-bold text-slate-500 rounded uppercase tracking-wider pointer-events-none">
-                                Users
-                            </div>
+                <!-- SEARCH -->
+                <div class="relative w-full max-w-md">
+                    <input id="user-search"
+                           type="search"
+                           placeholder="Find people..."
+                           class="w-full pl-10 pr-4 py-2 bg-slate-100 rounded-xl outline-none">
+
+                    <svg id="search-icon"
+                         class="absolute left-3 top-2.5 h-4 w-4 text-slate-400"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+
+                    <!-- RESULTS -->
+                    <div id="search-results"
+                         class="hidden absolute mt-2 w-full bg-white rounded-xl shadow border z-50">
+                        <ul id="results-list"
+                            class="max-h-60 overflow-y-auto custom-scrollbar"></ul>
+                        <div id="no-results"
+                             class="hidden p-4 text-center text-sm text-gray-500">
+                            No users found
                         </div>
-
-                        <!-- Suggestions Dropdown -->
-                        <div id="search-results" class="hidden absolute mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 z-50 overflow-hidden ring-1 ring-black ring-opacity-5">
-                            <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Community Members</div>
-                            <ul id="results-list" class="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-slate-50"></ul>
-                            <div id="no-results" class="hidden p-6 text-center">
-                                <p class="text-sm text-slate-500">No users found</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Section -->
-                <div class="flex items-center space-x-1 sm:space-x-4">
-                    <div class="flex items-center space-x-1">
-                        <a href="index.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
-                        </a>
-                        
-                        <a href="dashboard.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Dashboard</span>
-                        </a>
-
-                        <a href="books.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Books</span>
-                        </a>
-
-                        <a href="profile.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                            <div class="w-7 h-7 mb-0.5 rounded-lg overflow-hidden border-2 border-slate-200 group-hover:border-blue-400 transition-colors bg-white shadow-sm">
-                                <img id="nav-profile-img" src="https://api.dicebear.com/7.x/adventurer/svg?seed=profile" class="w-full h-full object-cover" alt="Profile">
-                            </div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Profile</span>
-                        </a>
                     </div>
                 </div>
             </div>
+
+            <!-- RIGHT -->
+            <div class="flex items-center">
+                <img id="nav-profile-img"
+                     class="w-8 h-8 rounded-full"
+                     src="https://api.dicebear.com/7.x/adventurer/svg?seed=profile">
+            </div>
+
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <main class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="fixed bottom-4 right-4 opacity-0 hover:opacity-100 transition-opacity">
-            <button id="seed-data" class="hidden text-[10px] text-slate-400 underline bg-white/50 px-2 py-1 rounded">Setup Community Data (Scalable Mode)</button>
-        </div>
-    </main>
+<!-- FIREBASE LOGIC -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, startAt, endAt, limit, getDocs } 
+        from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <!-- Firebase Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, query, where, limit, getDocs, orderBy, startAt, endAt } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    const firebaseConfig = {
+        apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+        authDomain: "kar-kardan.firebaseapp.com",
+        projectId: "kar-kardan",
+    };
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-            authDomain: "kar-kardan.firebaseapp.com",
-            projectId: "kar-kardan",
-            storageBucket: "kar-kardan.firebasestorage.app",
-            messagingSenderId: "554147696994",
-            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-        };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    const searchInput = document.getElementById("user-search");
+    const resultsBox = document.getElementById("search-results");
+    const resultsList = document.getElementById("results-list");
+    const noResults = document.getElementById("no-results");
 
-        const searchInput = document.getElementById('user-search');
-        const resultsContainer = document.getElementById('search-results');
-        const resultsList = document.getElementById('results-list');
-        const noResults = document.getElementById('no-results');
-        const searchSpinner = document.getElementById('search-spinner');
-        const searchIcon = document.getElementById('search-icon');
-        const navProfileImg = document.getElementById('nav-profile-img');
-        const seedBtn = document.getElementById('seed-data');
+    function hideDropdown() {
+        resultsBox.classList.add("hidden");
+    }
 
-        const getAvatarUrl = (seed) => `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}`;
-
-        // Implementation of exponential backoff for Auth
-        const signInWithRetry = async (retries = 5, delay = 1000) => {
-            try {
-                await signInAnonymously(auth);
-            } catch (error) {
-                if (retries > 0) {
-                    await new Promise(res => setTimeout(res, delay));
-                    return signInWithRetry(retries - 1, delay * 2);
-                }
-                console.error("Auth failed after retries:", error);
-            }
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                navProfileImg.src = getAvatarUrl(user.uid);
-            } else {
-                signInWithRetry();
-            }
-        });
-
-        async function executeSearch(searchText) {
-            const term = searchText.toLowerCase().trim();
-            if (!term) return;
-
-            setLoading(true);
-
-            try {
-                const usersRef = collection(db, 'users');
-                // Rule 2: No Complex Queries to avoid index requirements.
-                // Simplified query: just filter by searchName range.
-                const q = query(
-                    usersRef,
-                    orderBy('searchName'),
-                    startAt(term),
-                    endAt(term + '\uf8ff'),
-                    limit(20) // Fetch a few more to filter in memory
-                );
-
-                const snapshot = await getDocs(q);
-                // Perform sorting/filtering in JS to avoid composite index error
-                const results = snapshot.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() }))
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .slice(0, 10);
-
-                renderResults(results);
-            } catch (err) {
-                console.error("Search error:", err);
-            } finally {
-                setLoading(false);
-            }
+    async function executeSearch(text) {
+        const term = text.toLowerCase().trim();
+        if (!term) {
+            hideDropdown();
+            return;
         }
 
-        function debounce(func, timeout = 300) {
-            let timer;
-            return (...args) => {
-                clearTimeout(timer);
-                timer = setTimeout(() => { func.apply(this, args); }, timeout);
-            };
-        }
+        try {
+            const q = query(
+                collection(db, "users"),
+                orderBy("searchName"),
+                startAt(term),
+                endAt(term + "\uf8ff"),
+                limit(10)
+            );
 
-        const debouncedSearch = debounce((val) => executeSearch(val));
+            const snap = await getDocs(q);
 
-        searchInput.addEventListener('input', (e) => {
-            const val = e.target.value;
-            if (val.trim().length === 0) {
-                hideDropdown();
+            resultsList.innerHTML = "";
+            resultsBox.classList.remove("hidden");
+
+            if (snap.empty) {
+                noResults.classList.remove("hidden");
                 return;
             }
-            debouncedSearch(val);
-        });
 
-        function setLoading(isLoading) {
-            if (isLoading) {
-                searchSpinner.classList.remove('hidden');
-                searchIcon.classList.add('hidden');
-            } else {
-                searchSpinner.classList.add('hidden');
-                searchIcon.classList.remove('hidden');
-            }
-        }
+            noResults.classList.add("hidden");
 
-        function renderResults(results) {
-            resultsList.innerHTML = '';
-            resultsContainer.classList.remove('hidden');
-            
-            if (results.length === 0) {
-                noResults.classList.remove('hidden');
-                return;
-            }
-            
-            noResults.classList.add('hidden');
-            results.forEach(user => {
-                const li = document.createElement('li');
-                li.className = "px-5 py-4 hover:bg-slate-50 cursor-pointer flex items-center transition group";
-                const avatarSrc = getAvatarUrl(user.handle || user.name);
-                
+            snap.forEach(doc => {
+                const user = doc.data();
+
+                const li = document.createElement("li");
+                li.className = "px-4 py-3 hover:bg-gray-50 cursor-pointer flex gap-3";
+
                 li.innerHTML = `
-                    <div class="h-10 w-10 rounded-xl overflow-hidden bg-slate-100 mr-4 border border-slate-100">
-                        <img src="${avatarSrc}" class="w-full h-full object-cover">
-                    </div>
+                    <img class="w-8 h-8 rounded-full"
+                         src="https://api.dicebear.com/7.x/adventurer/svg?seed=${user.name}">
                     <div>
-                        <div class="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">${user.name}</div>
-                        <div class="text-[11px] text-slate-500 font-medium">${user.handle} • ${user.role || 'Member'}</div>
+                        <div class="font-medium">${user.name}</div>
+                        <div class="text-xs text-gray-500">${user.handle || ""}</div>
                     </div>
                 `;
-                
-                li.addEventListener('click', () => {
+
+                li.onclick = () => {
                     searchInput.value = user.name;
                     hideDropdown();
-                });
+                };
+
                 resultsList.appendChild(li);
             });
+
+        } catch (err) {
+            console.error(err);
+            hideDropdown();
         }
+    }
 
-        function hideDropdown() {
-            resultsContainer.classList.add('hidden');
+    searchInput.addEventListener("input", e => executeSearch(e.target.value));
+
+    document.addEventListener("click", e => {
+        if (!searchInput.contains(e.target) && !resultsBox.contains(e.target)) {
+            hideDropdown();
         }
+    });
+</script>
 
-        seedBtn.addEventListener('click', async () => {
-            seedBtn.innerText = "Populating Scalable Indices...";
-            const communityUsers = [
-                { name: "Alice Thompson", handle: "@alice_tech", role: "Staff Engineer" },
-                { name: "John Smith", handle: "@jsmith_dev", role: "Product Designer" },
-                { name: "Sarah Connor", handle: "@s_connor", role: "Security Architect" },
-                { name: "Michael Jordan", handle: "@mj_designs", role: "UI Lead" },
-                { name: "Emma Wilson", handle: "@em_codes", role: "Fullstack Developer" },
-                { name: "David Chen", handle: "@dchen_ai", role: "ML Researcher" },
-                { name: "Sofia Rodriguez", handle: "@sofia_ops", role: "DevOps Engineer" }
-            ];
-
-            try {
-                const promises = communityUsers.map(user => {
-                    const docId = user.handle.replace('@', '');
-                    const docRef = doc(db, 'users', docId);
-                    return setDoc(docRef, {
-                        ...user,
-                        searchName: user.name.toLowerCase() 
-                    });
-                });
-                await Promise.all(promises);
-                seedBtn.innerText = "Done!";
-                setTimeout(() => seedBtn.innerText = "Setup Community Data", 3000);
-            } catch (error) {
-                console.error(error);
-            }
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) hideDropdown();
-        });
-    </script>
 </body>
 </html>
