@@ -41,7 +41,7 @@
 
                     <!-- Search Bar Container -->
                     <div class="relative w-full max-w-md group">
-                        <div class="relative">
+                        <div class="relative flex items-center">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg id="search-icon" class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -52,14 +52,19 @@
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             </div>
-                            <input id="user-search" name="search" class="block w-full pl-10 pr-4 py-2 bg-slate-100 border-transparent border focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl text-sm transition-all duration-200 outline-none" placeholder="Search community..." type="search" autocomplete="off">
+                            <input id="user-search" name="search" class="block w-full pl-10 pr-20 py-2 bg-slate-100 border-transparent border focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 rounded-xl text-sm transition-all duration-200 outline-none" placeholder="Find people..." type="search" autocomplete="off">
+                            <!-- Visual Label clarifying scope -->
+                            <div class="absolute right-3 px-2 py-0.5 bg-slate-200 text-[10px] font-bold text-slate-500 rounded uppercase tracking-wider pointer-events-none">
+                                Users
+                            </div>
                         </div>
 
                         <!-- Suggestions Dropdown -->
                         <div id="search-results" class="hidden absolute mt-2 w-full bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 z-50 overflow-hidden ring-1 ring-black ring-opacity-5">
+                            <div class="px-4 py-2 bg-slate-50 border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Community Members</div>
                             <ul id="results-list" class="max-h-72 overflow-y-auto custom-scrollbar divide-y divide-slate-50"></ul>
                             <div id="no-results" class="hidden p-6 text-center">
-                                <p class="text-sm text-slate-500">No matches found</p>
+                                <p class="text-sm text-slate-500">No users found</p>
                             </div>
                         </div>
                     </div>
@@ -72,10 +77,19 @@
                             <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
                         </a>
+                        
                         <a href="dashboard.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
                             <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                             <span class="text-[10px] font-bold uppercase tracking-wider">Dashboard</span>
                         </a>
+
+                        <a href="books.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
+                            <svg class="w-6 h-6 mb-0.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                            <span class="text-[10px] font-bold uppercase tracking-wider">Books</span>
+                        </a>
+
                         <a href="profile.html" class="nav-item group px-2 py-1 text-slate-500 hover:text-blue-600 rounded-xl hover:bg-blue-50">
                             <div class="w-7 h-7 mb-0.5 rounded-lg overflow-hidden border-2 border-slate-200 group-hover:border-blue-400 transition-colors bg-white shadow-sm">
                                 <img id="nav-profile-img" src="https://api.dicebear.com/7.x/adventurer/svg?seed=profile" class="w-full h-full object-cover" alt="Profile">
@@ -132,12 +146,6 @@
             }
         });
 
-        /**
-         * COMPOSITE INDEX PREFIX SEARCH
-         * To require a composite index, we order by searchName (for the prefix range)
-         * AND then by another field (e.g., 'name' or 'role').
-         * This combination MUST be indexed as a composite in the Firebase Console.
-         */
         async function executeSearch(searchText) {
             const term = searchText.toLowerCase().trim();
             if (!term) return;
@@ -146,11 +154,6 @@
 
             try {
                 const usersRef = collection(db, 'users');
-                
-                // Prefix query with 'startAt' and 'endAt'.
-                // The \uf8ff character is a very high unicode value, ensuring we capture all strings 
-                // starting with the prefix.
-                // orderBy('name') is added here to FORCE a composite index requirement.
                 const q = query(
                     usersRef,
                     orderBy('searchName'),
@@ -170,7 +173,6 @@
             }
         }
 
-        // Debounce prevents hitting the DB on every character
         function debounce(func, timeout = 300) {
             let timer;
             return (...args) => {
@@ -253,7 +255,6 @@
                 const promises = communityUsers.map(user => {
                     const docId = user.handle.replace('@', '');
                     const docRef = doc(db, 'users', docId);
-                    // searchName (lowercase) is essential for prefix matching logic
                     return setDoc(docRef, {
                         ...user,
                         searchName: user.name.toLowerCase() 
