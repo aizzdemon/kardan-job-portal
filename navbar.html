@@ -23,7 +23,7 @@
   }
 
   .navbar {
-    background: #fff;
+    background: #ffffff;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
 
@@ -55,12 +55,21 @@
     padding: 7px 16px;
     font-weight: 600;
   }
+
+  /* Fix burger visibility */
+  .navbar-toggler {
+    border: none;
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: none;
+  }
 </style>
 </head>
 
 <body>
 
-<nav class="navbar navbar-expand-lg sticky-top">
+<nav class="navbar navbar-expand-lg navbar-light sticky-top">
   <div class="container">
 
     <!-- LOGO -->
@@ -68,7 +77,7 @@
       <i data-lucide="briefcase"></i> KARDAN
     </a>
 
-    <!-- BURGER (only visible < lg) -->
+    <!-- BURGER -->
     <button class="navbar-toggler" type="button"
             data-bs-toggle="collapse"
             data-bs-target="#mainNavbar"
@@ -123,10 +132,10 @@
   </div>
 </nav>
 
-<!-- Bootstrap JS (REQUIRED) -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Lucide -->
+<!-- Lucide Init -->
 <script>
   lucide.createIcons();
 </script>
