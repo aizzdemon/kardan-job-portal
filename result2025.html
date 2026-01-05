@@ -14,13 +14,6 @@
             color: #222;
         }
 
-        header {
-            background: #0a3d62;
-            color: #fff;
-            padding: 15px 20px;
-            font-size: 14px;
-        }
-
         .container {
             max-width: 900px;
             margin: 20px auto;
@@ -84,9 +77,8 @@
 </head>
 <body>
 
-<header>
-    Home › Education › Exams
-</header>
+<!-- 🔹 NAVBAR PLACEHOLDER -->
+<div id="navbar"></div>
 
 <div class="container">
 
@@ -125,6 +117,15 @@
     </table>
 
 </div>
+
+<!-- 🔹 LOAD NAVBAR FROM navbar.html -->
+<script>
+  fetch("navbar.html")
+    .then(res => res.text())
+    .then(data => {
+      document.getElementById("navbar").innerHTML = data;
+    });
+</script>
 
 </body>
 </html>
