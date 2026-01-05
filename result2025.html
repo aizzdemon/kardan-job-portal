@@ -14,6 +14,20 @@
             color: #222;
         }
 
+        /* 🔹 FIXED NAVBAR WRAPPER */
+        #navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        /* 🔹 PUSH CONTENT BELOW NAVBAR */
+        .page-wrapper {
+            margin-top: 70px; /* height of navbar */
+        }
+
         .container {
             max-width: 900px;
             margin: 20px auto;
@@ -77,54 +91,57 @@
 </head>
 <body>
 
-<!-- 🔹 NAVBAR PLACEHOLDER -->
+<!-- 🔹 NAVBAR -->
 <div id="navbar"></div>
 
-<div class="container">
+<!-- 🔹 PAGE CONTENT -->
+<div class="page-wrapper">
+    <div class="container">
 
-    <h1>Bihar BSEB STET 2025 Result: Scorecard Released, Download Directly Here</h1>
+        <h1>Bihar BSEB STET 2025 Result: Scorecard Released, Download Directly Here</h1>
 
-    <p>
-        <b>Bihar STET 2025 Result:</b> The Bihar School Examination Board (BSEB) has released
-        the Secondary Teacher Eligibility Test (STET) 2025 result on January 5, 2026.
-        Scorecards for both Paper 1 and Paper 2 are available for download.
-    </p>
+        <p>
+            <b>Bihar STET 2025 Result:</b> The Bihar School Examination Board (BSEB) has released
+            the Secondary Teacher Eligibility Test (STET) 2025 result on January 5, 2026.
+            Scorecards for both Paper 1 and Paper 2 are available for download.
+        </p>
 
-    <a class="flash-btn"
-       href="https://cdn3.digialm.com//EForms/loginAction.do?subAction=ViewLoginPage&formId=95659&ERRORCODE=VmJXPk8qwAk1TUPKsSWTbpgLYeQWBiuS4JIZWY0ojzWxe%2Fv93HKllrkKZ4Cz8BpK&orgId=1631"
-       target="_blank">
-        🔔 Bihar BSEB STET 2025 Result Download Link
-    </a>
+        <a class="flash-btn"
+           href="https://cdn3.digialm.com//EForms/loginAction.do?subAction=ViewLoginPage&formId=95659"
+           target="_blank">
+            🔔 Bihar BSEB STET 2025 Result Download Link
+        </a>
 
-    <h2>How To Download Bihar BSEB STET 2025 Result?</h2>
-    <ul>
-        <li>Visit the official website <b>bsebstet.com</b></li>
-        <li>Log in using Registration Number, Date of Birth, and Captcha Code</li>
-        <li>Result and Scorecard will appear on the screen</li>
-        <li>Download and take a printout for future reference</li>
-    </ul>
+        <h2>How To Download Bihar BSEB STET 2025 Result?</h2>
+        <ul>
+            <li>Visit the official website <b>bsebstet.com</b></li>
+            <li>Log in using Registration Number, Date of Birth, and Captcha Code</li>
+            <li>Result and Scorecard will appear on the screen</li>
+            <li>Download and take a printout for future reference</li>
+        </ul>
 
-    <h2>Qualifying Marks</h2>
-    <table>
-        <tr>
-            <th>Category</th>
-            <th>Marks</th>
-        </tr>
-        <tr><td>General</td><td>50%</td></tr>
-        <tr><td>BC</td><td>45.5%</td></tr>
-        <tr><td>EWS</td><td>42.5%</td></tr>
-        <tr><td>SC / ST / PwD / Women</td><td>40%</td></tr>
-    </table>
+        <h2>Qualifying Marks</h2>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Marks</th>
+            </tr>
+            <tr><td>General</td><td>50%</td></tr>
+            <tr><td>BC</td><td>45.5%</td></tr>
+            <tr><td>EWS</td><td>42.5%</td></tr>
+            <tr><td>SC / ST / PwD / Women</td><td>40%</td></tr>
+        </table>
 
+    </div>
 </div>
 
-<!-- 🔹 LOAD NAVBAR FROM navbar.html -->
+<!-- 🔹 LOAD NAVBAR -->
 <script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(data => {
-      document.getElementById("navbar").innerHTML = data;
-    });
+fetch("navbar.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("navbar").innerHTML = data;
+  });
 </script>
 
 </body>
