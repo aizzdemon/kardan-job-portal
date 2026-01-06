@@ -22,7 +22,7 @@
 </div>
 
 <!-- ADMIN DASHBOARD -->
-<div id="adminDiv" class="hidden">
+<div id="adminDiv" class="hidden max-w-6xl mx-auto">
   <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
   <div class="flex gap-4 mb-6">
     <button onclick="showJobs()" class="bg-blue-600 text-white px-4 py-2 rounded">Jobs</button>
@@ -96,51 +96,55 @@ function showAdminPanel() {
 async function showJobs() {
   const content = document.getElementById("content");
   content.innerHTML = `
-    <input id="jobFilterEmail" type="text" placeholder="Filter by user email" class="p-2 border rounded mb-2"/>
-    <input id="jobFilterDate" type="date" class="p-2 border rounded mb-4"/>
-    <button onclick="loadJobs()" class="bg-blue-500 text-white px-3 py-1 rounded mb-4">Apply Filter</button>
-    <div id="jobsList"></div>
+    <div class="flex gap-2 flex-wrap mb-4">
+      <input id="jobFilterEmail" type="text" placeholder="Filter by user email" class="p-2 border rounded"/>
+      <input id="jobFilterDate" type="date" class="p-2 border rounded"/>
+      <button onclick="loadJobs()" class="bg-blue-500 text-white px-3 py-1 rounded">Apply Filter</button>
+    </div>
+    <div id="jobsList" class="space-y-2"></div>
   `;
   loadJobs();
 }
 
 async function loadJobs() {
-  const emailFilter = document.getElementById("jobFilterEmail")?.value || "";
+  const emailFilter = document.getElementById("jobFilterEmail")?.value.toLowerCase() || "";
   const dateFilter = document.getElementById("jobFilterDate")?.value || "";
 
-  const snap = await db.collection("jobs").orderBy("createdAt", "desc").get();
+  const snap = await db.collection("jobs").orderBy("timestamp","desc").get();
   const list = document.getElementById("jobsList");
   list.innerHTML = "";
 
   snap.forEach(doc => {
     const j = doc.data();
-    if ((emailFilter && j.userEmail?.includes(emailFilter) === false) ||
-        (dateFilter && j.createdAt?.toDate().toISOString().split("T")[0] !== dateFilter)) return;
+    const jobDate = j.timestamp?.toDate().toISOString().split("T")[0] || "";
+
+    if ((emailFilter && !j.userEmail?.toLowerCase().includes(emailFilter)) ||
+        (dateFilter && jobDate !== dateFilter)) return;
 
     list.innerHTML += `
-      <div class="bg-white p-4 rounded shadow mb-2">
+      <div class="bg-white p-4 rounded shadow">
         <p><b>Title:</b> ${j.title}</p>
         <p><b>Company:</b> ${j.company}</p>
         <p><b>User Email:</b> ${j.userEmail}</p>
-        <p><b>Status:</b> ${j.status}</p>
+        <p><b>Status:</b> <span class="${j.status==='approved'?'text-green-600':'text-yellow-600'}">${j.status}</span></p>
         <div class="flex gap-2 mt-2">
-          <button onclick="approveJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>
+          ${j.status !== 'approved' ? `<button onclick="approveJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>` : ''}
           <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
         </div>
       </div>`;
   });
 }
 
-async function approveJob(id) { 
-  await db.collection("jobs").doc(id).update({status:"approved"}); 
-  loadJobs(); 
+async function approveJob(id) {
+  await db.collection("jobs").doc(id).update({status:"approved"});
+  loadJobs();
 }
 
-async function deleteJob(id) { 
-  if(confirm("Delete job?")) { 
-    await db.collection("jobs").doc(id).delete(); 
-    loadJobs(); 
-  } 
+async function deleteJob(id) {
+  if(confirm("Delete job?")) {
+    await db.collection("jobs").doc(id).delete();
+    loadJobs();
+  }
 }
 
 /* ============================
@@ -149,9 +153,11 @@ async function deleteJob(id) {
 async function showUsers() {
   const content = document.getElementById("content");
   content.innerHTML = `
-    <input id="userSearch" type="text" placeholder="Search name/email/mobile" class="p-2 border rounded mb-2"/>
-    <button onclick="loadUsers()" class="bg-green-500 text-white px-3 py-1 rounded mb-4">Search</button>
-    <div id="usersList"></div>
+    <div class="flex gap-2 mb-4">
+      <input id="userSearch" type="text" placeholder="Search name/email/mobile" class="p-2 border rounded"/>
+      <button onclick="loadUsers()" class="bg-green-500 text-white px-3 py-1 rounded">Search</button>
+    </div>
+    <div id="usersList" class="space-y-2"></div>
   `;
   loadUsers();
 }
@@ -168,11 +174,11 @@ async function loadUsers() {
     if (search && !combined.includes(search)) return;
 
     list.innerHTML += `
-      <div class="bg-white p-4 rounded shadow mb-2">
+      <div class="bg-white p-4 rounded shadow">
         <p><b>Name:</b> ${u.name}</p>
         <p><b>Email:</b> ${u.email}</p>
-        <p><b>Role:</b> ${u.role}</p>
-        <p><b>Job Access:</b> ${u.jobPostAccess}</p>
+        <p><b>Role:</b> ${u.role || ''}</p>
+        <p><b>Job Access:</b> ${u.jobPostAccess || false}</p>
         <div class="flex gap-2 mt-2">
           <button onclick="viewUser('${doc.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">Details</button>
           <button onclick="enableJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Enable Job</button>
@@ -186,16 +192,16 @@ function viewUser(uid) {
   db.collection("users").doc(uid).get().then(d=>alert(JSON.stringify(d.data(),null,2)));
 }
 
-async function enableJob(uid) { 
-  await db.collection("users").doc(uid).update({role:"jobProvider",jobPostAccess:true}); 
-  loadUsers(); 
+async function enableJob(uid) {
+  await db.collection("users").doc(uid).update({role:"jobProvider",jobPostAccess:true});
+  loadUsers();
 }
 
-async function deleteUser(uid) { 
-  if(confirm("Delete user?")) { 
-    await db.collection("users").doc(uid).delete(); 
-    loadUsers(); 
-  } 
+async function deleteUser(uid) {
+  if(confirm("Delete user?")) {
+    await db.collection("users").doc(uid).delete();
+    loadUsers();
+  }
 }
 
 /* ============================
