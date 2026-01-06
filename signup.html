@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sign Up | BooterSpace</title>
 
-<!-- Firebase -->
+<!-- Firebase (COMPAT – matches your project) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -34,7 +34,6 @@ body {
   border-radius: 10px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
-h2 { margin-bottom: 10px; }
 button {
   width: 100%;
   padding: 10px;
@@ -55,61 +54,43 @@ input {
   border:1px solid #ccc;
 }
 .hidden { display:none }
-.or {
-  text-align:center;
-  margin:12px 0;
-  color:#777;
-}
-.note {
-  font-size: 12px;
-  color: #666;
-  margin-top: 8px;
-}
+.or { text-align:center; margin:12px 0; color:#777 }
+.note { font-size:12px; color:#666; margin-top:8px }
 </style>
 </head>
 
 <body>
 
-<!-- LOGO -->
 <div class="logo">
   <a href="index.html">BooterSpace</a>
 </div>
 
 <div class="container">
 
-  <!-- STEP 1: ROLE -->
+  <!-- ROLE SELECTION -->
   <div id="roleStep">
     <h2>Who are you?</h2>
-    <button class="role-btn" onclick="selectRole('jobSeeker')">
-      👤 I am a Job Seeker
-    </button>
-    <button class="role-btn" onclick="selectRole('jobProvider')">
-      🏢 I am a Job Provider
-    </button>
+    <button class="role-btn" onclick="selectRole('jobSeeker')">👤 Job Seeker</button>
+    <button class="role-btn" onclick="selectRole('jobProvider')">🏢 Job Provider</button>
   </div>
 
-  <!-- STEP 2: FORM -->
+  <!-- SIGNUP FORM -->
   <form id="signupForm" class="hidden">
     <h2 id="formTitle"></h2>
 
-    <!-- Common -->
     <input id="name" placeholder="Full Name" required />
-    <input id="email" type="email" placeholder="Email Address" required />
+    <input id="email" type="email" placeholder="Email" required />
     <input id="phone" placeholder="Phone Number" required />
     <input id="password" type="password" placeholder="Password" required />
 
-    <!-- Job Provider Only -->
     <input id="company" placeholder="Company Name (optional)" class="hidden" />
     <input id="gst" placeholder="GST Number (optional)" class="hidden" />
-    <input id="pan" placeholder="Company PAN Number (optional)" class="hidden" />
+    <input id="pan" placeholder="Company PAN (optional)" class="hidden" />
 
     <button class="primary">Create Account</button>
 
     <div class="or">OR</div>
-
-    <button type="button" class="google" onclick="googleSignup()">
-      Sign up with Google
-    </button>
+    <button type="button" class="google" onclick="googleSignup()">Sign up with Google</button>
 
     <p class="note" id="approvalNote"></p>
   </form>
@@ -117,7 +98,7 @@ input {
 </div>
 
 <script>
-/* 🔥 FIREBASE CONFIG */
+/* FIREBASE INIT */
 firebase.initializeApp({
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -132,23 +113,19 @@ let selectedRole = "";
 /* ROLE SELECT */
 function selectRole(role) {
   selectedRole = role;
-
   document.getElementById("roleStep").classList.add("hidden");
   document.getElementById("signupForm").classList.remove("hidden");
 
   document.getElementById("formTitle").innerText =
     role === "jobSeeker" ? "Job Seeker Sign Up" : "Job Provider Sign Up";
 
-  const providerFields = ["company", "gst", "pan"];
-  providerFields.forEach(id => {
-    document.getElementById(id).classList.toggle(
-      "hidden", role !== "jobProvider"
-    );
-  });
+  ["company","gst","pan"].forEach(id =>
+    document.getElementById(id).classList.toggle("hidden", role !== "jobProvider")
+  );
 
   document.getElementById("approvalNote").innerText =
     role === "jobProvider"
-      ? "⚠ Job posting access will be enabled after admin approval."
+      ? "⚠ Job posting will be enabled after admin approval."
       : "";
 }
 
@@ -156,19 +133,41 @@ function selectRole(role) {
 document.getElementById("signupForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const name = name.value.trim();
-  const email = email.value.trim();
-  const phone = phone.value.trim();
-  const password = password.value;
+  if (!selectedRole) {
+    alert("Please select a role first");
+    return;
+  }
 
-  const company = company.value.trim();
-  const gst = gst.value.trim();
-  const pan = pan.value.trim();
+  const nameVal = document.getElementById("name").value.trim();
+  const emailVal = document.getElementById("email").value.trim();
+  const phoneVal = document.getElementById("phone").value.trim();
+  const passwordVal = document.getElementById("password").value;
+
+  const companyVal = document.getElementById("company").value.trim();
+  const gstVal = document.getElementById("gst").value.trim();
+  const panVal = document.getElementById("pan").value.trim();
 
   try {
-    const cred = await auth.createUserWithEmailAndPassword(email, password);
-    await saveUser(cred.user, { name, phone, company, gst, pan });
+    const cred = await auth.createUserWithEmailAndPassword(emailVal, passwordVal);
+
+    await db.collection("users").doc(cred.user.uid).set({
+      name: nameVal,
+      email: emailVal,
+      phone: phoneVal,
+
+      role: selectedRole,
+      jobPostAccess: false,
+
+      company: selectedRole === "jobProvider" ? companyVal : "",
+      gstNumber: selectedRole === "jobProvider" ? gstVal : "",
+      companyPAN: selectedRole === "jobProvider" ? panVal : "",
+
+      photoURL: cred.user.photoURL || "",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
     window.location.href = "index.html";
+
   } catch (err) {
     alert(err.message);
   }
@@ -177,42 +176,29 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
 /* GOOGLE SIGNUP */
 async function googleSignup() {
   if (!selectedRole) {
-    alert("Please select your role first");
+    alert("Please select a role first");
     return;
   }
 
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
     const result = await auth.signInWithPopup(provider);
-    await saveUser(result.user, {
-      name: result.user.displayName,
+
+    await db.collection("users").doc(result.user.uid).set({
+      name: result.user.displayName || "",
+      email: result.user.email,
       phone: "",
-      company: "",
-      gst: "",
-      pan: ""
+      role: selectedRole,
+      jobPostAccess: false,
+      photoURL: result.user.photoURL || "",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
+
     window.location.href = "index.html";
+
   } catch (err) {
     alert(err.message);
   }
-}
-
-/* SAVE USER (GLOBAL ROLE LOGIC) */
-async function saveUser(user, extra) {
-  await db.collection("users").doc(user.uid).set({
-    name: extra.name,
-    email: user.email,
-    phone: extra.phone,
-
-    company: selectedRole === "jobProvider" ? extra.company : "",
-    gstNumber: selectedRole === "jobProvider" ? extra.gst : "",
-    companyPAN: selectedRole === "jobProvider" ? extra.pan : "",
-
-    role: selectedRole,          // jobSeeker | jobProvider
-    jobPostAccess: false,        // admin approval
-    photoURL: user.photoURL || "",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
 }
 </script>
 
