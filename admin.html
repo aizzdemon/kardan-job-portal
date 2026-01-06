@@ -33,18 +33,27 @@
 </div>
 
 <script>
-/* Firebase Init */
-firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID"
-});
+/* ============================
+   Firebase Init
+============================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+  measurementId: "G-RRC3X485KQ"
+};
 
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
-/* --------- LOGIN FUNCTION --------- */
+/* ============================
+   LOGIN FUNCTION
+============================ */
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -57,34 +66,38 @@ async function login() {
       await auth.signOut();
       return;
     }
-    document.getElementById("loginDiv").style.display = "none";
-    document.getElementById("adminDiv").classList.remove("hidden");
-    loadAdminUI();
+    showAdminPanel();
   } catch (err) {
     errorDiv.textContent = err.message;
   }
 }
 
-/* --------- CHECK AUTH ON LOAD --------- */
+/* ============================
+   AUTH STATE CHECK ON LOAD
+============================ */
 auth.onAuthStateChanged(user => {
   if (user && user.uid === ADMIN_UID) {
-    document.getElementById("loginDiv").style.display = "none";
-    document.getElementById("adminDiv").classList.remove("hidden");
-    loadAdminUI();
+    showAdminPanel();
   }
 });
 
-/* --------- LOAD ADMIN UI PLACEHOLDER --------- */
-function loadAdminUI() {
+/* ============================
+   SHOW ADMIN PANEL
+============================ */
+function showAdminPanel() {
+  document.getElementById("loginDiv").style.display = "none";
+  document.getElementById("adminDiv").classList.remove("hidden");
   document.getElementById("content").innerHTML = "<p>Select a button above to manage Jobs / Users / Providers</p>";
 }
 
-/* --------- SHOW JOBS WITH FILTERS --------- */
+/* ============================
+   JOBS SECTION
+============================ */
 async function showJobs() {
   const content = document.getElementById("content");
   content.innerHTML = `
     <input id="jobFilterEmail" type="text" placeholder="Filter by user email" class="p-2 border rounded mb-2"/>
-    <input id="jobFilterDate" type="date" id="dateFilter" class="p-2 border rounded mb-4"/>
+    <input id="jobFilterDate" type="date" class="p-2 border rounded mb-4"/>
     <button onclick="loadJobs()" class="bg-blue-500 text-white px-3 py-1 rounded mb-4">Apply Filter</button>
     <div id="jobsList"></div>
   `;
@@ -95,9 +108,7 @@ async function loadJobs() {
   const emailFilter = document.getElementById("jobFilterEmail")?.value || "";
   const dateFilter = document.getElementById("jobFilterDate")?.value || "";
 
-  let queryRef = db.collection("jobs").orderBy("createdAt", "desc");
-
-  const snap = await queryRef.get();
+  const snap = await db.collection("jobs").orderBy("createdAt", "desc").get();
   const list = document.getElementById("jobsList");
   list.innerHTML = "";
 
@@ -106,23 +117,35 @@ async function loadJobs() {
     if ((emailFilter && j.userEmail?.includes(emailFilter) === false) ||
         (dateFilter && j.createdAt?.toDate().toISOString().split("T")[0] !== dateFilter)) return;
 
-    list.innerHTML += `<div class="bg-white p-4 rounded shadow mb-2">
-      <p><b>Title:</b> ${j.title}</p>
-      <p><b>Company:</b> ${j.company}</p>
-      <p><b>User Email:</b> ${j.userEmail}</p>
-      <p><b>Status:</b> ${j.status}</p>
-      <div class="flex gap-2 mt-2">
-        <button onclick="approveJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>
-        <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-      </div>
-    </div>`;
+    list.innerHTML += `
+      <div class="bg-white p-4 rounded shadow mb-2">
+        <p><b>Title:</b> ${j.title}</p>
+        <p><b>Company:</b> ${j.company}</p>
+        <p><b>User Email:</b> ${j.userEmail}</p>
+        <p><b>Status:</b> ${j.status}</p>
+        <div class="flex gap-2 mt-2">
+          <button onclick="approveJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>
+          <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+        </div>
+      </div>`;
   });
 }
 
-async function approveJob(id){ await db.collection("jobs").doc(id).update({status:"approved"}); loadJobs(); }
-async function deleteJob(id){ if(confirm("Delete job?")){ await db.collection("jobs").doc(id).delete(); loadJobs(); } }
+async function approveJob(id) { 
+  await db.collection("jobs").doc(id).update({status:"approved"}); 
+  loadJobs(); 
+}
 
-/* --------- SHOW USERS WITH SEARCH --------- */
+async function deleteJob(id) { 
+  if(confirm("Delete job?")) { 
+    await db.collection("jobs").doc(id).delete(); 
+    loadJobs(); 
+  } 
+}
+
+/* ============================
+   USERS SECTION
+============================ */
 async function showUsers() {
   const content = document.getElementById("content");
   content.innerHTML = `
@@ -144,36 +167,52 @@ async function loadUsers() {
     const combined = `${u.name} ${u.email} ${u.mobile || ""}`.toLowerCase();
     if (search && !combined.includes(search)) return;
 
-    list.innerHTML += `<div class="bg-white p-4 rounded shadow mb-2">
-      <p><b>Name:</b> ${u.name}</p>
-      <p><b>Email:</b> ${u.email}</p>
-      <p><b>Role:</b> ${u.role}</p>
-      <p><b>Job Access:</b> ${u.jobPostAccess}</p>
-      <div class="flex gap-2 mt-2">
-        <button onclick="viewUser('${doc.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">Details</button>
-        <button onclick="enableJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Enable Job</button>
-        <button onclick="deleteUser('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-      </div>
-    </div>`;
+    list.innerHTML += `
+      <div class="bg-white p-4 rounded shadow mb-2">
+        <p><b>Name:</b> ${u.name}</p>
+        <p><b>Email:</b> ${u.email}</p>
+        <p><b>Role:</b> ${u.role}</p>
+        <p><b>Job Access:</b> ${u.jobPostAccess}</p>
+        <div class="flex gap-2 mt-2">
+          <button onclick="viewUser('${doc.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">Details</button>
+          <button onclick="enableJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Enable Job</button>
+          <button onclick="deleteUser('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+        </div>
+      </div>`;
   });
 }
 
-function viewUser(uid){ db.collection("users").doc(uid).get().then(d=>alert(JSON.stringify(d.data(),null,2))); }
-async function enableJob(uid){ await db.collection("users").doc(uid).update({role:"jobProvider",jobPostAccess:true}); loadUsers(); }
-async function deleteUser(uid){ if(confirm("Delete user?")){ await db.collection("users").doc(uid).delete(); loadUsers(); } }
+function viewUser(uid) {
+  db.collection("users").doc(uid).get().then(d=>alert(JSON.stringify(d.data(),null,2)));
+}
 
-/* --------- SHOW JOB PROVIDERS --------- */
+async function enableJob(uid) { 
+  await db.collection("users").doc(uid).update({role:"jobProvider",jobPostAccess:true}); 
+  loadUsers(); 
+}
+
+async function deleteUser(uid) { 
+  if(confirm("Delete user?")) { 
+    await db.collection("users").doc(uid).delete(); 
+    loadUsers(); 
+  } 
+}
+
+/* ============================
+   JOB PROVIDERS SECTION
+============================ */
 async function showProviders() {
   const content = document.getElementById("content");
   const snap = await db.collection("users").where("role","==","jobProvider").get();
   content.innerHTML = "<h2 class='text-xl font-bold mb-4'>Job Providers</h2>";
   snap.forEach(doc => {
     const u = doc.data();
-    content.innerHTML += `<div class="bg-white p-4 rounded shadow mb-2">
-      <p><b>Name:</b> ${u.name}</p>
-      <p><b>Email:</b> ${u.email}</p>
-      <p><b>Job Access:</b> ${u.jobPostAccess}</p>
-    </div>`;
+    content.innerHTML += `
+      <div class="bg-white p-4 rounded shadow mb-2">
+        <p><b>Name:</b> ${u.name}</p>
+        <p><b>Email:</b> ${u.email}</p>
+        <p><b>Job Access:</b> ${u.jobPostAccess}</p>
+      </div>`;
   });
 }
 </script>
