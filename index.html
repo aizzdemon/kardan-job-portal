@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BooterSpace - Job Portal</title>
+  <title>BooterSpace</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
     import { 
-      getFirestore,
-      collection,
-      query,
-      where,
-      orderBy,
-      limit,
-      getDocs
+      getFirestore, 
+      collection, 
+      query, 
+      where, 
+      orderBy, 
+      limit, 
+      getDocs 
     } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -33,152 +33,225 @@
     const db = getFirestore(app);
 
     window.addEventListener("DOMContentLoaded", async () => {
-
       const featuredContainer = document.getElementById("featured-jobs");
       const govtContainer = document.getElementById("govt-jobs");
       const latestContainer = document.getElementById("latest-updates");
 
-      /* ==========================
-          FEATURED JOBS (APPROVED)
-      =========================== */
+      // --- FEATURED JOBS (APPROVED) ---
       try {
         const featuredQuery = query(
           collection(db, "jobs"),
-          where("status", "==", "approved"), // 🔥 REQUIRED
+          where("status", "==", "approved"),
           orderBy("timestamp", "desc"),
           limit(10)
         );
 
         const featuredSnapshot = await getDocs(featuredQuery);
-
         if (featuredSnapshot.empty) {
-          featuredContainer.innerHTML =
-            `<p class="text-gray-500 text-sm">No featured jobs available</p>`;
-        }
+          featuredContainer.innerHTML = `<p class="text-gray-500 text-sm">No featured jobs available</p>`;
+        } else {
+          featuredSnapshot.forEach(doc => {
+            const job = doc.data();
+            const jobId = doc.id;
+            const logo = job.companyImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
 
-        featuredSnapshot.forEach(doc => {
-          const job = doc.data();
-          const jobId = doc.id;
-
-          const logo = job.companyImageUrl || "https://via.placeholder.com/80";
-
-          featuredContainer.innerHTML += `
-            <div class="bg-white p-4 rounded-lg shadow mb-4">
-              <div class="flex items-center space-x-3">
-                <img src="${logo}" class="w-12 h-12 object-contain rounded-md" />
-                <div>
-                  <h3 class="text-lg font-bold">${job.title}</h3>
-                  <p class="text-gray-600">${job.company || job.companyName || ""}</p>
-                  <p class="text-gray-500 text-sm">${job.location || ""}</p>
+            featuredContainer.innerHTML += `
+              <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow">
+                <div class="flex items-start space-x-4">
+                  <img src="${logo}" class="w-12 h-12 object-cover rounded-xl border border-gray-50" />
+                  <div class="flex-grow">
+                    <h3 class="text-md font-bold text-gray-900 leading-tight">${job.title}</h3>
+                    <p class="text-blue-600 text-sm font-medium">${job.company || ""}</p>
+                    <p class="text-gray-400 text-xs mt-1 flex items-center">
+                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                      ${job.location || "Remote"}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex space-x-2 mt-4">
+                  <a href="job-detail.html?id=${jobId}" class="flex-1 bg-gray-50 text-gray-700 text-center py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors">Details</a>
+                  <a href="job-detail.html?id=${jobId}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">Apply</a>
                 </div>
               </div>
-              <div class="flex space-x-2 mt-3">
-                <a href="job-detail.html?id=${jobId}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">View</a>
-                <a href="job-detail.html?id=${jobId}" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Apply</a>
-              </div>
+            `;
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        featuredContainer.innerHTML = `<p class="text-red-500 text-sm">Unable to load jobs</p>`;
+      }
+
+      // --- GOVT JOBS ---
+      try {
+        const govtQuery = query(collection(db, "govtJobs"), orderBy("timestamp", "desc"), limit(10));
+        const govtSnapshot = await getDocs(govtQuery);
+        
+        if (govtSnapshot.empty) {
+            govtContainer.innerHTML = `<p class="text-gray-500 text-sm">No government jobs available</p>`;
+        } else {
+            govtSnapshot.forEach(doc => {
+                const job = doc.data();
+                const jobId = doc.id;
+                const logo = job.companyImageUrl || "https://img.icons8.com/color/96/government-buildings.png";
+
+                govtContainer.innerHTML += `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-start space-x-4">
+                    <img src="${logo}" class="w-12 h-12 object-contain" />
+                    <div class="flex-grow">
+                        <h3 class="text-md font-bold text-gray-900 leading-tight">${job.title}</h3>
+                        <p class="text-orange-600 text-sm font-medium">${job.companyName || "Govt Sector"}</p>
+                    </div>
+                    </div>
+                    <div class="flex space-x-2 mt-4">
+                        <a href="job-detail.html?id=${jobId}" class="w-full bg-orange-50 text-orange-700 text-center py-2 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors">View Notification</a>
+                    </div>
+                </div>
+                `;
+            });
+        }
+      } catch (e) { console.error(e); }
+
+      // --- LATEST UPDATES (Flash Links) ---
+      try {
+        const latestQuery = query(collection(db, "flashLinks"), orderBy("timestamp", "desc"), limit(15));
+        const latestSnapshot = await getDocs(latestQuery);
+
+        latestSnapshot.forEach(doc => {
+          const item = doc.data();
+          latestContainer.innerHTML += `
+            <div class="group p-3 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors rounded-lg">
+              <a href="${item.url}" target="_blank" class="text-sm text-gray-800 font-semibold group-hover:text-blue-700 flex items-start">
+                <span class="mr-2">🔥</span>
+                <span>${item.title}</span>
+              </a>
+              <p class="text-[10px] text-gray-400 mt-1 ml-6 uppercase tracking-wider">
+                ${item.timestamp ? new Date(item.timestamp.toDate()).toLocaleDateString() : ""}
+              </p>
             </div>
           `;
         });
-
-      } catch (err) {
-        console.error("Featured jobs error:", err);
-        featuredContainer.innerHTML =
-          `<p class="text-red-500 text-sm">Unable to load jobs</p>`;
-      }
-
-      /* ==========================
-          GOVT JOBS (PUBLIC)
-      =========================== */
-      const govtQuery = query(
-        collection(db, "govtJobs"),
-        orderBy("timestamp", "desc")
-      );
-
-      const govtSnapshot = await getDocs(govtQuery);
-
-      govtSnapshot.forEach(doc => {
-        const job = doc.data();
-        const jobId = doc.id;
-
-        const logo = job.companyImageUrl || "https://via.placeholder.com/80";
-
-        govtContainer.innerHTML += `
-          <div class="bg-white p-4 rounded-lg shadow mb-4">
-            <div class="flex items-center space-x-3">
-              <img src="${logo}" class="w-12 h-12 object-contain rounded-md" />
-              <div>
-                <h3 class="text-lg font-bold">${job.title}</h3>
-                <p class="text-gray-600">${job.companyName}</p>
-                <p class="text-gray-500 text-sm">${job.location}</p>
-              </div>
-            </div>
-            <div class="flex space-x-2 mt-3">
-              <a href="job-detail.html?id=${jobId}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">View</a>
-              <a href="job-detail.html?id=${jobId}" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Apply</a>
-            </div>
-          </div>
-        `;
-      });
-
-      /* ==========================
-          LATEST UPDATES
-      =========================== */
-      const latestQuery = query(
-        collection(db, "flashLinks"),
-        orderBy("timestamp", "desc"),
-        limit(20)
-      );
-
-      const latestSnapshot = await getDocs(latestQuery);
-
-      latestSnapshot.forEach(doc => {
-        const item = doc.data();
-
-        latestContainer.innerHTML += `
-          <div class="p-3 bg-yellow-100 border border-yellow-300 rounded">
-            <a href="${item.url}" target="_blank" class="text-blue-700 font-semibold hover:underline">
-              🔥 ${item.title}
-            </a>
-            <p class="text-gray-600 text-xs mt-1">
-              ${item.timestamp ? new Date(item.timestamp.toDate()).toLocaleString() : ""}
-            </p>
-          </div>
-        `;
-      });
-
+      } catch (e) { console.error(e); }
     });
   </script>
+
+  <style>
+    body { background-color: #f8fafc; }
+    .latest-card { max-height: 80vh; overflow-y: auto; }
+    .latest-card::-webkit-scrollbar { width: 4px; }
+    .latest-card::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+  </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="font-sans antialiased text-gray-900">
 
-  <!-- Navbar -->
+  <!-- Navbar Placeholder -->
   <div id="navbar"></div>
   <script>
     fetch("navbar.html")
-      .then(res => res.text())
-      .then(html => document.getElementById("navbar").innerHTML = html);
+      .then(res => {
+        if (!res.ok) throw new Error("Navbar not found");
+        return res.text();
+      })
+      .then(html => {
+        document.getElementById("navbar").innerHTML = html;
+      })
+      .catch(err => {
+        console.warn("Using fallback navbar:", err);
+        document.getElementById("navbar").innerHTML = `
+          <nav class="bg-white border-b border-gray-200 p-4">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+              <div class="font-black text-blue-600 text-2xl tracking-tighter">KARDAN</div>
+              <div class="space-x-6 text-sm font-bold text-gray-600">
+                <a href="index.html" class="hover:text-blue-600">Home</a>
+                <a href="jobs.html" class="hover:text-blue-600">Jobs</a>
+                <a href="#" class="hover:text-blue-600">Contact</a>
+              </div>
+            </div>
+          </nav>
+        `;
+      });
   </script>
 
-  <!-- MAIN GRID -->
-  <div class="max-w-7xl mx-auto mt-6 grid md:grid-cols-3 gap-6 px-3 sm:px-4">
-
-    <div class="col-span-3 md:col-span-1">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4">Featured Jobs</h2>
-      <div id="featured-jobs"></div>
+  <!-- Hero Section -->
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 py-12 text-center">
+        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
+            Find your next <span class="text-blue-600">career move</span>
+        </h1>
+        <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+            Browse through private sector openings, government notifications, and the latest career updates in one place.
+        </p>
     </div>
+  </header>
 
-    <div class="col-span-3 md:col-span-1">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4">Govt Jobs</h2>
-      <div id="govt-jobs"></div>
+  <!-- Main Content Grid -->
+  <main class="max-w-7xl mx-auto py-8 px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left Column: Featured Jobs -->
+      <div class="lg:col-span-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-black text-gray-900 flex items-center">
+                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
+                Featured Jobs
+            </h2>
+            <a href="jobs.html" class="text-sm font-bold text-blue-600 hover:underline">See all</a>
+        </div>
+        <div id="featured-jobs" class="space-y-4">
+            <!-- Loader -->
+            <div class="animate-pulse flex space-x-4 p-4 bg-white rounded-xl">
+                <div class="rounded-xl bg-gray-200 h-12 w-12"></div>
+                <div class="flex-1 space-y-3 py-1">
+                    <div class="h-2 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-2 bg-gray-200 rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Center Column: Govt. Jobs Notification -->
+      <div class="lg:col-span-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-black text-gray-900 flex items-center">
+                <span class="w-2 h-8 bg-orange-500 rounded-full mr-3"></span>
+                Govt. Jobs Notification
+            </h2>
+            <a href="#" class="text-sm font-bold text-orange-600 hover:underline">See all</a>
+        </div>
+        <div id="govt-jobs" class="space-y-4">
+            <!-- Loader -->
+            <div class="animate-pulse flex space-x-4 p-4 bg-white rounded-xl">
+                <div class="rounded-xl bg-gray-200 h-12 w-12"></div>
+                <div class="flex-1 space-y-3 py-1">
+                    <div class="h-2 bg-gray-200 rounded w-3/4"></div>
+                    <div class="h-2 bg-gray-200 rounded w-1/2"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Latest Updates -->
+      <div class="lg:col-span-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-black text-gray-900 flex items-center">
+                <span class="w-2 h-8 bg-yellow-400 rounded-full mr-3"></span>
+                Latest Updates
+            </h2>
+        </div>
+        <div id="latest-updates" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 latest-card">
+            <!-- Links loaded here -->
+        </div>
+      </div>
+
     </div>
+  </main>
 
-    <div class="col-span-3 md:col-span-1">
-      <h2 class="text-xl sm:text-2xl font-bold mb-4">Latest Updates</h2>
-      <div id="latest-updates" class="space-y-3 bg-white p-4 rounded-lg shadow"></div>
-    </div>
-
-  </div>
+  <footer class="mt-20 border-t border-gray-200 bg-white py-12">
+      <div class="max-w-7xl mx-auto px-4 text-center">
+          <p class="text-gray-400 text-sm font-medium">© 2026 BooterSpace. Connecting talent with opportunity.</p>
+      </div>
+  </footer>
 
 </body>
 </html>
