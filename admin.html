@@ -5,7 +5,6 @@
 <title>Admin Dashboard – KARDAN</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
-
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -13,57 +12,171 @@
 </head>
 <body class="bg-gray-100 p-6">
 
-
-<h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
-
-
-<div class="flex gap-4 mb-6">
-<button onclick="showJobs()" class="bg-blue-600 text-white px-4 py-2 rounded">All Jobs</button>
-<button onclick="showUsers()" class="bg-green-600 text-white px-4 py-2 rounded">All Users</button>
+<!-- LOGIN FORM -->
+<div id="loginDiv" class="max-w-md mx-auto mt-20 bg-white p-6 rounded shadow">
+  <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+  <input id="email" type="email" placeholder="Email" class="w-full p-2 border mb-2 rounded"/>
+  <input id="password" type="password" placeholder="Password" class="w-full p-2 border mb-4 rounded"/>
+  <button onclick="login()" class="w-full bg-blue-600 text-white p-2 rounded">Login</button>
+  <p id="loginError" class="text-red-500 mt-2"></p>
 </div>
 
-
-<div id="content" class="space-y-4"></div>
-
+<!-- ADMIN DASHBOARD -->
+<div id="adminDiv" class="hidden">
+  <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
+  <div class="flex gap-4 mb-6">
+    <button onclick="showJobs()" class="bg-blue-600 text-white px-4 py-2 rounded">Jobs</button>
+    <button onclick="showUsers()" class="bg-green-600 text-white px-4 py-2 rounded">Users</button>
+    <button onclick="showProviders()" class="bg-purple-600 text-white px-4 py-2 rounded">Job Providers</button>
+  </div>
+  <div id="content" class="space-y-4"></div>
+</div>
 
 <script>
 /* Firebase Init */
 firebase.initializeApp({
-apiKey: "YOUR_API_KEY",
-authDomain: "YOUR_DOMAIN",
-projectId: "YOUR_PROJECT_ID"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
 });
-
 
 const auth = firebase.auth();
 const db = firebase.firestore();
-const ADMIN_UID = "YOUR_ADMIN_UID";
+const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
+/* --------- LOGIN FUNCTION --------- */
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorDiv = document.getElementById("loginError");
 
-/* Admin Guard */
-auth.onAuthStateChanged(user => {
-if (!user || user.uid !== ADMIN_UID) {
-alert("Access Denied");
-location.href = "login.html";
+  try {
+    const userCred = await auth.signInWithEmailAndPassword(email, password);
+    if (userCred.user.uid !== ADMIN_UID) {
+      errorDiv.textContent = "Access Denied. Not Admin!";
+      await auth.signOut();
+      return;
+    }
+    document.getElementById("loginDiv").style.display = "none";
+    document.getElementById("adminDiv").classList.remove("hidden");
+    loadAdminUI();
+  } catch (err) {
+    errorDiv.textContent = err.message;
+  }
 }
+
+/* --------- CHECK AUTH ON LOAD --------- */
+auth.onAuthStateChanged(user => {
+  if (user && user.uid === ADMIN_UID) {
+    document.getElementById("loginDiv").style.display = "none";
+    document.getElementById("adminDiv").classList.remove("hidden");
+    loadAdminUI();
+  }
 });
 
+/* --------- LOAD ADMIN UI PLACEHOLDER --------- */
+function loadAdminUI() {
+  document.getElementById("content").innerHTML = "<p>Select a button above to manage Jobs / Users / Providers</p>";
+}
 
-/* ---------------- JOBS ---------------- */
+/* --------- SHOW JOBS WITH FILTERS --------- */
 async function showJobs() {
-const c = document.getElementById("content");
-c.innerHTML = "";
+  const content = document.getElementById("content");
+  content.innerHTML = `
+    <input id="jobFilterEmail" type="text" placeholder="Filter by user email" class="p-2 border rounded mb-2"/>
+    <input id="jobFilterDate" type="date" id="dateFilter" class="p-2 border rounded mb-4"/>
+    <button onclick="loadJobs()" class="bg-blue-500 text-white px-3 py-1 rounded mb-4">Apply Filter</button>
+    <div id="jobsList"></div>
+  `;
+  loadJobs();
+}
 
+async function loadJobs() {
+  const emailFilter = document.getElementById("jobFilterEmail")?.value || "";
+  const dateFilter = document.getElementById("jobFilterDate")?.value || "";
 
-const snap = await db.collection("jobs").orderBy("createdAt", "desc").get();
+  let queryRef = db.collection("jobs").orderBy("createdAt", "desc");
 
+  const snap = await queryRef.get();
+  const list = document.getElementById("jobsList");
+  list.innerHTML = "";
 
-snap.forEach(doc => {
-const j = doc.data();
+  snap.forEach(doc => {
+    const j = doc.data();
+    if ((emailFilter && j.userEmail?.includes(emailFilter) === false) ||
+        (dateFilter && j.createdAt?.toDate().toISOString().split("T")[0] !== dateFilter)) return;
 
+    list.innerHTML += `<div class="bg-white p-4 rounded shadow mb-2">
+      <p><b>Title:</b> ${j.title}</p>
+      <p><b>Company:</b> ${j.company}</p>
+      <p><b>User Email:</b> ${j.userEmail}</p>
+      <p><b>Status:</b> ${j.status}</p>
+      <div class="flex gap-2 mt-2">
+        <button onclick="approveJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Approve</button>
+        <button onclick="deleteJob('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+      </div>
+    </div>`;
+  });
+}
 
-c.innerHTML += `
-<div class="bg-white p-4 rounded shadow">
-<h3 class="font-bold">${j.title}</h3>
-<p>${j.company}</p>
+async function approveJob(id){ await db.collection("jobs").doc(id).update({status:"approved"}); loadJobs(); }
+async function deleteJob(id){ if(confirm("Delete job?")){ await db.collection("jobs").doc(id).delete(); loadJobs(); } }
+
+/* --------- SHOW USERS WITH SEARCH --------- */
+async function showUsers() {
+  const content = document.getElementById("content");
+  content.innerHTML = `
+    <input id="userSearch" type="text" placeholder="Search name/email/mobile" class="p-2 border rounded mb-2"/>
+    <button onclick="loadUsers()" class="bg-green-500 text-white px-3 py-1 rounded mb-4">Search</button>
+    <div id="usersList"></div>
+  `;
+  loadUsers();
+}
+
+async function loadUsers() {
+  const search = document.getElementById("userSearch")?.value.toLowerCase() || "";
+  const snap = await db.collection("users").get();
+  const list = document.getElementById("usersList");
+  list.innerHTML = "";
+
+  snap.forEach(doc => {
+    const u = doc.data();
+    const combined = `${u.name} ${u.email} ${u.mobile || ""}`.toLowerCase();
+    if (search && !combined.includes(search)) return;
+
+    list.innerHTML += `<div class="bg-white p-4 rounded shadow mb-2">
+      <p><b>Name:</b> ${u.name}</p>
+      <p><b>Email:</b> ${u.email}</p>
+      <p><b>Role:</b> ${u.role}</p>
+      <p><b>Job Access:</b> ${u.jobPostAccess}</p>
+      <div class="flex gap-2 mt-2">
+        <button onclick="viewUser('${doc.id}')" class="bg-blue-500 text-white px-2 py-1 rounded">Details</button>
+        <button onclick="enableJob('${doc.id}')" class="bg-green-500 text-white px-2 py-1 rounded">Enable Job</button>
+        <button onclick="deleteUser('${doc.id}')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+      </div>
+    </div>`;
+  });
+}
+
+function viewUser(uid){ db.collection("users").doc(uid).get().then(d=>alert(JSON.stringify(d.data(),null,2))); }
+async function enableJob(uid){ await db.collection("users").doc(uid).update({role:"jobProvider",jobPostAccess:true}); loadUsers(); }
+async function deleteUser(uid){ if(confirm("Delete user?")){ await db.collection("users").doc(uid).delete(); loadUsers(); } }
+
+/* --------- SHOW JOB PROVIDERS --------- */
+async function showProviders() {
+  const content = document.getElementById("content");
+  const snap = await db.collection("users").where("role","==","jobProvider").get();
+  content.innerHTML = "<h2 class='text-xl font-bold mb-4'>Job Providers</h2>";
+  snap.forEach(doc => {
+    const u = doc.data();
+    content.innerHTML += `<div class="bg-white p-4 rounded shadow mb-2">
+      <p><b>Name:</b> ${u.name}</p>
+      <p><b>Email:</b> ${u.email}</p>
+      <p><b>Job Access:</b> ${u.jobPostAccess}</p>
+    </div>`;
+  });
+}
+</script>
+
+</body>
 </html>
