@@ -10,7 +10,13 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
     import { 
-      getFirestore, collection, query, orderBy, limit, getDocs 
+      getFirestore,
+      collection,
+      query,
+      where,
+      orderBy,
+      limit,
+      getDocs
     } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -32,47 +38,62 @@
       const govtContainer = document.getElementById("govt-jobs");
       const latestContainer = document.getElementById("latest-updates");
 
-      /* --------------------------
-          FEATURED JOBS
-      ----------------------------- */
-      const featuredQuery = query(
-        collection(db, "jobs"), 
-        orderBy("timestamp", "desc"), 
-        limit(10)
-      );
-      const featuredSnapshot = await getDocs(featuredQuery);
+      /* ==========================
+          FEATURED JOBS (APPROVED)
+      =========================== */
+      try {
+        const featuredQuery = query(
+          collection(db, "jobs"),
+          where("status", "==", "approved"), // 🔥 REQUIRED
+          orderBy("timestamp", "desc"),
+          limit(10)
+        );
 
-      featuredSnapshot.forEach(doc => {
-        const job = doc.data();
-        const jobId = doc.id;
+        const featuredSnapshot = await getDocs(featuredQuery);
 
-        const logo = job.companyImageUrl || "https://via.placeholder.com/80";
+        if (featuredSnapshot.empty) {
+          featuredContainer.innerHTML =
+            `<p class="text-gray-500 text-sm">No featured jobs available</p>`;
+        }
 
-        featuredContainer.innerHTML += `
-          <div class="bg-white p-4 rounded-lg shadow mb-4">
-            <div class="flex items-center space-x-3">
-              <img src="${logo}" class="w-12 h-12 object-contain rounded-md" />
-              <div>
-                <h3 class="text-lg font-bold">${job.title}</h3>
-                <p class="text-gray-600">${job.companyName}</p>
-                <p class="text-gray-500 text-sm">${job.location}</p>
+        featuredSnapshot.forEach(doc => {
+          const job = doc.data();
+          const jobId = doc.id;
+
+          const logo = job.companyImageUrl || "https://via.placeholder.com/80";
+
+          featuredContainer.innerHTML += `
+            <div class="bg-white p-4 rounded-lg shadow mb-4">
+              <div class="flex items-center space-x-3">
+                <img src="${logo}" class="w-12 h-12 object-contain rounded-md" />
+                <div>
+                  <h3 class="text-lg font-bold">${job.title}</h3>
+                  <p class="text-gray-600">${job.company || job.companyName || ""}</p>
+                  <p class="text-gray-500 text-sm">${job.location || ""}</p>
+                </div>
+              </div>
+              <div class="flex space-x-2 mt-3">
+                <a href="job-detail.html?id=${jobId}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">View</a>
+                <a href="job-detail.html?id=${jobId}" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Apply</a>
               </div>
             </div>
-            <div class="flex space-x-2 mt-3">
-              <a href="job-detail.html?id=${jobId}" class="bg-blue-500 text-white px-3 py-1 rounded text-sm">View</a>
-              <a href="job-detail.html?id=${jobId}" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Apply</a>
-            </div>
-          </div>
-        `;
-      });
+          `;
+        });
 
-      /* --------------------------
-          GOVT JOBS
-      ----------------------------- */
+      } catch (err) {
+        console.error("Featured jobs error:", err);
+        featuredContainer.innerHTML =
+          `<p class="text-red-500 text-sm">Unable to load jobs</p>`;
+      }
+
+      /* ==========================
+          GOVT JOBS (PUBLIC)
+      =========================== */
       const govtQuery = query(
         collection(db, "govtJobs"),
         orderBy("timestamp", "desc")
       );
+
       const govtSnapshot = await getDocs(govtQuery);
 
       govtSnapshot.forEach(doc => {
@@ -99,14 +120,15 @@
         `;
       });
 
-      /* --------------------------
+      /* ==========================
           LATEST UPDATES
-      ----------------------------- */
+      =========================== */
       const latestQuery = query(
         collection(db, "flashLinks"),
         orderBy("timestamp", "desc"),
         limit(20)
       );
+
       const latestSnapshot = await getDocs(latestQuery);
 
       latestSnapshot.forEach(doc => {
@@ -132,30 +154,26 @@
 
   <!-- Navbar -->
   <div id="navbar"></div>
-
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("navbar").innerHTML = html);
-</script>
+  <script>
+    fetch("navbar.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("navbar").innerHTML = html);
+  </script>
 
   <!-- MAIN GRID -->
   <div class="max-w-7xl mx-auto mt-6 grid md:grid-cols-3 gap-6 px-3 sm:px-4">
 
-    <!-- 1. FEATURED JOBS -->
-    <div class="col-span-3 md:col-span-1">  <!-- 📱 mobile full width -->
+    <div class="col-span-3 md:col-span-1">
       <h2 class="text-xl sm:text-2xl font-bold mb-4">Featured Jobs</h2>
       <div id="featured-jobs"></div>
     </div>
 
-    <!-- 2. GOVT JOBS -->
-    <div class="col-span-3 md:col-span-1">  <!-- 📱 mobile full width -->
+    <div class="col-span-3 md:col-span-1">
       <h2 class="text-xl sm:text-2xl font-bold mb-4">Govt Jobs</h2>
       <div id="govt-jobs"></div>
     </div>
 
-    <!-- 3. LATEST UPDATES -->
-    <div class="col-span-3 md:col-span-1">  <!-- 📱 mobile full width -->
+    <div class="col-span-3 md:col-span-1">
       <h2 class="text-xl sm:text-2xl font-bold mb-4">Latest Updates</h2>
       <div id="latest-updates" class="space-y-3 bg-white p-4 rounded-lg shadow"></div>
     </div>
@@ -164,5 +182,3 @@
 
 </body>
 </html>
-
-
