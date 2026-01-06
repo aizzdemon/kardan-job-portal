@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard – KARDAN</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body class="bg-gray-100 p-6">
+
+
+<h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
+
+
+<div class="flex gap-4 mb-6">
+<button onclick="showJobs()" class="bg-blue-600 text-white px-4 py-2 rounded">All Jobs</button>
+<button onclick="showUsers()" class="bg-green-600 text-white px-4 py-2 rounded">All Users</button>
+</div>
+
+
+<div id="content" class="space-y-4"></div>
+
+
+<script>
+/* Firebase Init */
+firebase.initializeApp({
+apiKey: "YOUR_API_KEY",
+authDomain: "YOUR_DOMAIN",
+projectId: "YOUR_PROJECT_ID"
+});
+
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const ADMIN_UID = "YOUR_ADMIN_UID";
+
+
+/* Admin Guard */
+auth.onAuthStateChanged(user => {
+if (!user || user.uid !== ADMIN_UID) {
+alert("Access Denied");
+location.href = "login.html";
+}
+});
+
+
+/* ---------------- JOBS ---------------- */
+async function showJobs() {
+const c = document.getElementById("content");
+c.innerHTML = "";
+
+
+const snap = await db.collection("jobs").orderBy("createdAt", "desc").get();
+
+
+snap.forEach(doc => {
+const j = doc.data();
+
+
+c.innerHTML += `
+<div class="bg-white p-4 rounded shadow">
+<h3 class="font-bold">${j.title}</h3>
+<p>${j.company}</p>
+</html>
