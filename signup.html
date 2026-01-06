@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sign Up - KARDAN</title>
+<title>Sign Up | BooterSpace</title>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -12,84 +12,108 @@
 
 <style>
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(to right, #f8f9fa, #e0f7fa);
   margin: 0;
 }
-.logo-text {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  font-size: 28px;
+.logo {
+  text-align: center;
+  margin-top: 25px;
+}
+.logo a {
+  font-size: 32px;
   font-weight: bold;
   color: #ff5733;
   text-decoration: none;
 }
-.vision-top {
-  max-width: 700px;
-  margin: 90px auto 10px;
-  padding: 20px;
-  background-color: #fff8f2;
-  border-left: 5px solid #ff5733;
-  border-radius: 10px;
-  text-align: center;
-}
 .container {
-  max-width: 400px;
-  margin: 20px auto;
-  padding: 20px;
+  max-width: 440px;
+  margin: 30px auto;
+  padding: 22px;
   background: white;
   border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
-input, select, button {
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
-}
+h2 { margin-bottom: 10px; }
 button {
-  background: #ff5733;
-  color: white;
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
   border: none;
+  border-radius: 5px;
   cursor: pointer;
+  font-size: 15px;
 }
-.google-signin {
-  background: #4285F4;
+.primary { background:#ff5733;color:white }
+.google { background:#4285F4;color:white }
+.role-btn { background:#f1f1f1 }
+input {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:5px;
+  border:1px solid #ccc;
+}
+.hidden { display:none }
+.or {
+  text-align:center;
+  margin:12px 0;
+  color:#777;
+}
+.note {
+  font-size: 12px;
+  color: #666;
+  margin-top: 8px;
 }
 </style>
 </head>
 
 <body>
 
-<a href="index.html" class="logo-text">KARDAN</a>
-
-<div class="vision-top">
-  <h2>Our Vision</h2>
-  <p>
-    At <strong>KARDAN</strong>, we provide trusted work-from-home jobs — all in one place.
-  </p>
+<!-- LOGO -->
+<div class="logo">
+  <a href="index.html">BooterSpace</a>
 </div>
 
 <div class="container">
-  <h2>Sign Up</h2>
 
-  <form id="signupForm">
-    <input id="name" type="text" placeholder="Full Name" required />
-    <input id="email" type="email" placeholder="Email" required />
-    <input id="mobile" type="tel" placeholder="Mobile Number" required />
-
-    <select id="gender" required>
-      <option value="">Select Gender</option>
-      <option value="male">Male</option>
-      <option value="female">Female</option>
-      <option value="other">Other</option>
-    </select>
-
-    <input id="password" type="password" placeholder="Password" required />
-    <button type="submit">Create Account</button>
-    <button type="button" id="googleBtn" class="google-signin">
-      Sign Up with Google
+  <!-- STEP 1: ROLE -->
+  <div id="roleStep">
+    <h2>Who are you?</h2>
+    <button class="role-btn" onclick="selectRole('jobSeeker')">
+      👤 I am a Job Seeker
     </button>
+    <button class="role-btn" onclick="selectRole('jobProvider')">
+      🏢 I am a Job Provider
+    </button>
+  </div>
+
+  <!-- STEP 2: FORM -->
+  <form id="signupForm" class="hidden">
+    <h2 id="formTitle"></h2>
+
+    <!-- Common -->
+    <input id="name" placeholder="Full Name" required />
+    <input id="email" type="email" placeholder="Email Address" required />
+    <input id="phone" placeholder="Phone Number" required />
+    <input id="password" type="password" placeholder="Password" required />
+
+    <!-- Job Provider Only -->
+    <input id="company" placeholder="Company Name (optional)" class="hidden" />
+    <input id="gst" placeholder="GST Number (optional)" class="hidden" />
+    <input id="pan" placeholder="Company PAN Number (optional)" class="hidden" />
+
+    <button class="primary">Create Account</button>
+
+    <div class="or">OR</div>
+
+    <button type="button" class="google" onclick="googleSignup()">
+      Sign up with Google
+    </button>
+
+    <p class="note" id="approvalNote"></p>
   </form>
+
 </div>
 
 <script>
@@ -97,77 +121,99 @@ button {
 firebase.initializeApp({
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  projectId: "kar-kardan"
 });
 
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* 🔐 EMAIL SIGNUP */
+let selectedRole = "";
+
+/* ROLE SELECT */
+function selectRole(role) {
+  selectedRole = role;
+
+  document.getElementById("roleStep").classList.add("hidden");
+  document.getElementById("signupForm").classList.remove("hidden");
+
+  document.getElementById("formTitle").innerText =
+    role === "jobSeeker" ? "Job Seeker Sign Up" : "Job Provider Sign Up";
+
+  const providerFields = ["company", "gst", "pan"];
+  providerFields.forEach(id => {
+    document.getElementById(id).classList.toggle(
+      "hidden", role !== "jobProvider"
+    );
+  });
+
+  document.getElementById("approvalNote").innerText =
+    role === "jobProvider"
+      ? "⚠ Job posting access will be enabled after admin approval."
+      : "";
+}
+
+/* EMAIL SIGNUP */
 document.getElementById("signupForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const name = name.value.trim();
-  const email = signupForm.email.value.trim();
-  const mobile = mobile.value.trim();
-  const gender = gender.value;
+  const email = email.value.trim();
+  const phone = phone.value.trim();
   const password = password.value;
+
+  const company = company.value.trim();
+  const gst = gst.value.trim();
+  const pan = pan.value.trim();
 
   try {
     const cred = await auth.createUserWithEmailAndPassword(email, password);
-    const user = cred.user;
-
-    await db.collection("users").doc(user.uid).set({
-      name,
-      username: name.replace(/\s+/g, "").toLowerCase(), // auto username
-      email,
-      mobile,
-      gender,
-
-      /* 🔑 SEARCH FIELDS */
-      nameLower: name.toLowerCase(),
-      usernameLower: name.replace(/\s+/g, "").toLowerCase(),
-      emailLower: email.toLowerCase(),
-
-      photoURL: "",
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    window.location.href = "dashboard.html";
+    await saveUser(cred.user, { name, phone, company, gst, pan });
+    window.location.href = "index.html";
   } catch (err) {
     alert(err.message);
   }
 });
 
-/* 🔐 GOOGLE SIGNUP */
-document.getElementById("googleBtn").onclick = async () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
+/* GOOGLE SIGNUP */
+async function googleSignup() {
+  if (!selectedRole) {
+    alert("Please select your role first");
+    return;
+  }
 
   try {
+    const provider = new firebase.auth.GoogleAuthProvider();
     const result = await auth.signInWithPopup(provider);
-    const user = result.user;
-
-    await db.collection("users").doc(user.uid).set({
-      name: user.displayName,
-      username: user.displayName.replace(/\s+/g, "").toLowerCase(),
-      email: user.email,
-
-      nameLower: user.displayName.toLowerCase(),
-      usernameLower: user.displayName.replace(/\s+/g, "").toLowerCase(),
-      emailLower: user.email.toLowerCase(),
-
-      photoURL: user.photoURL,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-
-    window.location.href = "dashboard.html";
+    await saveUser(result.user, {
+      name: result.user.displayName,
+      phone: "",
+      company: "",
+      gst: "",
+      pan: ""
+    });
+    window.location.href = "index.html";
   } catch (err) {
     alert(err.message);
   }
-};
+}
+
+/* SAVE USER (GLOBAL ROLE LOGIC) */
+async function saveUser(user, extra) {
+  await db.collection("users").doc(user.uid).set({
+    name: extra.name,
+    email: user.email,
+    phone: extra.phone,
+
+    company: selectedRole === "jobProvider" ? extra.company : "",
+    gstNumber: selectedRole === "jobProvider" ? extra.gst : "",
+    companyPAN: selectedRole === "jobProvider" ? extra.pan : "",
+
+    role: selectedRole,          // jobSeeker | jobProvider
+    jobPostAccess: false,        // admin approval
+    photoURL: user.photoURL || "",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+}
 </script>
 
 </body>
