@@ -13,156 +13,152 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
 <style>
-/* ===== NAV BUTTON STYLE ===== */
-.nav-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: #64748b;
-    transition: all 0.3s ease;
-    position: relative;
+.nav-link{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:700;
+  color:#64748b;
+  transition:.25s;
 }
-
-.nav-link svg,
-.nav-link img {
-    transition: all 0.3s ease;
+.nav-link.active{
+  color:#2563eb;
 }
-
-/* Floating hover effect */
-.nav-link:hover {
-    color: #2563eb;
-    transform: translateY(-3px);
+.nav-link.active svg{
+  stroke:url(#grad);
 }
-
-.nav-link:hover svg,
-.nav-link:hover img {
-    transform: scale(1.1);
-}
-
-/* Glow shadow */
-.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    width: 28px;
-    height: 4px;
-    background: #2563eb;
-    border-radius: 999px;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.nav-link:hover::after {
-    opacity: 1;
-}
-
-/* Active feel */
-.nav-link.active {
-    color: #2563eb;
-}
+.nav-link:hover{color:#2563eb}
 </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-100 dark:bg-gray-900 transition">
+
+<!-- SVG GRADIENT -->
+<svg width="0" height="0">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#9333ea"/>
+    </linearGradient>
+  </defs>
+</svg>
 
 <!-- NAVBAR -->
-<nav class="bg-white/90 backdrop-blur border-b sticky top-0 z-50 shadow-sm">
+<nav class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-between items-center h-16">
 
       <!-- LOGO -->
-      <a href="index.html" class="flex items-center gap-2 group">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-        </div>
-        <span class="text-xl font-bold tracking-tight">BooterSpace</span>
+      <a href="index.html" class="flex items-center gap-2 font-bold text-lg dark:text-white">
+        ⚡ BooterSpace
       </a>
 
-      <!-- NAV LINKS -->
-      <div class="flex items-center gap-10">
-
-        <a href="index.html" class="nav-link">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 12l9-9 9 9M4 10v10h5v-5h6v5h5V10"/>
-          </svg>
-          <span>Home</span>
+      <!-- DESKTOP -->
+      <div class="hidden md:flex items-center gap-6">
+        <a href="index.html" class="nav-link" data-link>🏠 Home</a>
+        <a href="jobs.html" class="nav-link" data-link>💼 Jobs</a>
+        <a href="govt.html" class="nav-link" data-link>🏛 Govt</a>
+        <a href="result2025.html" class="nav-link" data-link>📄 Result</a>
+        <a href="profile.html" class="nav-link flex items-center gap-2" data-link>
+          <img id="avatar" class="w-7 h-7 rounded-full border" />
+          Profile
         </a>
 
-        <a href="jobs.html" class="nav-link">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745"/>
-          </svg>
-          <span>Jobs</span>
-        </a>
+        <a href="dashboard.html" id="dashboardBtn" class="nav-link hidden" data-link>📊 Dashboard</a>
 
-        <a href="govt.html" class="nav-link">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 8c-1.657 0-3 1.343-3 3v1h6v-1c0-1.657-1.343-3-3-3zM5 12h14v8H5z"/>
-          </svg>
-          <span>Govt Job</span>
-        </a>
+        <!-- DARK MODE -->
+        <button id="darkToggle" class="nav-link">🌙</button>
 
-        <a href="result2025.html" class="nav-link">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/>
-          </svg>
-          <span>Result</span>
-        </a>
-
-        <a href="profile.html" class="nav-link">
-          <img class="w-8 h-8 rounded-full shadow-md"
-               src="https://api.dicebear.com/7.x/bottts/svg?seed=Booter" />
-          <span>Profile</span>
-        </a>
-
-        <!-- DASHBOARD (JOB PROVIDER ONLY) -->
-        <a href="dashboard.html" id="dashboardBtn" class="nav-link hidden">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 14h7v7H3z"/>
-          </svg>
-          <span>Dashboard</span>
-        </a>
-
+        <!-- LOGOUT -->
+        <button id="logoutBtn" class="nav-link hidden text-red-500">🚪 Logout</button>
       </div>
+
+      <!-- MOBILE -->
+      <button id="menuBtn" class="md:hidden text-xl">☰</button>
     </div>
+  </div>
+
+  <!-- MOBILE MENU -->
+  <div id="mobileMenu" class="hidden md:hidden px-4 py-3 space-y-3 bg-white dark:bg-gray-800">
+    <a href="index.html" class="nav-link" data-link>🏠 Home</a>
+    <a href="jobs.html" class="nav-link" data-link>💼 Jobs</a>
+    <a href="govt.html" class="nav-link" data-link>🏛 Govt</a>
+    <a href="result2025.html" class="nav-link" data-link>📄 Result</a>
+    <a href="profile.html" class="nav-link" data-link>👤 Profile</a>
+    <a href="dashboard.html" id="dashboardMobile" class="nav-link hidden" data-link>📊 Dashboard</a>
+    <button id="logoutMobile" class="nav-link hidden text-red-500">🚪 Logout</button>
+    <button id="darkToggleMobile" class="nav-link">🌙 Dark Mode</button>
   </div>
 </nav>
 
+<!-- TOAST -->
+<div id="toast" class="hidden fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow z-50">
+  Logging out...
+</div>
+
 <script>
-/* ===== FIREBASE ROLE CHECK ===== */
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+/* FIREBASE */
+firebase.initializeApp({
+  apiKey: "AIzaSyBeGZBE1u1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
   projectId: "kar-kardan"
-};
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
+});
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-auth.onAuthStateChanged(async user => {
-  if (!user) return;
+/* ELEMENTS */
+const logoutBtn = document.getElementById('logoutBtn');
+const logoutMobile = document.getElementById('logoutMobile');
+const dashboardBtn = document.getElementById('dashboardBtn');
+const dashboardMobile = document.getElementById('dashboardMobile');
+const avatar = document.getElementById('avatar');
+const toast = document.getElementById('toast');
+const menuBtn = document.getElementById('menuBtn');
+const mobileMenu = document.getElementById('mobileMenu');
 
-  const doc = await db.collection('users').doc(user.uid).get();
-  if (doc.exists && doc.data().role === 'job_provider') {
-    document.getElementById('dashboardBtn').classList.remove('hidden');
+/* MOBILE */
+menuBtn.onclick = () => mobileMenu.classList.toggle('hidden');
+
+/* ACTIVE LINK */
+document.querySelectorAll('[data-link]').forEach(link=>{
+  if (window.location.pathname.includes(link.getAttribute('href'))) {
+    link.classList.add('active');
   }
 });
+
+/* AUTH */
+auth.onAuthStateChanged(async user=>{
+  if(!user) return;
+
+  logoutBtn.classList.remove('hidden');
+  logoutMobile.classList.remove('hidden');
+
+  avatar.src = user.photoURL || "https://api.dicebear.com/7.x/initials/svg?seed=User";
+
+  const doc = await db.collection('users').doc(user.uid).get();
+  if(doc.exists && doc.data().role === 'job_provider'){
+    dashboardBtn.classList.remove('hidden');
+    dashboardMobile.classList.remove('hidden');
+  }
+});
+
+/* LOGOUT TOAST */
+function logout(){
+  toast.classList.remove('hidden');
+  auth.signOut().then(()=>{
+    setTimeout(()=>location.href="index.html",1200);
+  });
+}
+logoutBtn.onclick = logoutMobile.onclick = logout;
+
+/* DARK MODE */
+const toggleDark = ()=>{
+  document.documentElement.classList.toggle('dark');
+  localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+};
+darkToggle.onclick = darkToggleMobile.onclick = toggleDark;
+if(localStorage.theme==='dark') document.documentElement.classList.add('dark');
 </script>
 
 </body>
