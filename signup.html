@@ -46,12 +46,14 @@ button {
 .primary { background:#ff5733;color:white }
 .google { background:#4285F4;color:white }
 .role-btn { background:#f1f1f1 }
-input {
+input, select {
   width:100%;
   padding:10px;
   margin-top:10px;
   border-radius:5px;
   border:1px solid #ccc;
+  box-sizing: border-box; /* Ensures padding doesn't break width */
+  background-color: white;
 }
 .hidden { display:none }
 .or { text-align:center; margin:12px 0; color:#777 }
@@ -81,8 +83,18 @@ input {
     <input id="name" placeholder="Full Name" required />
     <input id="email" type="email" placeholder="Email" required />
     <input id="phone" placeholder="Phone Number" required />
+    
+    <!-- Gender Selection (For Job Seekers) -->
+    <select id="gender" class="hidden">
+      <option value="" disabled selected>Select Gender</option>
+      <option value="Male">Male</option>
+      <option value="Female">Female</option>
+      <option value="Others">Others</option>
+    </select>
+
     <input id="password" type="password" placeholder="Password" required />
 
+    <!-- Job Provider Fields -->
     <input id="company" placeholder="Company Name (optional)" class="hidden" />
     <input id="gst" placeholder="GST Number (optional)" class="hidden" />
     <input id="pan" placeholder="Company PAN (optional)" class="hidden" />
@@ -119,10 +131,15 @@ function selectRole(role) {
   document.getElementById("formTitle").innerText =
     role === "jobSeeker" ? "Job Seeker Sign Up" : "Job Provider Sign Up";
 
+  // Toggle Provider Fields
   ["company","gst","pan"].forEach(id =>
     document.getElementById(id).classList.toggle("hidden", role !== "jobProvider")
   );
 
+  // Toggle Seeker Fields (Gender)
+  document.getElementById("gender").classList.toggle("hidden", role !== "jobSeeker");
+  // If showing gender, make it required via JS validation logic or keep optional
+  
   document.getElementById("approvalNote").innerText =
     role === "jobProvider"
       ? "⚠ Job posting will be enabled after admin approval."
@@ -142,10 +159,17 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
   const emailVal = document.getElementById("email").value.trim();
   const phoneVal = document.getElementById("phone").value.trim();
   const passwordVal = document.getElementById("password").value;
+  const genderVal = document.getElementById("gender").value;
 
   const companyVal = document.getElementById("company").value.trim();
   const gstVal = document.getElementById("gst").value.trim();
   const panVal = document.getElementById("pan").value.trim();
+
+  // Validate Gender if Job Seeker
+  if (selectedRole === 'jobSeeker' && !genderVal) {
+    alert("Please select your gender.");
+    return;
+  }
 
   try {
     const cred = await auth.createUserWithEmailAndPassword(emailVal, passwordVal);
@@ -158,6 +182,10 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
       role: selectedRole,
       jobPostAccess: false,
 
+      // Save Gender only for Job Seekers
+      gender: selectedRole === "jobSeeker" ? genderVal : "",
+
+      // Save Company details only for Job Providers
       company: selectedRole === "jobProvider" ? companyVal : "",
       gstNumber: selectedRole === "jobProvider" ? gstVal : "",
       companyPAN: selectedRole === "jobProvider" ? panVal : "",
@@ -184,15 +212,19 @@ async function googleSignup() {
     const provider = new firebase.auth.GoogleAuthProvider();
     const result = await auth.signInWithPopup(provider);
 
+    // Note: Google signup skips the form, so gender won't be collected here immediately.
+    // You would typically redirect them to a "Complete Profile" page afterwards.
+    
     await db.collection("users").doc(result.user.uid).set({
       name: result.user.displayName || "",
       email: result.user.email,
       phone: "",
       role: selectedRole,
       jobPostAccess: false,
+      gender: "", // Default empty since we didn't ask
       photoURL: result.user.photoURL || "",
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    }, { merge: true }); // merge: true prevents overwriting if they already exist
 
     window.location.href = "index.html";
 
