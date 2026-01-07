@@ -3,20 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BooterSpace | Job Portal</title>
+<title>BooterSpace Navbar</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
 <style>
+/* ===== NAV BUTTON STYLE ===== */
 .nav-link {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 2px;
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     color: #64748b;
+    transition: all 0.3s ease;
+    position: relative;
 }
+
+.nav-link svg,
+.nav-link img {
+    transition: all 0.3s ease;
+}
+
+/* Floating hover effect */
 .nav-link:hover {
+    color: #2563eb;
+    transform: translateY(-3px);
+}
+
+.nav-link:hover svg,
+.nav-link:hover img {
+    transform: scale(1.1);
+}
+
+/* Glow shadow */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    width: 28px;
+    height: 4px;
+    background: #2563eb;
+    border-radius: 999px;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.nav-link:hover::after {
+    opacity: 1;
+}
+
+/* Active feel */
+.nav-link.active {
     color: #2563eb;
 }
 </style>
@@ -25,23 +70,23 @@
 <body class="bg-gray-50">
 
 <!-- NAVBAR -->
-<nav class="bg-white/90 backdrop-blur border-b sticky top-0 z-50">
+<nav class="bg-white/90 backdrop-blur border-b sticky top-0 z-50 shadow-sm">
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-between items-center h-16">
 
       <!-- LOGO -->
-      <a href="index.html" class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+      <a href="index.html" class="flex items-center gap-2 group">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
         </div>
-        <span class="text-xl font-bold">BooterSpace</span>
+        <span class="text-xl font-bold tracking-tight">BooterSpace</span>
       </a>
 
       <!-- NAV LINKS -->
-      <div class="flex items-center gap-8">
+      <div class="flex items-center gap-10">
 
         <a href="index.html" class="nav-link">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +109,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 8c-1.657 0-3 1.343-3 3v1h6v-1c0-1.657-1.343-3-3-3zM5 12h14v8H5z"/>
           </svg>
-          <span>Govt. Job</span>
+          <span>Govt Job</span>
         </a>
 
         <a href="result2025.html" class="nav-link">
@@ -76,12 +121,13 @@
         </a>
 
         <a href="profile.html" class="nav-link">
-          <img class="w-8 h-8 rounded-full"
-            src="https://api.dicebear.com/7.x/bottts/svg?seed=Booter" />
+          <img class="w-8 h-8 rounded-full shadow-md"
+               src="https://api.dicebear.com/7.x/bottts/svg?seed=Booter" />
           <span>Profile</span>
         </a>
-          
-        <a href="dashboard.html" class="nav-link">
+
+        <!-- DASHBOARD (JOB PROVIDER ONLY) -->
+        <a href="dashboard.html" id="dashboardBtn" class="nav-link hidden">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h7v7H3zM14 3h7v4h-7zM14 10h7v11h-7zM3 14h7v7H3z"/>
@@ -93,6 +139,31 @@
     </div>
   </div>
 </nav>
+
+<script>
+/* ===== FIREBASE ROLE CHECK ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return;
+
+  const doc = await db.collection('users').doc(user.uid).get();
+  if (doc.exists && doc.data().role === 'job_provider') {
+    document.getElementById('dashboardBtn').classList.remove('hidden');
+  }
+});
+</script>
 
 </body>
 </html>
