@@ -56,27 +56,27 @@
             <div class="flex justify-between items-center h-16">
 
                 <!-- LOGO -->
-                <a href="#" class="flex items-center gap-2 font-bold text-xl text-slate-800 hover:text-blue-600 transition">
+                <a href="index.html" class="flex items-center gap-2 font-bold text-xl text-slate-800 hover:text-blue-600 transition">
                     <i class="ph-fill ph-rocket-launch text-2xl text-blue-600"></i> BooterSpace
                 </a>
 
                 <!-- DESKTOP MENU -->
                 <div class="hidden md:flex items-center gap-7">
-                    <a href="#" class="nav-link active" data-link>
+                    <a href="index.html" class="nav-link" data-link>
                         <i class="ph-fill ph-house text-blue-500"></i> Home
                     </a>
-                    <a href="#" class="nav-link" data-link>
+                    <a href="jobs.html" class="nav-link" data-link>
                         <i class="ph-fill ph-briefcase text-orange-500"></i> Jobs
                     </a>
-                    <a href="#" class="nav-link" data-link>
+                    <a href="govt.html" class="nav-link" data-link>
                         <i class="ph-fill ph-bank text-emerald-600"></i> Govt
                     </a>
-                    <a href="#" class="nav-link" data-link>
+                    <a href="result.html" class="nav-link" data-link>
                         <i class="ph-fill ph-file-text text-purple-500"></i> Result
                     </a>
 
                     <!-- PROFILE SECTION (UNTOUCHED) -->
-                    <a href="#" class="nav-link gap-2 group" data-link>
+                    <a href="profile.html" class="nav-link gap-2 group" data-link>
                         <div class="relative">
                             <img id="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=guest"
                                 class="w-9 h-9 rounded-full border border-gray-200 object-cover group-hover:border-blue-500 transition">
@@ -85,7 +85,7 @@
                         <span id="profileText">Profile</span>
                     </a>
 
-                    <a href="#" id="dashboardBtn" class="nav-link hidden" data-link>
+                    <a href="dashboard.html" id="dashboardBtn" class="nav-link hidden" data-link>
                         <i class="ph-fill ph-chart-pie-slice text-indigo-500"></i> Dashboard
                     </a>
 
@@ -107,23 +107,23 @@
 
         <!-- MOBILE MENU -->
         <div id="mobileMenu" class="hidden md:hidden px-4 py-4 space-y-4 bg-white border-t">
-            <a href="#" class="nav-link active" data-link>
+            <a href="index.html" class="nav-link" data-link>
                 <i class="ph-fill ph-house text-blue-500"></i> Home
             </a>
-            <a href="#" class="nav-link" data-link>
+            <a href="jobs.html" class="nav-link" data-link>
                 <i class="ph-fill ph-briefcase text-orange-500"></i> Jobs
             </a>
-            <a href="#" class="nav-link" data-link>
+            <a href="govt.html" class="nav-link" data-link>
                 <i class="ph-fill ph-bank text-emerald-600"></i> Govt
             </a>
-            <a href="#" class="nav-link" data-link>
+            <a href="result.html" class="nav-link" data-link>
                 <i class="ph-fill ph-file-text text-purple-500"></i> Result
             </a>
-            <a href="#" class="nav-link" data-link>
+            <a href="profile.html" class="nav-link" data-link>
                 <i class="ph ph-user"></i> Profile
             </a>
 
-            <a href="#" id="dashboardMobile" class="nav-link hidden" data-link>
+            <a href="dashboard.html" id="dashboardMobile" class="nav-link hidden" data-link>
                 <i class="ph-fill ph-chart-pie-slice text-indigo-500"></i> Dashboard
             </a>
 
@@ -185,12 +185,12 @@
         /* --- UI INTERACTIONS --- */
         menuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
 
-        /* Active Link Highlighter */
+        /* Active Link Highlighter Logic */
+        const currentPath = window.location.pathname.split("/").pop() || "index.html";
         document.querySelectorAll("[data-link]").forEach(link => {
-            link.addEventListener('click', (e) => {
-                document.querySelectorAll("[data-link]").forEach(l => l.classList.remove("active"));
-                e.target.closest('[data-link]').classList.add("active");
-            });
+            if (link.getAttribute("href") === currentPath) {
+                link.classList.add("active");
+            }
         });
 
         /* --- AUTH LOGIC --- */
@@ -253,6 +253,7 @@
             await auth.signOut();
             setTimeout(() => {
                 toast.classList.add("hidden");
+                location.href = "index.html";
             }, 1200);
         }
 
