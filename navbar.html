@@ -16,114 +16,117 @@
 .nav-link{
   display:flex;
   align-items:center;
-  gap:6px;
-  font-size:12px;
+  gap:8px;
+  font-size:14px;        /* ⬅️ ICON & TEXT BIGGER */
   font-weight:700;
   color:#64748b;
   transition:.25s;
 }
-.nav-link.active{
-  color:#2563eb;
-}
-.nav-link.active svg{
-  stroke:url(#grad);
-}
+.nav-link.active{color:#2563eb}
 .nav-link:hover{color:#2563eb}
 </style>
 </head>
 
-<body class="bg-gray-100 dark:bg-gray-900 transition">
-
-<!-- SVG GRADIENT -->
-<svg width="0" height="0">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="100%" stop-color="#9333ea"/>
-    </linearGradient>
-  </defs>
-</svg>
+<body class="bg-gray-100">
 
 <!-- NAVBAR -->
-<nav class="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-50">
+<nav class="bg-white border-b sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-between items-center h-16">
 
       <!-- LOGO -->
-      <a href="index.html" class="flex items-center gap-2 font-bold text-lg dark:text-white">
-        ⚡ BooterSpace
+      <a href="index.html" class="flex items-center gap-2 font-bold text-xl">
+        🚀 BooterSpace
       </a>
 
-      <!-- DESKTOP -->
-      <div class="hidden md:flex items-center gap-6">
+      <!-- DESKTOP MENU -->
+      <div class="hidden md:flex items-center gap-7">
         <a href="index.html" class="nav-link" data-link>🏠 Home</a>
         <a href="jobs.html" class="nav-link" data-link>💼 Jobs</a>
         <a href="govt.html" class="nav-link" data-link>🏛 Govt</a>
         <a href="result2025.html" class="nav-link" data-link>📄 Result</a>
-        <a href="profile.html" class="nav-link flex items-center gap-2" data-link>
-          <img id="avatar" class="w-7 h-7 rounded-full border" />
+
+        <!-- PROFILE -->
+        <a href="profile.html" class="nav-link gap-2" data-link>
+          <img id="avatar"
+               class="w-9 h-9 rounded-full border border-gray-300 object-cover">
           Profile
         </a>
 
-        <a href="dashboard.html" id="dashboardBtn" class="nav-link hidden" data-link>📊 Dashboard</a>
+        <a href="dashboard.html" id="dashboardBtn"
+           class="nav-link hidden" data-link>
+          📊 Dashboard
+        </a>
 
-        <!-- DARK MODE -->
-        <button id="darkToggle" class="nav-link">🌙</button>
-
-        <!-- LOGOUT -->
-        <button id="logoutBtn" class="nav-link hidden text-red-500">🚪 Logout</button>
+        <button id="logoutBtn"
+                class="nav-link hidden text-red-500">
+          🚪 Logout
+        </button>
       </div>
 
-      <!-- MOBILE -->
-      <button id="menuBtn" class="md:hidden text-xl">☰</button>
+      <!-- MOBILE BTN -->
+      <button id="menuBtn" class="md:hidden text-2xl">☰</button>
     </div>
   </div>
 
   <!-- MOBILE MENU -->
-  <div id="mobileMenu" class="hidden md:hidden px-4 py-3 space-y-3 bg-white dark:bg-gray-800">
+  <div id="mobileMenu"
+       class="hidden md:hidden px-4 py-4 space-y-4 bg-white border-t">
     <a href="index.html" class="nav-link" data-link>🏠 Home</a>
     <a href="jobs.html" class="nav-link" data-link>💼 Jobs</a>
     <a href="govt.html" class="nav-link" data-link>🏛 Govt</a>
     <a href="result2025.html" class="nav-link" data-link>📄 Result</a>
     <a href="profile.html" class="nav-link" data-link>👤 Profile</a>
-    <a href="dashboard.html" id="dashboardMobile" class="nav-link hidden" data-link>📊 Dashboard</a>
-    <button id="logoutMobile" class="nav-link hidden text-red-500">🚪 Logout</button>
-    <button id="darkToggleMobile" class="nav-link">🌙 Dark Mode</button>
+
+    <a href="dashboard.html" id="dashboardMobile"
+       class="nav-link hidden" data-link>
+      📊 Dashboard
+    </a>
+
+    <button id="logoutMobile"
+            class="nav-link hidden text-red-500">
+      🚪 Logout
+    </button>
   </div>
 </nav>
 
-<!-- TOAST -->
-<div id="toast" class="hidden fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow z-50">
+<!-- LOGOUT TOAST -->
+<div id="toast"
+     class="hidden fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow z-50">
   Logging out...
 </div>
 
 <script>
-/* FIREBASE */
+/* FIREBASE INIT */
 firebase.initializeApp({
   apiKey: "AIzaSyBeGZBE1u1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
   projectId: "kar-kardan"
 });
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 /* ELEMENTS */
-const logoutBtn = document.getElementById('logoutBtn');
-const logoutMobile = document.getElementById('logoutMobile');
-const dashboardBtn = document.getElementById('dashboardBtn');
-const dashboardMobile = document.getElementById('dashboardMobile');
-const avatar = document.getElementById('avatar');
-const toast = document.getElementById('toast');
-const menuBtn = document.getElementById('menuBtn');
-const mobileMenu = document.getElementById('mobileMenu');
+const avatar = document.getElementById("avatar");
+const dashboardBtn = document.getElementById("dashboardBtn");
+const dashboardMobile = document.getElementById("dashboardMobile");
+const logoutBtn = document.getElementById("logoutBtn");
+const logoutMobile = document.getElementById("logoutMobile");
+const menuBtn = document.getElementById("menuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+const toast = document.getElementById("toast");
 
-/* MOBILE */
-menuBtn.onclick = () => mobileMenu.classList.toggle('hidden');
+const DEFAULT_AVATAR =
+  "https://api.dicebear.com/7.x/bottts/svg?seed=q1ywn";
+
+/* MOBILE MENU */
+menuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
 
 /* ACTIVE LINK */
-document.querySelectorAll('[data-link]').forEach(link=>{
-  if (window.location.pathname.includes(link.getAttribute('href'))) {
-    link.classList.add('active');
+document.querySelectorAll("[data-link]").forEach(link=>{
+  if(location.pathname.includes(link.getAttribute("href"))){
+    link.classList.add("active");
   }
 });
 
@@ -131,34 +134,35 @@ document.querySelectorAll('[data-link]').forEach(link=>{
 auth.onAuthStateChanged(async user=>{
   if(!user) return;
 
-  logoutBtn.classList.remove('hidden');
-  logoutMobile.classList.remove('hidden');
+  logoutBtn.classList.remove("hidden");
+  logoutMobile.classList.remove("hidden");
 
-  avatar.src = user.photoURL || "https://api.dicebear.com/7.x/initials/svg?seed=User";
+  try{
+    const doc = await db.collection("users").doc(user.uid).get();
+    if(doc.exists){
+      const data = doc.data();
+      avatar.src = data.photoURL || DEFAULT_AVATAR;
 
-  const doc = await db.collection('users').doc(user.uid).get();
-  if(doc.exists && doc.data().role === 'job_provider'){
-    dashboardBtn.classList.remove('hidden');
-    dashboardMobile.classList.remove('hidden');
+      if(data.role === "job_provider"){
+        dashboardBtn.classList.remove("hidden");
+        dashboardMobile.classList.remove("hidden");
+      }
+    }else{
+      avatar.src = DEFAULT_AVATAR;
+    }
+  }catch(e){
+    avatar.src = DEFAULT_AVATAR;
   }
 });
 
-/* LOGOUT TOAST */
+/* LOGOUT */
 function logout(){
-  toast.classList.remove('hidden');
+  toast.classList.remove("hidden");
   auth.signOut().then(()=>{
     setTimeout(()=>location.href="index.html",1200);
   });
 }
 logoutBtn.onclick = logoutMobile.onclick = logout;
-
-/* DARK MODE */
-const toggleDark = ()=>{
-  document.documentElement.classList.toggle('dark');
-  localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-};
-darkToggle.onclick = darkToggleMobile.onclick = toggleDark;
-if(localStorage.theme==='dark') document.documentElement.classList.add('dark');
 </script>
 
 </body>
