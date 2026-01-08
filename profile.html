@@ -1,227 +1,327 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>User Profile - KARDAN</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>User Profile - KARDAN</title>
 
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 
-  <!-- Lucide Icons (REQUIRED for navbar) -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- Firebase (Compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Firebase (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* Hide content by default until auth check passes */
+        body { visibility: hidden; }
+        .auth-checked body { visibility: visible; }
+
+        .avatar-option {
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .avatar-option:hover {
+            transform: scale(1.1);
+        }
+        .avatar-option.selected {
+            border: 3px solid #3b82f6;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- ========== NAVBAR COMPONENT ========== -->
-  <div id="navbar"></div>
+    <!-- ========== NAVBAR COMPONENT ========== -->
+    <div id="navbar"></div>
 
-<script>
-  fetch("navbar.html")
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById("navbar").innerHTML = html;
-      lucide.createIcons(); // VERY IMPORTANT
-    })
-    .catch(err => console.error("Navbar load error:", err));
-</script>
+    <script>
+        const navbarPlaceholder = document.getElementById("navbar");
+        if (navbarPlaceholder) {
+            navbarPlaceholder.innerHTML = `
+                <nav class="bg-white shadow-sm p-4 mb-6 border-b">
+                    <div class="max-w-6xl mx-auto flex justify-between items-center">
+                        <h1 class="text-2xl font-bold text-blue-600">KARDAN</h1>
+                        <div class="flex gap-4">
+                            <a href="index.html" class="text-gray-600 hover:text-blue-600">Home</a>
+                            <button id="logoutBtn" class="text-red-500 hover:text-red-700">Logout</button>
+                        </div>
+                    </div>
+                </nav>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    </script>
 
-  <!-- ========== MAIN PROFILE ========== -->
-  <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- ========== MAIN PROFILE ========== -->
+    <main class="max-w-4xl mx-auto p-6">
+        <div class="bg-white p-8 rounded-xl shadow-md mb-6">
+            <div class="flex flex-col md:flex-row items-center gap-6 mb-8 border-b pb-6">
+                <!-- Profile Image Display -->
+                <div class="relative group">
+                    <img id="profilePic" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" 
+                         alt="Profile" class="w-24 h-24 rounded-full object-cover border-4 border-blue-50 bg-blue-50">
+                    <button onclick="toggleEditModal(true)" class="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-lg hover:bg-blue-700 transition">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div class="text-center md:text-left">
+                    <h2 id="displayName" class="text-2xl font-bold text-gray-800 italic">Loading Name...</h2>
+                    <p id="userEmail" class="text-gray-500"></p>
+                </div>
+            </div>
 
-    <!-- USER INFO -->
-    <div class="bg-white p-6 rounded shadow">
-      <h2 class="text-xl font-bold mb-4">User Info</h2>
-      <p id="userEmail" class="text-gray-700"></p>
-    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3">
+                    <i data-lucide="graduation-cap" class="text-blue-500"></i>
+                    <div>
+                        <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Education</h3>
+                        <p id="displayEducation" class="text-gray-700 font-medium">Not specified</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3">
+                    <i data-lucide="briefcase" class="text-blue-500"></i>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Experience Level</h3>
+                        <p id="displayExperience" class="text-gray-700 font-medium">Not specified</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3">
+                    <i data-lucide="calendar" class="text-blue-500"></i>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Date of Birth</h3>
+                        <p id="displayDOB" class="text-gray-700 font-medium">Not specified</p>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3">
+                    <i data-lucide="fingerprint" class="text-blue-500"></i>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Account ID</h3>
+                        <span id="userIdDisplay" class="text-xs text-gray-400 font-mono"></span>
+                    </div>
+                </div>
+            </div>
 
-    <!-- RIGHT SIDE -->
-    <div class="md:col-span-2 flex flex-col gap-6">
-
-      <!-- QUICK ACTIONS -->
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="text-xl font-bold mb-4">Quick Actions</h2>
-        <div class="flex flex-wrap gap-4">
-          <a href="post-job.html" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow">
-            + Post a Job
-          </a>
-          <a href="post-book.html" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow">
-            + Post a Book
-          </a>
-          <a href="post-place.html" class="bg-purple-500 text-white px-4 py-2 rounded-lg shadow">
-            + Post a Place
-          </a>
+            <div class="flex gap-4">
+                <button onclick="toggleEditModal(true)" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Profile
+                </button>
+                <button id="mainLogoutBtn" class="border border-red-200 text-red-500 px-6 py-2 rounded-lg hover:bg-red-50 transition">
+                    Sign Out
+                </button>
+            </div>
         </div>
-      </div>
+    </main>
 
-      <!-- POSTED JOBS -->
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="text-xl font-bold mb-4">Your Posted Jobs</h2>
-        <ul id="jobsList" class="space-y-4"></ul>
-      </div>
+    <!-- ========== EDIT PROFILE MODAL ========== -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-y-auto max-h-[90vh]">
+            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                <h2 class="text-xl font-bold">Edit Profile Details</h2>
+                <button onclick="toggleEditModal(false)" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <form id="profileForm" class="p-6 space-y-4">
+                <!-- Avatar Selection Section -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Clip Art Avatar</label>
+                    <div id="avatarGrid" class="grid grid-cols-4 gap-3 mb-3">
+                        <!-- DiceBear Avatars will be injected here -->
+                    </div>
+                    <div class="text-center mb-4">
+                        <button type="button" onclick="generateAvatars()" class="text-xs text-blue-600 hover:underline">
+                            Refresh Avatars
+                        </button>
+                    </div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Or Custom Image URL</label>
+                    <input type="url" id="editAvatarUrl" class="w-full p-2 border rounded-lg text-sm" placeholder="https://example.com/image.png">
+                </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="editName" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="John Doe">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                    <input type="date" id="editDOB" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Highest Education</label>
+                        <select id="editEducation" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Select</option>
+                            <option>High School</option>
+                            <option>Associate Degree</option>
+                            <option>Bachelor's Degree</option>
+                            <option>Master's Degree</option>
+                            <option>PhD / Doctorate</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Experience</label>
+                        <select id="editExperience" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Select</option>
+                            <option>Fresher</option>
+                            <option>Junior (1-2Y)</option>
+                            <option>Mid (3-5Y)</option>
+                            <option>Senior (5-10Y)</option>
+                            <option>Executive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold transition">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-  </main>
 
-  <!-- ========== EDIT JOB POPUP ========== -->
-  <div id="editPopup"
-    class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <!-- ========== PROFILE SCRIPT ========== -->
+    <script>
+        // Firebase Init
+        if (!firebase.apps.length) {
+            firebase.initializeApp({
+                apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+                authDomain: "kar-kardan.firebaseapp.com",
+                projectId: "kar-kardan",
+                storageBucket: "kar-kardan.firebasestorage.app",
+                messagingSenderId: "554147696994",
+                appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+            });
+        }
 
-    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-      <button id="closePopup"
-        class="absolute top-3 right-3 text-gray-500 text-2xl">&times;</button>
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-      <h2 class="text-xl font-bold mb-4 text-center">Edit Job</h2>
+        // UI References
+        const displayFields = {
+            name: document.getElementById("displayName"),
+            email: document.getElementById("userEmail"),
+            edu: document.getElementById("displayEducation"),
+            exp: document.getElementById("displayExperience"),
+            dob: document.getElementById("displayDOB"),
+            uid: document.getElementById("userIdDisplay"),
+            pic: document.getElementById("profilePic")
+        };
 
-      <form id="editJobForm" class="space-y-3">
-        <input type="hidden" id="editJobId">
+        const editModal = document.getElementById("editModal");
+        const profileForm = document.getElementById("profileForm");
+        const avatarGrid = document.getElementById("avatarGrid");
+        const editAvatarInput = document.getElementById("editAvatarUrl");
 
-        <input id="editJobTitle" class="w-full p-2 border rounded" placeholder="Job Title" required>
-        <input id="editCompanyName" class="w-full p-2 border rounded" placeholder="Company">
-        <input id="editJobLocation" class="w-full p-2 border rounded" placeholder="Location">
-        <input id="editSalary" class="w-full p-2 border rounded" placeholder="Salary">
+        let selectedAvatarUrl = "";
 
-        <select id="editJobType" class="w-full p-2 border rounded">
-          <option>Full-Time</option>
-          <option>Part-Time</option>
-          <option>Internship</option>
-          <option>Contract</option>
-        </select>
+        // AUTH CHECK (GUARD)
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                // If not logged in, redirect to login page immediately
+                window.location.href = "login.html";
+                return;
+            }
+            
+            // User is authenticated, reveal content and load data
+            document.documentElement.classList.add("auth-checked");
+            
+            displayFields.email.textContent = user.email;
+            displayFields.uid.textContent = "UID: " + user.uid;
+            fetchUserProfile(user.uid);
+        });
 
-        <textarea id="editDescription" class="w-full p-2 border rounded" placeholder="Description"></textarea>
-        <input id="editJobApplyLink" class="w-full p-2 border rounded" placeholder="Apply Link">
-        <input id="editCompanyLogo" class="w-full p-2 border rounded" placeholder="Company Logo URL">
+        async function fetchUserProfile(uid) {
+            try {
+                const doc = await db.collection("users").doc(uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    displayFields.name.textContent = data.fullName || "New User";
+                    displayFields.edu.textContent = data.education || "Not specified";
+                    displayFields.exp.textContent = data.experience || "Not specified";
+                    displayFields.dob.textContent = data.dob || "Not specified";
+                    if (data.photoURL) displayFields.pic.src = data.photoURL;
 
-        <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">
-          Update Job
-        </button>
-      </form>
-    </div>
-  </div>
+                    // Fill form
+                    document.getElementById("editName").value = data.fullName || "";
+                    document.getElementById("editEducation").value = data.education || "";
+                    document.getElementById("editExperience").value = data.experience || "";
+                    document.getElementById("editDOB").value = data.dob || "";
+                    editAvatarInput.value = data.photoURL || "";
+                    selectedAvatarUrl = data.photoURL || "";
+                }
+            } catch (error) { console.error("Error fetching profile:", error); }
+        }
 
-  <!-- ========== PROFILE SCRIPT ========== -->
-  <script>
-    // Firebase Init (safe check)
-    if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-        authDomain: "kar-kardan.firebaseapp.com",
-        projectId: "kar-kardan",
-        storageBucket: "kar-kardan.firebasestorage.app",
-        messagingSenderId: "554147696994",
-        appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-      });
-    }
+        // Clip Art Generation (DiceBear API)
+        function generateAvatars() {
+            avatarGrid.innerHTML = "";
+            const styles = ['bottts', 'avataaars', 'pixel-art', 'lorelei'];
+            
+            for (let i = 0; i < 8; i++) {
+                const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+                const seed = Math.random().toString(36).substring(7);
+                const url = `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${seed}`;
+                
+                const img = document.createElement("img");
+                img.src = url;
+                img.className = "w-full h-12 rounded-lg bg-gray-100 p-1 avatar-option border-2 border-transparent";
+                img.onclick = () => {
+                    document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+                    img.classList.add('selected');
+                    selectedAvatarUrl = url;
+                    editAvatarInput.value = url;
+                };
+                avatarGrid.appendChild(img);
+            }
+        }
 
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+        function toggleEditModal(show) {
+            if (show) {
+                editModal.classList.remove("hidden");
+                generateAvatars();
+            } else {
+                editModal.classList.add("hidden");
+            }
+        }
 
-    const jobsList = document.getElementById("jobsList");
-    const editPopup = document.getElementById("editPopup");
-    const closePopup = document.getElementById("closePopup");
-    const editJobForm = document.getElementById("editJobForm");
+        // SAVE PROFILE
+        profileForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
 
-    let currentUid = null;
+            const finalPhotoUrl = editAvatarInput.value || selectedAvatarUrl;
 
-    // AUTH CHECK
-    auth.onAuthStateChanged(user => {
-      if (!user) return location.href = "login.html";
-      currentUid = user.uid;
-      document.getElementById("userEmail").textContent =
-        "Logged in as: " + user.email;
-      loadJobs();
-    });
+            const profileData = {
+                fullName: document.getElementById("editName").value,
+                education: document.getElementById("editEducation").value,
+                experience: document.getElementById("editExperience").value,
+                dob: document.getElementById("editDOB").value,
+                photoURL: finalPhotoUrl,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
 
-    // LOAD JOBS
-    async function loadJobs() {
-      jobsList.innerHTML = "";
-      const snap = await db.collection("jobs")
-        .where("uid", "==", currentUid)
-        .orderBy("timestamp", "desc")
-        .get();
+            try {
+                await db.collection("users").doc(user.uid).set(profileData, { merge: true });
+                toggleEditModal(false);
+                fetchUserProfile(user.uid);
+            } catch (error) {
+                alert("Error updating profile: " + error.message);
+            }
+        };
 
-      if (snap.empty) {
-        jobsList.innerHTML = "<p>No jobs posted yet.</p>";
-        return;
-      }
+        const handleLogout = () => auth.signOut().then(() => window.location.href = "login.html");
+        document.getElementById("logoutBtn")?.addEventListener('click', handleLogout);
+        document.getElementById("mainLogoutBtn")?.addEventListener('click', handleLogout);
 
-      snap.forEach(doc => {
-        const j = doc.data();
-        const li = document.createElement("li");
-        li.className = "p-4 border rounded flex justify-between";
-        li.innerHTML = `
-          <div>
-            <h3 class="font-bold">${j.title || "Untitled"}</h3>
-            <p class="text-sm">${j.companyName || ""} ${j.location || ""}</p>
-          </div>
-          <div class="flex gap-2">
-            <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded"
-              data-id="${doc.id}">Edit</button>
-            <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded"
-              data-id="${doc.id}">Delete</button>
-          </div>
-        `;
-        jobsList.appendChild(li);
-      });
-    }
-
-    // CLICK HANDLERS
-    jobsList.onclick = e => {
-      if (e.target.classList.contains("edit-btn"))
-        openEdit(e.target.dataset.id);
-      if (e.target.classList.contains("delete-btn"))
-        deleteJob(e.target.dataset.id);
-    };
-
-    async function deleteJob(id) {
-      await db.collection("jobs").doc(id).delete();
-      loadJobs();
-    }
-
-    function openEdit(id) {
-      db.collection("jobs").doc(id).get().then(d => {
-        const j = d.data();
-        editJobId.value = id;
-        editJobTitle.value = j.title || "";
-        editCompanyName.value = j.companyName || "";
-        editJobLocation.value = j.location || "";
-        editSalary.value = j.salary || "";
-        editJobType.value = j.type || "Full-Time";
-        editDescription.value = j.description || "";
-        editJobApplyLink.value = j.applyLink || "";
-        editCompanyLogo.value = j.companyLogo || "";
-        editPopup.classList.remove("hidden");
-      });
-    }
-
-    closePopup.onclick = () => editPopup.classList.add("hidden");
-
-    editJobForm.onsubmit = async e => {
-      e.preventDefault();
-      await db.collection("jobs").doc(editJobId.value).update({
-        title: editJobTitle.value,
-        companyName: editCompanyName.value,
-        location: editJobLocation.value,
-        salary: editSalary.value,
-        type: editJobType.value,
-        description: editJobTitle.value,
-        applyLink: editJobApplyLink.value,
-        companyLogo: editCompanyLogo.value,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      editPopup.classList.add("hidden");
-      loadJobs();
-    };
-  </script>
-
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    </script>
 </body>
 </html>
-
-
-
