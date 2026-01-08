@@ -3,628 +3,421 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>User Profile - BooterSpace</title>
-
-    <!-- Tailwind CSS -->
+    <title>User Profile - KARDAN</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Firebase (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        .avatar-option {
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .avatar-option:hover {
-            transform: scale(1.1);
-        }
-        .avatar-option.selected {
-            border: 3px solid #3b82f6;
-        }
+        .avatar-option { cursor: pointer; transition: all 0.2s ease; border: 3px solid transparent; }
+        .avatar-option:hover { transform: scale(1.05); border-color: #bfdbfe; }
+        .avatar-option.selected { border-color: #3b82f6; background-color: #eff6ff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        #searchDropdown { max-height: 300px; overflow-y: auto; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
+        
+        #avatarGallery::-webkit-scrollbar { width: 6px; }
+        #avatarGallery::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #avatarGallery::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        #avatarGallery::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        #searchDropdown {
-            max-height: 300px;
+        .modal-scroll-area {
             overflow-y: auto;
-        }
-
-        #searchDropdown::-webkit-scrollbar {
-            width: 6px;
-        }
-        #searchDropdown::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
-
-        .loading-shimmer {
-            background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
+            max-height: calc(95vh - 130px);
         }
     </style>
 </head>
-
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- ========== NAVBAR COMPONENT ========== -->
     <div id="navbar"></div>
 
-    <script>
-        const navbarPlaceholder = document.getElementById("navbar");
-        if (navbarPlaceholder) {
-            navbarPlaceholder.innerHTML = `
-                <nav class="bg-white shadow-sm p-4 mb-6 border-b sticky top-0 z-40">
-                    <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4">
-                        <div class="flex items-center gap-6">
-                            <h1 onclick="showView('profile')" class="text-2xl font-bold text-blue-600 cursor-pointer tracking-tight">BooterSpace</h1>
-                            
-                            <!-- Search Column with Button -->
-                            <div class="relative flex items-center gap-2">
-                                <div class="relative w-64 md:w-80">
-                                    <div class="relative">
-                                        <input type="text" id="userSearchInput" 
-                                            placeholder="Search users..." 
-                                            class="w-full bg-gray-100 border-none rounded-full py-2 pl-10 pr-10 focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
-                                        <i data-lucide="search" class="absolute left-3 top-2.5 w-4 h-4 text-gray-400"></i>
-                                        <button id="clearSearchBtn" class="absolute right-3 top-2.5 hidden hover:text-red-500">
-                                            <i data-lucide="x" class="w-4 h-4 text-gray-400"></i>
-                                        </button>
-                                    </div>
-                                    <!-- Realtime Suggestions Dropdown -->
-                                    <div id="searchDropdown" class="hidden absolute top-full left-0 w-full bg-white mt-2 rounded-xl shadow-2xl border border-gray-100 py-2 z-50">
-                                        <div id="searchResultsDropdownList"></div>
-                                    </div>
-                                </div>
-                                <button id="headerSearchBtn" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition shadow-sm active:scale-95">
-                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-4">
-                            <button onclick="showView('profile')" class="text-gray-600 hover:text-blue-600 font-medium flex items-center gap-1">
-                                <i data-lucide="home" class="w-4 h-4"></i> Home
-                            </button>
-                        </div>
-                    </div>
-                </nav>
-            `;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-    </script>
-
-    <!-- ========== MAIN CONTENT ========== -->
     <main class="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Left Column: Switchable Views -->
         <div class="lg:col-span-2 space-y-6">
-            
-            <!-- VIEW: USER PROFILE -->
-            <div id="profileView" class="bg-white p-8 rounded-xl shadow-md border border-gray-50">
+            <!-- Profile Header Card -->
+            <div id="profileView" class="bg-white p-8 rounded-xl shadow-md">
                 <div class="flex flex-col md:flex-row items-center gap-6 mb-8 border-b pb-6">
                     <div class="relative group">
-                        <img id="profilePic" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" 
-                             alt="Profile" class="w-24 h-24 rounded-full object-cover border-4 border-blue-50 bg-blue-50 shadow-inner">
-                        <button onclick="toggleEditModal(true)" class="absolute bottom-0 right-0 bg-blue-600 text-white p-1.5 rounded-full shadow-lg hover:bg-blue-700 transition transform hover:scale-110">
-                            <i data-lucide="camera" class="w-4 h-4"></i>
+                        <img id="profilePic" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" class="w-32 h-32 rounded-full object-cover border-4 border-blue-50 bg-gray-50 shadow-inner">
+                        <button onclick="toggleEditModal(true)" class="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition">
+                            <i data-lucide="camera" class="w-5 h-5"></i>
                         </button>
                     </div>
-                    
                     <div class="text-center md:text-left">
-                        <h2 id="displayName" class="text-2xl font-bold text-gray-800 italic">Guest User</h2>
-                        <p id="userEmail" class="text-gray-500 italic">guest@kardan.com</p>
-                        <div class="mt-2 flex flex-wrap justify-center md:justify-start gap-2">
-                             <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded">Pro Member</span>
-                             <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded">Active</span>
+                        <h2 id="displayName" class="text-3xl font-bold text-gray-800 italic">Loading...</h2>
+                        <div class="flex flex-col gap-1 mt-2">
+                            <div class="flex items-center justify-center md:justify-start gap-2 text-gray-500">
+                                <i data-lucide="mail" class="w-4 h-4 text-blue-400"></i>
+                                <span id="displayEmail" class="text-sm">---</span>
+                            </div>
+                            <div class="flex items-center justify-center md:justify-start gap-2 text-gray-400">
+                                <i data-lucide="fingerprint" class="w-4 h-4 text-blue-300"></i>
+                                <span id="displayAccountId" class="text-[10px] font-mono tracking-wider uppercase">---</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-
+                
+                <!-- Info Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3 transition hover:bg-white hover:shadow-sm">
+                    <div class="p-4 bg-gray-50 rounded-lg border flex items-center gap-3">
                         <i data-lucide="graduation-cap" class="text-blue-500"></i>
-                        <div>
-                            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Education</h3>
-                            <p id="displayEducation" class="text-gray-700 font-medium">Not specified</p>
-                        </div>
+                        <div><h3 class="text-xs font-semibold text-gray-400 uppercase tracking-tighter">Education</h3><p id="displayEducation" class="text-gray-700 font-medium">---</p></div>
                     </div>
-                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3 transition hover:bg-white hover:shadow-sm">
+                    <div class="p-4 bg-gray-50 rounded-lg border flex items-center gap-3">
                         <i data-lucide="briefcase" class="text-blue-500"></i>
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Experience Level</h3>
-                            <p id="displayExperience" class="text-gray-700 font-medium">Not specified</p>
-                        </div>
+                        <div><h3 class="text-xs font-semibold text-gray-400 uppercase tracking-tighter">Experience</h3><p id="displayExperience" class="text-gray-700 font-medium">---</p></div>
                     </div>
-                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3 transition hover:bg-white hover:shadow-sm">
+                    <div class="p-4 bg-gray-50 rounded-lg border flex items-center gap-3">
                         <i data-lucide="calendar" class="text-blue-500"></i>
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Date of Birth</h3>
-                            <p id="displayDOB" class="text-gray-700 font-medium">Not specified</p>
-                        </div>
-                    </div>
-                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-3 transition hover:bg-white hover:shadow-sm">
-                        <i data-lucide="fingerprint" class="text-blue-500"></i>
-                        <div>
-                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Account ID</h3>
-                            <span id="userIdDisplay" class="text-xs text-gray-400 font-mono">GUEST_MODE</span>
-                        </div>
+                        <div><h3 class="text-xs font-semibold text-gray-400 uppercase tracking-tighter">Date of Birth</h3><p id="displayDOB" class="text-gray-700 font-medium">---</p></div>
                     </div>
                 </div>
 
-                <div class="flex gap-4">
-                    <button onclick="toggleEditModal(true)" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm flex items-center gap-2 active:scale-95">
-                        <i data-lucide="edit-3" class="w-4 h-4"></i> Edit Profile
-                    </button>
-                </div>
+                <button onclick="toggleEditModal(true)" class="bg-blue-600 text-white px-8 py-2.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition shadow-md font-bold">
+                    <i data-lucide="settings" class="w-4 h-4"></i> Edit Profile
+                </button>
             </div>
 
-            <!-- VIEW: SEARCH RESULTS -->
-            <div id="resultsView" class="hidden bg-white p-8 rounded-xl shadow-md border border-gray-50">
+            <div id="resultsView" class="hidden bg-white p-8 rounded-xl shadow-md">
                 <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800">Search Results</h2>
-                        <p id="searchCountLabel" class="text-xs text-gray-400"></p>
-                    </div>
-                    <button onclick="showView('profile')" class="text-blue-600 text-sm hover:underline flex items-center gap-1 font-medium">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Profile
-                    </button>
+                    <h2 class="text-xl font-bold">Search Results</h2>
+                    <button onclick="showView('profile')" class="text-blue-600 flex items-center gap-1"><i data-lucide="arrow-left" class="w-4 h-4"></i> Back</button>
                 </div>
-                <div id="resultsContent" class="space-y-4">
-                    <!-- Dynamic search results cards go here -->
-                </div>
+                <div id="resultsContent" class="space-y-4"></div>
             </div>
-
         </div>
 
-        <!-- Right Column: Connections List -->
         <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl shadow-md overflow-hidden sticky top-24 border border-gray-50">
-                <div class="p-4 border-b bg-gray-50 flex items-center justify-between">
-                    <h2 class="font-bold text-gray-700 flex items-center gap-2">
-                        <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
-                        My Connections
-                    </h2>
-                    <span id="connectionCount" class="bg-blue-100 text-blue-600 text-xs font-bold px-2 py-1 rounded-full">0</span>
+            <div class="bg-white rounded-xl shadow-md sticky top-24 overflow-hidden">
+                <div class="p-4 border-b bg-gray-50 flex justify-between items-center">
+                    <h2 class="font-bold flex items-center gap-2 text-gray-700"><i data-lucide="users" class="w-5 h-5 text-blue-600"></i> Network</h2>
+                    <span id="connectionCount" class="bg-blue-600 text-white px-2.5 py-0.5 rounded-full text-xs font-bold">0</span>
                 </div>
-                <div id="connectionsList" class="divide-y divide-gray-100 max-h-[500px] overflow-y-auto">
-                    <div class="p-8 text-center text-gray-400">
-                        <i data-lucide="user-plus" class="w-10 h-10 mx-auto mb-2 opacity-20"></i>
-                        <p class="text-sm">No connections yet.</p>
-                    </div>
-                </div>
+                <div id="connectionsList" class="divide-y divide-gray-100 max-h-[500px] overflow-y-auto bg-white"></div>
             </div>
         </div>
     </main>
 
-    <!-- ========== EDIT PROFILE MODAL ========== -->
-    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-y-auto max-h-[90vh]">
-            <div class="p-6 border-b flex justify-between items-center sticky top-0 bg-white z-10">
-                <h2 class="text-xl font-bold">Edit Profile Details</h2>
-                <button onclick="toggleEditModal(false)" class="text-gray-400 hover:text-gray-600 text-2xl transition">&times;</button>
+    <!-- Edit Profile Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[95vh] shadow-2xl">
+            <div class="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+                <h2 class="text-xl font-bold text-gray-800">Edit Profile</h2>
+                <button onclick="toggleEditModal(false)" class="text-gray-400 hover:text-gray-900 transition text-2xl p-2">&times;</button>
             </div>
             
-            <form id="profileForm" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Clip Art Avatar</label>
-                    <div id="avatarGrid" class="grid grid-cols-4 gap-3 mb-3"></div>
-                    <div class="text-center mb-4">
-                        <button type="button" onclick="generateAvatars()" class="text-xs text-blue-600 hover:underline">Refresh Avatars</button>
-                    </div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Or Custom Image URL</label>
-                    <input type="url" id="editAvatarUrl" class="w-full p-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="https://example.com/image.png">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                    <input type="text" id="editName" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-                    <input type="date" id="editDOB" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
+            <form id="profileForm" class="flex flex-col overflow-hidden">
+                <div class="p-6 space-y-6 modal-scroll-area">
+                    <!-- Avatar Gallery -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Highest Education</label>
-                        <select id="editEducation" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="">Select</option>
-                            <option>High School</option>
-                            <option>Associate Degree</option>
-                            <option>Bachelor's Degree</option>
-                            <option>Master's Degree</option>
-                            <option>PhD / Doctorate</option>
-                        </select>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="block text-sm font-bold text-gray-700">Choose Your Avatar</label>
+                            <span class="text-[10px] text-gray-400">500+ styles available</span>
+                        </div>
+                        <div id="avatarGallery" class="grid grid-cols-4 sm:grid-cols-6 gap-3 max-h-72 overflow-y-auto p-3 border rounded-xl bg-gray-50 mb-3"></div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text" id="customAvatarSeed" placeholder="Custom seed..." class="flex-1 p-2 text-sm border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                            <button type="button" onclick="previewCustomSeed()" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition">Generate</button>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Experience</label>
-                        <select id="editExperience" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="">Select</option>
-                            <option>Fresher</option>
-                            <option>Junior (1-2Y)</option>
-                            <option>Mid (3-5Y)</option>
-                            <option>Senior (5-10Y)</option>
-                            <option>Executive</option>
-                        </select>
+
+                    <div class="border-t pt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Full Name</label>
+                                <input type="text" id="editName" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Education</label>
+                                <select id="editEducation" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="">Select Level</option>
+                                    <option value="High School">High School</option>
+                                    <option value="Associate's Degree">Associate's Degree</option>
+                                    <option value="Bachelor's Degree">Bachelor's Degree</option>
+                                    <option value="Master's Degree">Master's Degree</option>
+                                    <option value="Doctorate / PhD">Doctorate / PhD</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Experience</label>
+                                <select id="editExperience" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="">Select Years</option>
+                                    <option value="Fresher / 0 Years">Fresher / 0 Years</option>
+                                    <option value="1-2 Years">1-2 Years</option>
+                                    <option value="3-5 Years">3-5 Years</option>
+                                    <option value="5-10 Years">5-10 Years</option>
+                                    <option value="10+ Years">10+ Years</option>
+                                </select>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Date of Birth</label>
+                                <input type="date" id="editDOB" class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="pt-4 flex gap-3">
-                    <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-bold transition shadow-sm active:scale-95">Save Changes</button>
+                <div class="flex gap-3 p-6 border-t bg-gray-50">
+                    <button type="submit" id="saveProfileBtn" class="bg-blue-600 text-white flex-1 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg">Save Changes</button>
+                    <button type="button" onclick="toggleEditModal(false)" class="bg-white border text-gray-600 flex-1 py-3 rounded-xl font-bold hover:bg-gray-100 transition">Cancel</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ========== PROFILE SCRIPT ========== -->
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-            authDomain: "kar-kardan.firebaseapp.com",
-            projectId: "kar-kardan",
-            storageBucket: "kar-kardan.firebasestorage.app",
-            messagingSenderId: "554147696994",
-            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-
+        const firebaseConfig = JSON.parse(__firebase_config);
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.firestore();
-        const GUEST_UID = "static_guest_user_123";
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // State Tracking
+        let currentUser = null;
         let myConnections = new Set();
         let selectedAvatarUrl = "";
 
-        // UI References
-        const displayFields = {
-            name: document.getElementById("displayName"),
-            edu: document.getElementById("displayEducation"),
-            exp: document.getElementById("displayExperience"),
-            dob: document.getElementById("displayDOB"),
-            pic: document.getElementById("profilePic")
+        const avatarStyles = ['bottts', 'avataaars', 'adventurer', 'pixel-art', 'miniavs', 'big-smile', 'croodles', 'micah', 'notionists', 'lorelei', 'shapes', 'identicon'];
+
+        async function initApp() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await auth.signInWithCustomToken(__initial_auth_token);
+            } else {
+                await auth.signInAnonymously();
+            }
+
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    setupNavbar();
+                    loadProfile();
+                    syncConnections();
+                    setupSearch();
+                }
+            });
+        }
+
+        function populateAvatarGallery(currentPic) {
+            const gallery = document.getElementById('avatarGallery');
+            gallery.innerHTML = "";
+            avatarStyles.forEach(style => {
+                for(let i=0; i<45; i++) {
+                    const seed = `user_${currentUser.uid.substring(0, 4)}_${style}_${i}`;
+                    const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+                    const isSelected = url === currentPic;
+                    const container = document.createElement('div');
+                    container.className = `avatar-option p-1 rounded-xl bg-white shadow-sm flex items-center justify-center ${isSelected ? 'selected' : ''}`;
+                    container.onclick = () => selectAvatar(container, url);
+                    container.innerHTML = `<img src="${url}" class="w-full h-auto rounded-lg" loading="lazy">`;
+                    gallery.appendChild(container);
+                }
+            });
+        }
+
+        window.selectAvatar = (el, url) => {
+            document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAvatarUrl = url;
+            document.getElementById('customAvatarSeed').value = ""; 
         };
 
-        const profileView = document.getElementById("profileView");
-        const resultsView = document.getElementById("resultsView");
-        const resultsContent = document.getElementById("resultsContent");
-        const connectionsList = document.getElementById("connectionsList");
-        const connectionCount = document.getElementById("connectionCount");
+        window.previewCustomSeed = () => {
+            const seed = document.getElementById('customAvatarSeed').value.trim();
+            if(!seed) return;
+            const url = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${encodeURIComponent(seed)}`;
+            selectedAvatarUrl = url;
+            document.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+        };
 
-        // View Switcher
-        function showView(view) {
-            if (view === 'profile') {
-                profileView.classList.remove('hidden');
-                resultsView.classList.add('hidden');
-                document.getElementById('userSearchInput').value = "";
-                document.getElementById('clearSearchBtn').classList.add('hidden');
-            } else {
-                profileView.classList.add('hidden');
-                resultsView.classList.remove('hidden');
-            }
-        }
-
-        // INITIAL LOAD
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchUserProfile(GUEST_UID);
-            fetchConnections(GUEST_UID);
-            setupSearch();
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        });
-
-        async function fetchUserProfile(uid) {
-            try {
-                const doc = await db.collection("users").doc(uid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    displayFields.name.textContent = data.fullName || "Guest User";
-                    displayFields.edu.textContent = data.education || "Not specified";
-                    displayFields.exp.textContent = data.experience || "Not specified";
-                    displayFields.dob.textContent = data.dob || "Not specified";
-                    if (data.photoURL) displayFields.pic.src = data.photoURL;
-
-                    document.getElementById("editName").value = data.fullName || "";
-                    document.getElementById("editEducation").value = data.education || "";
-                    document.getElementById("editExperience").value = data.experience || "";
-                    document.getElementById("editDOB").value = data.dob || "";
-                }
-            } catch (error) { console.error("Error fetching profile:", error); }
-        }
-
-        async function fetchConnections(uid) {
-            try {
-                // Using onSnapshot for real-time connection list updates
-                db.collection("users").doc(uid).collection("connections")
-                    .onSnapshot((snapshot) => {
-                        myConnections.clear();
-                        snapshot.forEach(doc => myConnections.add(doc.id));
-                        renderConnections(snapshot);
-                    }, (error) => console.error("Connection sync error:", error));
-            } catch (error) { console.error("Error connections:", error); }
-        }
-
-        function renderConnections(snapshot) {
-            connectionsList.innerHTML = "";
-            connectionCount.textContent = snapshot.size;
-            if (snapshot.empty) {
-                connectionsList.innerHTML = `<div class="p-8 text-center text-gray-400"><p class="text-sm">No connections yet.</p></div>`;
-                return;
-            }
-            snapshot.forEach(doc => {
-                const conn = doc.data();
-                const div = document.createElement("div");
-                div.className = "p-4 flex items-center justify-between hover:bg-gray-50 transition group";
-                div.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <img src="${conn.photoURL || 'https://api.dicebear.com/7.x/bottts/svg?seed=default'}" class="w-10 h-10 rounded-full border shadow-sm">
-                        <div>
-                            <p class="text-sm font-semibold text-gray-800">${conn.fullName}</p>
-                            <p class="text-xs text-gray-400">${conn.education || 'Member'}</p>
+        function setupNavbar() {
+            document.getElementById("navbar").innerHTML = `
+                <nav class="bg-white shadow-sm p-4 sticky top-0 z-40">
+                    <div class="max-w-6xl mx-auto flex justify-between items-center">
+                        <h1 class="text-2xl font-black text-blue-600 cursor-pointer tracking-tighter" onclick="showView('profile')">KARDAN</h1>
+                        <div class="relative flex items-center gap-2">
+                            <input type="text" id="userSearchInput" placeholder="Search members..." class="bg-gray-100 rounded-full px-5 py-2 text-sm outline-none w-40 md:w-64 focus:ring-2 focus:ring-blue-100 transition-all">
+                            <div id="searchDropdown" class="hidden absolute top-full mt-2 w-full bg-white shadow-2xl rounded-xl z-50 border border-gray-100 overflow-hidden"></div>
+                            <button id="searchBtn" class="bg-blue-600 text-white p-2 rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition">
+                                <i id="searchIcon" data-lucide="search" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
-                    <button onclick="removeConnection('${doc.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition duration-200">
-                        <i data-lucide="user-minus" class="w-4 h-4"></i>
-                    </button>
-                `;
-                connectionsList.appendChild(div);
-            });
+                </nav>`;
             lucide.createIcons();
+        }
+
+        function getProfilePath(uid) { return db.doc(`artifacts/${appId}/public/data/users/${uid}`); }
+        function getConnectionsColl() { return db.collection(`artifacts/${appId}/users/${currentUser.uid}/connections`); }
+        function getUsersColl() { return db.collection(`artifacts/${appId}/public/data/users`); }
+
+        async function loadProfile() {
+            // Fetch from Firestore
+            const doc = await getProfilePath(currentUser.uid).get();
+            
+            // Display UID and Email from Auth
+            document.getElementById("displayAccountId").textContent = currentUser.uid;
+            document.getElementById("displayEmail").textContent = currentUser.email || "No email available";
+            
+            if (doc.exists) {
+                const d = doc.data();
+                document.getElementById("displayName").textContent = d.fullName || "Anonymous Member";
+                document.getElementById("displayEducation").textContent = d.education || "Not listed";
+                document.getElementById("displayExperience").textContent = d.experience || "Not listed";
+                document.getElementById("displayDOB").textContent = d.dob || "Not listed";
+                
+                const pic = d.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`;
+                document.getElementById("profilePic").src = pic;
+                selectedAvatarUrl = pic;
+                
+                document.getElementById("editName").value = d.fullName || "";
+                document.getElementById("editEducation").value = d.education || "";
+                document.getElementById("editExperience").value = d.experience || "";
+                document.getElementById("editDOB").value = d.dob || "";
+                
+                populateAvatarGallery(pic);
+            } else {
+                // Initialize default profile
+                const defaultName = currentUser.displayName || "New Member";
+                const defaultPic = `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`;
+                await getProfilePath(currentUser.uid).set({ 
+                    fullName: defaultName, 
+                    email: currentUser.email || "",
+                    photoURL: defaultPic,
+                    education: "", experience: "", dob: ""
+                });
+                loadProfile();
+            }
+            lucide.createIcons();
+        }
+
+        function syncConnections() {
+            getConnectionsColl().onSnapshot(snap => {
+                myConnections.clear();
+                const list = document.getElementById("connectionsList");
+                list.innerHTML = "";
+                document.getElementById("connectionCount").textContent = snap.size;
+                if (snap.empty) {
+                    list.innerHTML = `<div class="p-10 text-center text-gray-400 text-sm italic">No connections yet.</div>`;
+                    return;
+                }
+                snap.forEach(doc => {
+                    myConnections.add(doc.id);
+                    const d = doc.data();
+                    const item = document.createElement('div');
+                    item.className = "p-4 flex items-center justify-between group hover:bg-blue-50 transition";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${d.photoURL}" class="w-10 h-10 rounded-full border bg-white shadow-sm">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-bold text-gray-800">${d.fullName}</span>
+                                <span class="text-[10px] text-gray-400 uppercase tracking-widest">Connection</span>
+                            </div>
+                        </div>
+                        <button onclick="removeConnection('${doc.id}')" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition p-2">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>`;
+                    list.appendChild(item);
+                });
+                lucide.createIcons();
+            });
         }
 
         window.removeConnection = async (id) => {
-            if (confirm("Are you sure you want to disconnect from this user?")) {
-                try {
-                    await db.collection("users").doc(GUEST_UID).collection("connections").doc(id).delete();
-                } catch (error) { console.error("Remove failed:", error); }
-            }
+            if (confirm("Disconnect?")) await getConnectionsColl().doc(id).delete();
         };
 
-        // --- DYNAMIC SEARCH LOGIC ---
         function setupSearch() {
-            const searchInput = document.getElementById('userSearchInput');
-            const searchBtn = document.getElementById('headerSearchBtn');
-            const clearBtn = document.getElementById('clearSearchBtn');
-            const dropdown = document.getElementById('searchDropdown');
-            const dropdownList = document.getElementById('searchResultsDropdownList');
-
-            const performSearch = async (showFullResults = false) => {
-                const query = searchInput.value.toLowerCase().trim();
-                
-                if (!query) {
-                    dropdown.classList.add('hidden');
-                    clearBtn.classList.add('hidden');
-                    return;
-                }
-                
-                clearBtn.classList.remove('hidden');
-
-                try {
-                    // Optimized: In a real app, we would use Firebase Search Indexing (Algolia/Elastic)
-                    // For this prototype, we fetch a limited batch and filter client-side
-                    const snapshot = await db.collection("users").limit(50).get();
-                    const results = [];
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        const name = (data.fullName || "").toLowerCase();
-                        // Filter out self and non-matches
-                        if (name.includes(query) && doc.id !== GUEST_UID) {
-                            results.push({ id: doc.id, ...data });
-                        }
-                    });
-
-                    if (showFullResults) {
-                        renderFullResults(results);
-                        dropdown.classList.add('hidden');
-                    } else {
-                        renderDropdownResults(results);
-                    }
-                } catch (err) { console.error("Search error:", err); }
-            };
-
-            searchInput.addEventListener('input', () => performSearch(false));
-            searchBtn.addEventListener('click', () => performSearch(true));
-            searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(true); });
-            
-            clearBtn.addEventListener('click', () => {
-                searchInput.value = "";
-                performSearch(false);
-                searchInput.focus();
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
-            });
-        }
-
-        function renderDropdownResults(users) {
-            const dropdown = document.getElementById('searchDropdown');
-            const dropdownList = document.getElementById('searchResultsDropdownList');
-            dropdownList.innerHTML = "";
-            
-            if (users.length === 0) {
-                dropdownList.innerHTML = `<p class="px-4 py-3 text-sm text-gray-500 italic">No users matching that name...</p>`;
-            } else {
-                users.forEach(user => {
-                    const isConnected = myConnections.has(user.id);
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between px-4 py-2 hover:bg-blue-50 cursor-pointer transition";
-                    div.onclick = (e) => {
-                        // If they didn't click the connect button inside, show full results
-                        if (!e.target.closest('button')) {
-                            renderFullResults([user]);
-                            dropdown.classList.add('hidden');
-                        }
-                    };
-                    div.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <img src="${user.photoURL || 'https://api.dicebear.com/7.x/bottts/svg?seed=default'}" class="w-8 h-8 rounded-full border bg-gray-50">
-                            <div>
-                                <p class="text-sm font-medium text-gray-700">${user.fullName}</p>
-                                <p class="text-[10px] text-gray-400 uppercase font-bold">${isConnected ? 'Connected' : 'Member'}</p>
-                            </div>
-                        </div>
-                    `;
-                    dropdownList.appendChild(div);
+            const input = document.getElementById("userSearchInput");
+            const btn = document.getElementById("searchBtn");
+            const dropdown = document.getElementById("searchDropdown");
+            const doSearch = async (full = false) => {
+                const q = input.value.toLowerCase().trim();
+                if (!q) { dropdown.classList.add("hidden"); return; }
+                const snap = await getUsersColl().get();
+                const results = [];
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    if (doc.id !== currentUser.uid && (d.fullName||"").toLowerCase().includes(q)) results.push({id: doc.id, ...d});
                 });
-            }
-            dropdown.classList.remove('hidden');
+                if (full) { renderResults(results); dropdown.classList.add("hidden"); }
+                else {
+                    dropdown.innerHTML = results.slice(0, 5).map(u => 
+                        `<div class="p-3 hover:bg-blue-50 cursor-pointer text-sm flex items-center gap-3" onclick="renderOne('${u.id}')">
+                            <img src="${u.photoURL}" class="w-8 h-8 rounded-full border">
+                            <span>${u.fullName}</span>
+                        </div>`).join("");
+                    dropdown.classList.toggle("hidden", results.length === 0);
+                }
+            };
+            btn.onclick = () => doSearch(true);
+            input.oninput = () => doSearch(false);
         }
 
-        function renderFullResults(users) {
-            showView('results');
-            resultsContent.innerHTML = "";
-            document.getElementById('searchCountLabel').textContent = `Found ${users.length} user${users.length !== 1 ? 's' : ''}`;
-            
-            if (users.length === 0) {
-                resultsContent.innerHTML = `
-                    <div class="text-center py-16 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                        <i data-lucide="search-x" class="w-12 h-12 mx-auto text-gray-300 mb-4"></i>
-                        <h3 class="text-lg font-bold text-gray-600">No matches found</h3>
-                        <p class="text-gray-400 max-w-xs mx-auto text-sm">Try searching for a different name or checking your spelling.</p>
-                        <button onclick="showView('profile')" class="mt-4 text-blue-600 font-bold hover:underline">Go back home</button>
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
+        window.renderOne = async (id) => {
+            const doc = await getProfilePath(id).get();
+            if (doc.exists) renderResults([{id: doc.id, ...doc.data()}]);
+            document.getElementById("searchDropdown").classList.add("hidden");
+        }
 
-            users.forEach(user => {
-                const isConnected = myConnections.has(user.id);
-                const card = document.createElement("div");
-                card.className = "flex flex-col sm:flex-row items-center justify-between p-5 bg-gray-50 rounded-xl border border-gray-100 hover:shadow-md hover:bg-white transition-all duration-300 gap-4 group";
-                card.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <img src="${user.photoURL || 'https://api.dicebear.com/7.x/bottts/svg?seed=default'}" class="w-16 h-16 rounded-full border-2 border-white shadow-sm transition group-hover:scale-105">
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+        function renderResults(users) {
+            showView('results');
+            const cont = document.getElementById("resultsContent");
+            cont.innerHTML = users.length ? "" : `<p class='text-center py-10 text-gray-400'>No members found.</p>`;
+            users.forEach(u => {
+                const connected = myConnections.has(u.id);
+                cont.innerHTML += `
+                    <div class="flex items-center justify-between p-5 bg-white rounded-xl border mb-3">
+                        <div class="flex items-center gap-4">
+                            <img src="${u.photoURL}" class="w-14 h-14 rounded-full border">
+                            <div><p class="font-bold text-gray-800">${u.fullName}</p><p class="text-xs text-gray-400">${u.education || 'Member'}</p></div>
                         </div>
-                        <div class="text-center sm:text-left">
-                            <h3 class="font-bold text-gray-800 text-lg">${user.fullName}</h3>
-                            <div class="flex flex-wrap gap-2 mt-1">
-                                <span class="text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-bold">${user.education || 'Member'}</span>
-                                <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded font-bold">${user.experience || 'Newcomer'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        ${isConnected ? `
-                            <button class="bg-gray-200 text-gray-500 px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 cursor-default">
-                                <i data-lucide="check" class="w-4 h-4"></i> Connected
-                            </button>
-                        ` : `
-                            <button id="btn-conn-${user.id}" onclick="connectWithUser('${user.id}', '${user.fullName.replace(/'/g, "\\'")}', '${user.photoURL}', '${user.education || ''}')" 
-                                    class="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition flex items-center gap-2 active:scale-95 shadow-md">
-                                <i data-lucide="user-plus" class="w-4 h-4"></i> Connect
-                            </button>
-                        `}
-                    </div>
-                `;
-                resultsContent.appendChild(card);
+                        <button onclick="connect('${u.id}', '${u.fullName}', '${u.photoURL}')" class="px-6 py-2 rounded-full text-sm font-bold ${connected ? 'bg-gray-100 text-gray-400' : 'bg-blue-600 text-white'}" ${connected ? 'disabled' : ''}>${connected ? 'Connected' : 'Connect'}</button>
+                    </div>`;
             });
             lucide.createIcons();
         }
 
-        window.connectWithUser = async (targetUid, name, photo, edu) => {
-            const btn = document.getElementById(`btn-conn-${targetUid}`);
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Connecting...`;
-                lucide.createIcons();
-            }
-
-            try {
-                await db.collection("users").doc(GUEST_UID).collection("connections").doc(targetUid).set({
-                    fullName: name, 
-                    photoURL: photo || "", 
-                    education: edu || "",
-                    connectedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // Real-time listener will handle UI update, but we can update state immediately for UX
-                myConnections.add(targetUid);
-                if (btn) {
-                    btn.className = "bg-green-600 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2";
-                    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> Done`;
-                    lucide.createIcons();
-                }
-            } catch (error) { 
-                console.error("Connection error:", error);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = `<i data-lucide="user-plus" class="w-4 h-4"></i> Try Again`;
-                    lucide.createIcons();
-                }
-            }
+        window.connect = async (id, name, pic) => {
+            await getConnectionsColl().doc(id).set({ fullName: name, photoURL: pic, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
         };
 
-        // --- AVATAR MODAL ---
-        function generateAvatars() {
-            const grid = document.getElementById("avatarGrid");
-            grid.innerHTML = "";
-            const styles = ['bottts', 'avataaars', 'pixel-art', 'lorelei'];
-            
-            styles.forEach(style => {
-                for(let i=0; i<2; i++) {
-                    const seed = Math.random().toString(36).substring(7);
-                    const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
-                    const img = document.createElement("img");
-                    img.src = url;
-                    img.className = "w-full h-12 rounded-lg bg-gray-100 avatar-option border-2 border-transparent hover:border-blue-300 transition-all";
-                    img.onclick = () => {
-                        document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected', 'border-blue-500'));
-                        img.classList.add('selected', 'border-blue-500');
-                        selectedAvatarUrl = url;
-                        document.getElementById("editAvatarUrl").value = url;
-                    };
-                    grid.appendChild(img);
-                }
-            });
+        function showView(v) {
+            document.getElementById("profileView").classList.toggle("hidden", v !== 'profile');
+            document.getElementById("resultsView").classList.toggle("hidden", v !== 'results');
         }
 
-        function toggleEditModal(show) {
-            document.getElementById("editModal").classList.toggle("hidden", !show);
-            if (show) generateAvatars();
+        function toggleEditModal(s) { 
+            document.getElementById("editModal").classList.toggle("hidden", !s);
+            if(s) { loadProfile(); document.querySelector('.modal-scroll-area').scrollTop = 0; }
         }
 
         document.getElementById("profileForm").onsubmit = async (e) => {
             e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Updating...";
-
+            const btn = document.getElementById("saveProfileBtn");
+            btn.disabled = true;
+            btn.innerHTML = "Saving...";
             const data = {
-                fullName: document.getElementById("editName").value,
+                fullName: document.getElementById("editName").value.trim(),
                 education: document.getElementById("editEducation").value,
                 experience: document.getElementById("editExperience").value,
                 dob: document.getElementById("editDOB").value,
-                photoURL: document.getElementById("editAvatarUrl").value || selectedAvatarUrl,
+                photoURL: selectedAvatarUrl,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             try {
-                await db.collection("users").doc(GUEST_UID).set(data, { merge: true });
+                await getProfilePath(currentUser.uid).set(data, {merge: true});
                 toggleEditModal(false);
-                fetchUserProfile(GUEST_UID);
-            } catch (err) {
-                console.error("Profile update error:", err);
+                await loadProfile();
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Save Changes";
+                btn.disabled = false;
+                btn.innerHTML = "Save Changes";
             }
         };
+
+        initApp();
     </script>
 </body>
 </html>
