@@ -1,169 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BooterSpace Navbar</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BooterSpace Navbar</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <!-- Phosphor Icons (High-quality icon library) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<style>
-.nav-link{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:14px;        /* ⬅️ ICON & TEXT BIGGER */
-  font-weight:700;
-  color:#64748b;
-  transition:.25s;
-}
-.nav-link.active{color:#2563eb}
-.nav-link:hover{color:#2563eb}
-</style>
+    <!-- Firebase SDKs (Compat version to match your request) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748b;
+            transition: .25s;
+        }
+
+        .nav-link.active {
+            color: #2563eb;
+        }
+
+        .nav-link:hover {
+            color: #2563eb;
+        }
+
+        /* Smooth fade in for avatar */
+        #avatar {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Ensure icons are aligned */
+        .ph, .ph-fill {
+            font-size: 1.25rem; /* Equivalent to text-xl */
+            vertical-align: middle;
+            margin-top: -2px; /* Slight adjustment for visual centering */
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-sans">
 
-<!-- NAVBAR -->
-<nav class="bg-white border-b sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-between items-center h-16">
+    <!-- NAVBAR -->
+    <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
 
-      <!-- LOGO -->
-      <a href="index.html" class="flex items-center gap-2 font-bold text-xl">
-        🚀 BooterSpace
-      </a>
+                <!-- LOGO -->
+                <a href="#" class="flex items-center gap-2 font-bold text-xl text-slate-800 hover:text-blue-600 transition">
+                    <i class="ph-fill ph-rocket-launch text-2xl text-blue-600"></i> BooterSpace
+                </a>
 
-      <!-- DESKTOP MENU -->
-      <div class="hidden md:flex items-center gap-7">
-        <a href="index.html" class="nav-link" data-link>🏠 Home</a>
-        <a href="jobs.html" class="nav-link" data-link>💼 Jobs</a>
-        <a href="govt.html" class="nav-link" data-link>🏛 Govt</a>
-        <a href="result2025.html" class="nav-link" data-link>📄 Result</a>
+                <!-- DESKTOP MENU -->
+                <div class="hidden md:flex items-center gap-7">
+                    <a href="#" class="nav-link active" data-link>
+                        <i class="ph-fill ph-house text-blue-500"></i> Home
+                    </a>
+                    <a href="#" class="nav-link" data-link>
+                        <i class="ph-fill ph-briefcase text-orange-500"></i> Jobs
+                    </a>
+                    <a href="#" class="nav-link" data-link>
+                        <i class="ph-fill ph-bank text-emerald-600"></i> Govt
+                    </a>
+                    <a href="#" class="nav-link" data-link>
+                        <i class="ph-fill ph-file-text text-purple-500"></i> Result
+                    </a>
 
-        <!-- PROFILE -->
-        <a href="profile.html" class="nav-link gap-2" data-link>
-          <img id="avatar"
-               class="w-9 h-9 rounded-full border border-gray-300 object-cover">
-          Profile
-        </a>
+                    <!-- PROFILE SECTION (UNTOUCHED) -->
+                    <a href="#" class="nav-link gap-2 group" data-link>
+                        <div class="relative">
+                            <img id="avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=guest"
+                                class="w-9 h-9 rounded-full border border-gray-200 object-cover group-hover:border-blue-500 transition">
+                            <div id="statusIndicator" class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-gray-300 border-2 border-white rounded-full"></div>
+                        </div>
+                        <span id="profileText">Profile</span>
+                    </a>
 
-        <a href="dashboard.html" id="dashboardBtn"
-           class="nav-link hidden" data-link>
-          📊 Dashboard
-        </a>
+                    <a href="#" id="dashboardBtn" class="nav-link hidden" data-link>
+                        <i class="ph-fill ph-chart-pie-slice text-indigo-500"></i> Dashboard
+                    </a>
 
-        <button id="logoutBtn"
-                class="nav-link hidden text-red-500">
-          🚪 Logout
-        </button>
-      </div>
+                    <button id="logoutBtn" class="nav-link hidden text-red-500 hover:text-red-600">
+                        <i class="ph-fill ph-sign-out"></i> Logout
+                    </button>
+                    
+                    <button id="loginBtn" class="nav-link text-blue-600">
+                        <i class="ph-fill ph-sign-in text-blue-600"></i> Login
+                    </button>
+                </div>
 
-      <!-- MOBILE BTN -->
-      <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+                <!-- MOBILE BTN -->
+                <button id="menuBtn" class="md:hidden text-2xl text-slate-600 focus:outline-none">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MOBILE MENU -->
+        <div id="mobileMenu" class="hidden md:hidden px-4 py-4 space-y-4 bg-white border-t">
+            <a href="#" class="nav-link active" data-link>
+                <i class="ph-fill ph-house text-blue-500"></i> Home
+            </a>
+            <a href="#" class="nav-link" data-link>
+                <i class="ph-fill ph-briefcase text-orange-500"></i> Jobs
+            </a>
+            <a href="#" class="nav-link" data-link>
+                <i class="ph-fill ph-bank text-emerald-600"></i> Govt
+            </a>
+            <a href="#" class="nav-link" data-link>
+                <i class="ph-fill ph-file-text text-purple-500"></i> Result
+            </a>
+            <a href="#" class="nav-link" data-link>
+                <i class="ph ph-user"></i> Profile
+            </a>
+
+            <a href="#" id="dashboardMobile" class="nav-link hidden" data-link>
+                <i class="ph-fill ph-chart-pie-slice text-indigo-500"></i> Dashboard
+            </a>
+
+            <button id="logoutMobile" class="nav-link hidden text-red-500 w-full text-left">
+                <i class="ph-fill ph-sign-out"></i> Logout
+            </button>
+            
+            <button id="loginMobile" class="nav-link text-blue-600 w-full text-left">
+                <i class="ph-fill ph-sign-in text-blue-600"></i> Login
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="max-w-7xl mx-auto px-4 py-10">
+        <!-- Page specific content goes here -->
     </div>
-  </div>
 
-  <!-- MOBILE MENU -->
-  <div id="mobileMenu"
-       class="hidden md:hidden px-4 py-4 space-y-4 bg-white border-t">
-    <a href="index.html" class="nav-link" data-link>🏠 Home</a>
-    <a href="jobs.html" class="nav-link" data-link>💼 Jobs</a>
-    <a href="govt.html" class="nav-link" data-link>🏛 Govt</a>
-    <a href="result2025.html" class="nav-link" data-link>📄 Result</a>
-    <a href="profile.html" class="nav-link" data-link>👤 Profile</a>
+    <!-- LOGOUT TOAST -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300">
+        Logging out...
+    </div>
 
-    <a href="dashboard.html" id="dashboardMobile"
-       class="nav-link hidden" data-link>
-      📊 Dashboard
-    </a>
+    <script>
+        /* --- CONFIGURATION --- */
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyBeGZBE1u1hDWbRouchgwkgp89D973I",
+                authDomain: "kar-kardan.firebaseapp.com",
+                projectId: "kar-kardan"
+            };
 
-    <button id="logoutMobile"
-            class="nav-link hidden text-red-500">
-      🚪 Logout
-    </button>
-  </div>
-</nav>
+        firebase.initializeApp(firebaseConfig);
 
-<!-- LOGOUT TOAST -->
-<div id="toast"
-     class="hidden fixed bottom-6 right-6 bg-black text-white px-4 py-2 rounded shadow z-50">
-  Logging out...
-</div>
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-<script>
-/* FIREBASE INIT */
-firebase.initializeApp({
-  apiKey: "AIzaSyBeGZBE1u1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan"
-});
+        /* --- ELEMENTS --- */
+        const avatar = document.getElementById("avatar");
+        const statusIndicator = document.getElementById("statusIndicator");
+        const profileText = document.getElementById("profileText");
+        
+        const dashboardBtn = document.getElementById("dashboardBtn");
+        const dashboardMobile = document.getElementById("dashboardMobile");
+        
+        const logoutBtn = document.getElementById("logoutBtn");
+        const logoutMobile = document.getElementById("logoutMobile");
+        
+        const loginBtn = document.getElementById("loginBtn");
+        const loginMobile = document.getElementById("loginMobile");
 
-const auth = firebase.auth();
-const db = firebase.firestore();
+        const menuBtn = document.getElementById("menuBtn");
+        const mobileMenu = document.getElementById("mobileMenu");
+        const toast = document.getElementById("toast");
 
-/* ELEMENTS */
-const avatar = document.getElementById("avatar");
-const dashboardBtn = document.getElementById("dashboardBtn");
-const dashboardMobile = document.getElementById("dashboardMobile");
-const logoutBtn = document.getElementById("logoutBtn");
-const logoutMobile = document.getElementById("logoutMobile");
-const menuBtn = document.getElementById("menuBtn");
-const mobileMenu = document.getElementById("mobileMenu");
-const toast = document.getElementById("toast");
+        const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/bottts/svg?seed=guest";
 
-const DEFAULT_AVATAR =
-  "https://api.dicebear.com/7.x/bottts/svg?seed=q1ywn";
+        /* --- UI INTERACTIONS --- */
+        menuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
 
-/* MOBILE MENU */
-menuBtn.onclick = () => mobileMenu.classList.toggle("hidden");
+        /* Active Link Highlighter */
+        document.querySelectorAll("[data-link]").forEach(link => {
+            link.addEventListener('click', (e) => {
+                document.querySelectorAll("[data-link]").forEach(l => l.classList.remove("active"));
+                e.target.closest('[data-link]').classList.add("active");
+            });
+        });
 
-/* ACTIVE LINK */
-document.querySelectorAll("[data-link]").forEach(link=>{
-  if(location.pathname.includes(link.getAttribute("href"))){
-    link.classList.add("active");
-  }
-});
+        /* --- AUTH LOGIC --- */
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                toggleAuthUI(true);
+                statusIndicator.classList.remove("bg-gray-300");
+                statusIndicator.classList.add("bg-green-500");
 
-/* AUTH */
-auth.onAuthStateChanged(async user=>{
-  if(!user) return;
+                try {
+                    const userDocRef = db.collection("users").doc(user.uid);
+                    const doc = await userDocRef.get();
 
-  logoutBtn.classList.remove("hidden");
-  logoutMobile.classList.remove("hidden");
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.photoURL) {
+                            avatar.src = data.photoURL;
+                        } else {
+                            avatar.src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`;
+                        }
 
-  try{
-    const doc = await db.collection("users").doc(user.uid).get();
-    if(doc.exists){
-      const data = doc.data();
-      avatar.src = data.photoURL || DEFAULT_AVATAR;
+                        if (data.role === "job_provider") {
+                            dashboardBtn.classList.remove("hidden");
+                            dashboardMobile.classList.remove("hidden");
+                        }
+                    } else {
+                        avatar.src = user.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`;
+                    }
+                } catch (e) {
+                    console.error("Error fetching user data:", e);
+                    avatar.src = user.photoURL || DEFAULT_AVATAR;
+                }
+            } else {
+                toggleAuthUI(false);
+                avatar.src = DEFAULT_AVATAR;
+                statusIndicator.classList.remove("bg-green-500");
+                statusIndicator.classList.add("bg-gray-300");
+            }
+        });
 
-      if(data.role === "job_provider"){
-        dashboardBtn.classList.remove("hidden");
-        dashboardMobile.classList.remove("hidden");
-      }
-    }else{
-      avatar.src = DEFAULT_AVATAR;
-    }
-  }catch(e){
-    avatar.src = DEFAULT_AVATAR;
-  }
-});
+        function toggleAuthUI(isLoggedIn) {
+            if (isLoggedIn) {
+                logoutBtn.classList.remove("hidden");
+                logoutMobile.classList.remove("hidden");
+                loginBtn.classList.add("hidden");
+                loginMobile.classList.add("hidden");
+            } else {
+                logoutBtn.classList.add("hidden");
+                logoutMobile.classList.add("hidden");
+                loginBtn.classList.remove("hidden");
+                loginMobile.classList.remove("hidden");
+                dashboardBtn.classList.add("hidden");
+                dashboardMobile.classList.add("hidden");
+            }
+        }
 
-/* LOGOUT */
-function logout(){
-  toast.classList.remove("hidden");
-  auth.signOut().then(()=>{
-    setTimeout(()=>location.href="index.html",1200);
-  });
-}
-logoutBtn.onclick = logoutMobile.onclick = logout;
-</script>
+        /* --- ACTIONS --- */
+        async function logout() {
+            toast.classList.remove("hidden");
+            await auth.signOut();
+            setTimeout(() => {
+                toast.classList.add("hidden");
+            }, 1200);
+        }
+
+        async function login() {
+            try {
+                if(typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                     await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                     await auth.signInAnonymously();
+                }
+            } catch (error) {
+                console.error("Login failed", error);
+            }
+        }
+
+        logoutBtn.onclick = logoutMobile.onclick = logout;
+        loginBtn.onclick = loginMobile.onclick = login;
+    </script>
 
 </body>
 </html>
