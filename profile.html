@@ -21,7 +21,7 @@
         }
         
         .linkedin-input-focus:focus-within {
-            width: 400px !important;
+            width: 450px !important;
             transition: width 0.3s ease;
         }
 
@@ -47,20 +47,25 @@
                     <i data-lucide="shield-check" class="w-6 h-6"></i>
                 </div>
                 
-                <div class="relative flex-1 max-w-md group linkedin-input-focus">
-                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                        <i data-lucide="search" class="w-4 h-4"></i>
-                    </div>
-                    <input type="text" id="userSearchInput" autocomplete="off" placeholder="Search for people..." 
-                        class="bg-[#eef3f8] w-full pl-10 pr-4 py-1.5 text-sm rounded outline-none border-transparent focus:border-gray-400 border transition-all">
-                    
-                    <!-- Dropdown Results -->
-                    <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-white rounded-b-lg border border-gray-200 overflow-hidden">
-                        <div id="dropdownContent" class="py-2"></div>
-                        <div id="seeAllBtn" class="p-3 text-center border-t border-gray-100 cursor-pointer hover:bg-gray-50 text-sm font-bold text-gray-600">
-                            See all results
+                <div class="relative flex-1 max-w-md flex items-center gap-2 group linkedin-input-focus">
+                    <div class="relative flex-1">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" id="userSearchInput" autocomplete="off" placeholder="Search for people..." 
+                            class="bg-[#eef3f8] w-full pl-10 pr-4 py-1.5 text-sm rounded outline-none border-transparent focus:border-gray-400 border transition-all">
+                        
+                        <!-- Dropdown Results -->
+                        <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-white rounded-b-lg border border-gray-200 overflow-hidden">
+                            <div id="dropdownContent" class="py-2"></div>
+                            <div id="seeAllBtnDropdown" class="p-3 text-center border-t border-gray-100 cursor-pointer hover:bg-gray-50 text-sm font-bold text-gray-600">
+                                See all results
+                            </div>
                         </div>
                     </div>
+                    <button id="searchActionBtn" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition flex items-center justify-center">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
 
@@ -295,9 +300,12 @@
         }
 
         async function fetchAllUsers() {
-            // Needed for memory filtering per "No Complex Queries" rule
-            const snap = await db.collection(`artifacts/${appId}/public/data/users`).get();
-            allUsers = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            try {
+                const snap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').get();
+                allUsers = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            } catch (err) {
+                console.error("Error fetching users:", err);
+            }
         }
 
         function calculateAge(dob) {
@@ -309,7 +317,8 @@
         }
 
         window.updateAgeDisplay = () => {
-            const age = calculateAge(document.getElementById('editDOB').value);
+            const ageInput = document.getElementById('editDOB').value;
+            const age = calculateAge(ageInput);
             document.getElementById('modalAgeDisplay').textContent = age !== null ? `Age: ${age} Years Old` : 'Age: --';
         };
 
@@ -317,7 +326,7 @@
             const gallery = document.getElementById('avatarGallery');
             gallery.innerHTML = "";
             avatarStyles.forEach(style => {
-                for(let i=0; i<8; i++) {
+                for(let i=0; i<4; i++) { 
                     const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${currentUser.uid}_${i}`;
                     const opt = document.createElement('div');
                     opt.className = `avatar-option p-1 rounded ${url === current ? 'selected' : ''}`;
@@ -346,7 +355,7 @@
             div.className = "flex gap-2 items-center";
             div.innerHTML = `
                 <input type="text" value="${val}" class="qual-item flex-1 p-2 text-sm border rounded outline-none bg-gray-50 focus:bg-white" placeholder="Skill or Certificate">
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600">&times;</button>
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 px-2">&times;</button>
             `;
             document.getElementById('editQualificationsList').appendChild(div);
         };
@@ -355,7 +364,15 @@
             const input = document.getElementById('userSearchInput');
             const dropdown = document.getElementById('searchDropdown');
             const content = document.getElementById('dropdownContent');
-            const seeAll = document.getElementById('seeAllBtn');
+            const seeAllDropdown = document.getElementById('seeAllBtnDropdown');
+            const searchActionBtn = document.getElementById('searchActionBtn');
+
+            const triggerFullSearch = () => {
+                const q = input.value.toLowerCase().trim();
+                const filtered = allUsers.filter(u => u.id !== currentUser.uid && (u.fullName || "").toLowerCase().includes(q));
+                renderFullResults(filtered);
+                dropdown.classList.add('hidden');
+            };
 
             input.addEventListener('input', () => {
                 const q = input.value.toLowerCase().trim();
@@ -364,12 +381,12 @@
                 const filtered = allUsers.filter(u => 
                     u.id !== currentUser.uid && 
                     (u.fullName || "").toLowerCase().includes(q)
-                ).slice(0, 4);
+                ).slice(0, 5);
 
                 content.innerHTML = filtered.length 
                     ? filtered.map(u => `
                         <div class="search-item p-3 flex items-center gap-3 cursor-pointer" onclick="viewUser('${u.id}')">
-                            <img src="${u.photoURL}" class="w-10 h-10 rounded-full">
+                            <img src="${u.photoURL}" class="w-10 h-10 rounded-full bg-gray-100">
                             <div>
                                 <p class="text-sm font-bold text-gray-800">${u.fullName}</p>
                                 <p class="text-[10px] text-gray-500">${u.education || 'Member'}</p>
@@ -380,15 +397,17 @@
                 dropdown.classList.remove('hidden');
             });
 
-            seeAll.onclick = () => {
-                const q = input.value.toLowerCase().trim();
-                const filtered = allUsers.filter(u => u.id !== currentUser.uid && (u.fullName || "").toLowerCase().includes(q));
-                renderFullResults(filtered);
-                dropdown.classList.add('hidden');
-            };
+            input.addEventListener('keypress', (e) => {
+                if(e.key === 'Enter') triggerFullSearch();
+            });
+
+            seeAllDropdown.onclick = triggerFullSearch;
+            searchActionBtn.onclick = triggerFullSearch;
 
             document.addEventListener('click', (e) => {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
+                if (!input.contains(e.target) && !dropdown.contains(e.target) && !searchActionBtn.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
             });
         }
 
@@ -406,11 +425,11 @@
                 return `
                 <div class="bg-white p-4 rounded-lg border border-gray-200 flex items-center justify-between hover:shadow-sm">
                     <div class="flex items-center gap-4">
-                        <img src="${u.photoURL}" class="w-14 h-14 rounded-full border border-gray-100">
+                        <img src="${u.photoURL}" class="w-14 h-14 rounded-full border border-gray-100 bg-gray-100">
                         <div>
                             <p class="font-bold text-gray-900">${u.fullName}</p>
-                            <p class="text-xs text-gray-500">${u.education || 'Student'} @ ${u.university || 'Kardan Network'}</p>
-                            <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold">${u.experience || 'Entry Level'}</p>
+                            <p class="text-xs text-gray-500">${u.education || 'Member'} @ ${u.university || 'Professional Network'}</p>
+                            <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold">${u.experience || 'Experience Level'}</p>
                         </div>
                     </div>
                     <button onclick="handleConnect('${u.id}', '${u.fullName}', '${u.photoURL}')" 
@@ -424,70 +443,89 @@
 
         window.handleConnect = async (id, name, pic) => {
             if (myConnections.has(id)) return;
-            await db.collection(`artifacts/${appId}/users/${currentUser.uid}/connections`).doc(id).set({
-                fullName: name, photoURL: pic, added: Date.now()
-            });
+            try {
+                await db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('connections').doc(id).set({
+                    fullName: name, photoURL: pic, added: Date.now()
+                });
+            } catch (err) {
+                console.error("Connection error:", err);
+            }
         };
 
         async function loadProfile() {
-            const snap = await db.doc(`artifacts/${appId}/public/data/users/${currentUser.uid}`).get();
-            const d = snap.exists ? snap.data() : { fullName: "Member", photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}` };
-            
-            // UI Sync
-            document.getElementById('displayName').textContent = d.fullName || "Member";
-            document.getElementById('displayHeadline').textContent = `${d.education || 'Level'} • ${d.experience || 'Experience'}`;
-            document.getElementById('displayUniversity').textContent = d.university || "Kardan Member";
-            document.getElementById('displayUniversitySub').textContent = d.university || "Kardan Member";
-            document.getElementById('displayExperience').textContent = d.experience || "Not Set";
-            document.getElementById('displayEducation').textContent = d.education || "Not Set";
-            document.getElementById('displayEmail').textContent = currentUser.email || "Private Account";
-            document.getElementById('displayDOB').textContent = d.dob ? `Born: ${new Date(d.dob).toLocaleDateString()}` : "No DOB";
-            
-            const pic = d.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`;
-            document.getElementById('profilePic').src = pic;
-            document.getElementById('sidebarPic').src = pic;
-            document.getElementById('navProfilePic').src = pic;
-            document.getElementById('sidebarName').textContent = d.fullName || "Member";
-            document.getElementById('sidebarEdu').textContent = d.education || "Setup Profile";
-            
-            const qList = document.getElementById('qualificationsList');
-            const quals = d.qualifications || [];
-            qList.innerHTML = quals.length ? quals.map(q => `<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-200">${q}</span>`).join('') : '<span class="text-xs text-gray-400 italic">No skills listed.</span>';
+            if (!currentUser) return;
+            try {
+                const userDocRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(currentUser.uid);
+                const snap = await userDocRef.get();
+                const d = snap.exists ? snap.data() : { 
+                    fullName: currentUser.displayName || "Professional Member", 
+                    photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`,
+                    education: "Bachelor's Degree",
+                    experience: "Fresher",
+                    university: "University",
+                    qualifications: []
+                };
+                
+                document.getElementById('displayName').textContent = d.fullName;
+                document.getElementById('displayHeadline').textContent = `${d.education} • ${d.experience}`;
+                document.getElementById('displayUniversity').textContent = d.university;
+                document.getElementById('displayUniversitySub').textContent = d.university;
+                document.getElementById('displayExperience').textContent = d.experience;
+                document.getElementById('displayEducation').textContent = d.education;
+                document.getElementById('displayEmail').textContent = currentUser.email || "Private Account";
+                document.getElementById('displayDOB').textContent = d.dob ? `Born: ${new Date(d.dob).toLocaleDateString()}` : "Not Set";
+                
+                const pic = d.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`;
+                document.getElementById('profilePic').src = pic;
+                document.getElementById('sidebarPic').src = pic;
+                document.getElementById('navProfilePic').src = pic;
+                document.getElementById('sidebarName').textContent = d.fullName;
+                document.getElementById('sidebarEdu').textContent = d.education;
+                
+                const qList = document.getElementById('qualificationsList');
+                const quals = d.qualifications || [];
+                qList.innerHTML = quals.length 
+                    ? quals.map(q => `<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-200">${q}</span>`).join('') 
+                    : '<span class="text-xs text-gray-400 italic">No skills listed yet.</span>';
 
-            // Modal Pre-fill
-            document.getElementById('editName').value = d.fullName || "";
-            document.getElementById('editEducation').value = d.education || "Bachelor's Degree";
-            document.getElementById('editExperience').value = d.experience || "Fresher";
-            document.getElementById('editUniversity').value = d.university || "";
-            document.getElementById('editDOB').value = d.dob || "";
-            document.getElementById('currentSelectionImg').src = pic;
-            selectedAvatarUrl = pic;
-            document.getElementById('editQualificationsList').innerHTML = "";
-            quals.forEach(q => addQualificationRow(q));
-            updateAgeDisplay();
-            populateAvatarGallery(pic);
-            lucide.createIcons();
+                document.getElementById('editName').value = d.fullName;
+                document.getElementById('editEducation').value = d.education;
+                document.getElementById('editExperience').value = d.experience;
+                document.getElementById('editUniversity').value = d.university;
+                document.getElementById('editDOB').value = d.dob || "";
+                document.getElementById('currentSelectionImg').src = pic;
+                selectedAvatarUrl = pic;
+                
+                document.getElementById('editQualificationsList').innerHTML = "";
+                quals.forEach(q => addQualificationRow(q));
+                
+                updateAgeDisplay();
+                populateAvatarGallery(pic);
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Error loading profile:", err);
+            }
         }
 
         function syncConnections() {
-            db.collection(`artifacts/${appId}/users/${currentUser.uid}/connections`).onSnapshot(snap => {
+            if (!currentUser) return;
+            const connRef = db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('connections');
+            connRef.onSnapshot(snap => {
                 myConnections.clear();
                 const list = document.getElementById('connectionsList');
                 list.innerHTML = "";
-                const count = snap.size;
-                document.getElementById('sidebarConnCount').textContent = count;
-                document.getElementById('connectionDisplayCount').textContent = count;
-
+                document.getElementById('sidebarConnCount').textContent = snap.size;
+                document.getElementById('connectionDisplayCount').textContent = snap.size;
                 snap.forEach(doc => {
                     const d = doc.data();
                     myConnections.add(doc.id);
                     list.innerHTML += `
                         <div class="flex items-center gap-3 border-b border-gray-50 pb-2">
-                            <img src="${d.photoURL}" class="w-8 h-8 rounded-full">
+                            <img src="${d.photoURL}" class="w-8 h-8 rounded-full bg-gray-50">
                             <span class="text-xs font-bold text-gray-800 truncate">${d.fullName}</span>
                         </div>`;
                 });
-            }, () => {});
+            }, (err) => console.error("Snapshot error:", err));
         }
 
         function showView(v) {
@@ -498,15 +536,21 @@
 
         function toggleEditModal(s) { 
             document.getElementById('editModal').classList.toggle('hidden', !s);
-            if(s) document.querySelector('.modal-scroll-area').scrollTop = 0;
+            if(s) {
+                document.querySelector('.modal-scroll-area').scrollTop = 0;
+                updateAgeDisplay();
+            }
         }
 
         document.getElementById('profileForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('saveProfileBtn');
             btn.innerHTML = "Saving...";
+            btn.disabled = true;
             
-            const quals = Array.from(document.querySelectorAll('.qual-item')).map(i => i.value.trim()).filter(v => v);
+            const quals = Array.from(document.querySelectorAll('.qual-item'))
+                .map(i => i.value.trim())
+                .filter(v => v);
             
             const data = {
                 fullName: document.getElementById('editName').value,
@@ -515,14 +559,21 @@
                 university: document.getElementById('editUniversity').value,
                 dob: document.getElementById('editDOB').value,
                 photoURL: selectedAvatarUrl,
-                qualifications: quals
+                qualifications: quals,
+                updatedAt: Date.now()
             };
 
-            await db.doc(`artifacts/${appId}/public/data/users/${currentUser.uid}`).set(data, {merge: true});
-            toggleEditModal(false);
-            loadProfile();
-            fetchAllUsers(); // Refresh search cache
-            btn.innerHTML = "Save Changes";
+            try {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(currentUser.uid).set(data, {merge: true});
+                await loadProfile();
+                await fetchAllUsers();
+                toggleEditModal(false);
+            } catch (err) {
+                console.error("Save error:", err);
+            } finally {
+                btn.innerHTML = "Save Changes";
+                btn.disabled = false;
+            }
         };
 
         initApp();
