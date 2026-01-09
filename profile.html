@@ -1,582 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>KARDAN | Professional Network</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <style>
-        .avatar-option { cursor: pointer; transition: all 0.2s ease; border: 3px solid transparent; }
-        .avatar-option:hover { transform: scale(1.05); border-color: #bfdbfe; }
-        .avatar-option.selected { border-color: #3b82f6; background-color: #eff6ff; }
-        
-        #searchDropdown { 
-            max-height: 400px; 
-            overflow-y: auto; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .linkedin-input-focus:focus-within {
-            width: 450px !important;
-            transition: width 0.3s ease;
-        }
+<meta charset="UTF-8" />
+<title>BooterSpace | Search Profiles</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        @media (max-width: 768px) {
-            .linkedin-input-focus:focus-within { width: 100% !important; }
-        }
+<script src="https://cdn.tailwindcss.com"></script>
 
-        .modal-scroll-area {
-            overflow-y: auto;
-            max-height: calc(95vh - 150px);
-        }
-
-        .search-item:hover { background-color: #f3f4f6; }
-    </style>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
-<body class="bg-[#f3f2ef] min-h-screen font-sans text-gray-900">
 
-    <!-- LinkedIn Style Navbar -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-2 flex-1">
-                <div class="bg-blue-600 p-1.5 rounded text-white cursor-pointer" onclick="showView('profile')">
-                    <i data-lucide="shield-check" class="w-6 h-6"></i>
-                </div>
-                
-                <div class="relative flex-1 max-w-md flex items-center gap-2 group linkedin-input-focus">
-                    <div class="relative flex-1">
-                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                            <i data-lucide="search" class="w-4 h-4"></i>
-                        </div>
-                        <input type="text" id="userSearchInput" autocomplete="off" placeholder="Search for people..." 
-                            class="bg-[#eef3f8] w-full pl-10 pr-4 py-1.5 text-sm rounded outline-none border-transparent focus:border-gray-400 border transition-all">
-                        
-                        <!-- Dropdown Results -->
-                        <div id="searchDropdown" class="hidden absolute top-full left-0 right-0 mt-1 bg-white rounded-b-lg border border-gray-200 overflow-hidden">
-                            <div id="dropdownContent" class="py-2"></div>
-                            <div id="seeAllBtnDropdown" class="p-3 text-center border-t border-gray-100 cursor-pointer hover:bg-gray-50 text-sm font-bold text-gray-600">
-                                See all results
-                            </div>
-                        </div>
-                    </div>
-                    <button id="searchActionBtn" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition flex items-center justify-center">
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
+<body class="bg-gray-100">
 
-            <div class="flex items-center gap-6 h-full text-gray-500">
-                <button onclick="showView('profile')" class="flex flex-col items-center hover:text-black transition">
-                    <i data-lucide="home" class="w-5 h-5"></i>
-                    <span class="text-[10px] hidden md:block">Home</span>
-                </button>
-                <div class="h-full w-[1px] bg-gray-200"></div>
-                <div class="flex flex-col items-center cursor-pointer" onclick="toggleEditModal(true)">
-                    <img id="navProfilePic" src="https://api.dicebear.com/7.x/bottts/svg?seed=default" class="w-6 h-6 rounded-full border border-gray-200">
-                    <span class="text-[10px] hidden md:block">Me <i data-lucide="chevron-down" class="inline w-3 h-3"></i></span>
-                </div>
-            </div>
-        </div>
-    </nav>
+<!-- 🔍 SEARCH BAR -->
+<div class="bg-white border-b sticky top-0 z-10">
+  <div class="max-w-4xl mx-auto p-4 flex gap-2">
+    <input id="searchInput" type="text"
+      placeholder="Search people, education, university..."
+      class="flex-1 border rounded px-4 py-2 text-sm" />
+    <button id="searchBtn"
+      class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
+      Search
+    </button>
+  </div>
+</div>
 
-    <main class="max-w-6xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-4 gap-6 mt-4">
-        
-        <!-- Left Sidebar: Mini Profile -->
-        <aside class="hidden lg:block space-y-4">
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                <div class="h-14 bg-blue-600"></div>
-                <div class="px-4 pb-4 -mt-8 flex flex-col items-center text-center">
-                    <img id="sidebarPic" src="" class="w-16 h-16 rounded-full border-2 border-white bg-white shadow-sm mb-2">
-                    <h3 id="sidebarName" class="font-bold text-gray-800 hover:underline cursor-pointer">---</h3>
-                    <p id="sidebarEdu" class="text-xs text-gray-500 mt-1">---</p>
-                </div>
-                <div class="border-t border-gray-100 p-3 text-xs flex justify-between">
-                    <span class="text-gray-500 font-bold">Connections</span>
-                    <span id="sidebarConnCount" class="text-blue-600 font-bold">0</span>
-                </div>
-            </div>
-        </aside>
+<!-- MAIN VIEW -->
+<div class="max-w-4xl mx-auto p-4 space-y-4" id="mainView">
+  <div class="text-gray-400 text-center mt-10">
+    Start searching to see profiles
+  </div>
+</div>
 
-        <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-4">
-            
-            <!-- Search Results View -->
-            <div id="resultsView" class="hidden space-y-4">
-                <div class="bg-white p-4 rounded-lg border border-gray-200 flex justify-between items-center">
-                    <h2 class="font-semibold text-gray-700">Search Results</h2>
-                    <button onclick="showView('profile')" class="text-sm text-blue-600 font-bold hover:underline">Close</button>
-                </div>
-                <div id="resultsContent" class="space-y-2"></div>
-            </div>
+<script>
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
 
-            <!-- Profile Main View -->
-            <div id="profileView" class="space-y-4">
-                <div class="bg-white rounded-lg border border-gray-200 overflow-hidden relative">
-                    <div class="h-48 bg-gradient-to-r from-blue-700 to-blue-500"></div>
-                    <div class="px-6 pb-6">
-                        <div class="relative inline-block -mt-24 mb-4">
-                            <img id="profilePic" src="" class="w-40 h-40 rounded-full border-4 border-white bg-white shadow-sm">
-                            <button onclick="toggleEditModal(true)" class="absolute bottom-4 right-0 bg-white p-2 rounded-full shadow-md border border-gray-200 text-blue-600 hover:bg-gray-50">
-                                <i data-lucide="camera" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                        <div class="flex flex-col md:flex-row md:items-start justify-between">
-                            <div>
-                                <h2 id="displayName" class="text-2xl font-bold text-gray-900">---</h2>
-                                <p id="displayHeadline" class="text-gray-700 mt-1">---</p>
-                                <div class="mt-2 text-sm text-gray-500 flex flex-wrap items-center gap-x-4 gap-y-1">
-                                    <span id="displayUniversity" class="flex items-center gap-1 font-bold text-gray-600"><i data-lucide="map-pin" class="w-4 h-4"></i> ---</span>
-                                    <span id="displayDOB" class="flex items-center gap-1"><i data-lucide="cake" class="w-4 h-4"></i> ---</span>
-                                    <span id="displayEmail" class="text-blue-600 font-bold">---</span>
-                                </div>
-                                <div class="mt-3 text-blue-600 font-bold text-sm hover:underline cursor-pointer">
-                                    <span id="connectionDisplayCount">0</span> connections
-                                </div>
-                            </div>
-                            <div class="mt-4 md:mt-0 flex gap-2">
-                                <button onclick="toggleEditModal(true)" class="bg-blue-600 text-white px-4 py-1.5 rounded-full font-bold hover:bg-blue-700 transition shadow-sm">
-                                    Edit Profile
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-                <!-- Experience/Education Cards -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
-                    <h3 class="text-lg font-bold">Experience & Education</h3>
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="bg-gray-100 p-3 rounded h-fit"><i data-lucide="briefcase" class="text-gray-500"></i></div>
-                            <div>
-                                <h4 class="font-bold text-gray-800" id="displayExperience">---</h4>
-                                <p class="text-sm text-gray-500">Years of Experience</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 border-t pt-6">
-                            <div class="bg-gray-100 p-3 rounded h-fit"><i data-lucide="graduation-cap" class="text-gray-500"></i></div>
-                            <div>
-                                <h4 class="font-bold text-gray-800" id="displayEducation">---</h4>
-                                <p class="text-sm text-gray-500" id="displayUniversitySub">---</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+let currentUser = null;
 
-                <!-- Qualifications -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6">
-                    <h3 class="text-lg font-bold mb-4">Other Qualifications</h3>
-                    <div id="qualificationsList" class="flex flex-wrap gap-2">
-                        <span class="text-sm text-gray-400 italic">Add skills or certifications to your profile.</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+/* ================= AUTH ================= */
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+});
 
-        <!-- Right Sidebar -->
-        <aside class="hidden lg:block space-y-4">
-            <div class="bg-white rounded-lg border border-gray-200 overflow-hidden p-4">
-                <h3 class="font-bold text-sm text-gray-700 mb-4">Your Connections</h3>
-                <div id="connectionsList" class="space-y-4"></div>
-            </div>
-        </aside>
-    </main>
+/* ================= SEARCH ================= */
+document.getElementById("searchBtn").onclick = runSearch;
+document.getElementById("searchInput").onkeypress = e => {
+  if (e.key === "Enter") runSearch();
+};
 
-    <!-- Modal Implementation -->
-    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
-        <div class="bg-white rounded-xl w-full max-w-2xl overflow-hidden flex flex-col shadow-2xl">
-            <div class="p-4 border-b flex justify-between items-center">
-                <h2 class="text-lg font-bold">Edit Profile</h2>
-                <button onclick="toggleEditModal(false)" class="text-gray-400 hover:text-black text-2xl">&times;</button>
-            </div>
-            
-            <form id="profileForm" class="flex flex-col overflow-hidden">
-                <div class="p-6 space-y-6 modal-scroll-area">
-                    <!-- Avatar Selection -->
-                    <section class="bg-gray-50 p-4 rounded-lg border">
-                        <div class="flex justify-between items-center mb-4">
-                            <div>
-                                <h4 class="font-bold text-sm">Profile Picture</h4>
-                                <p class="text-xs text-gray-500">Select an avatar or generate a new one</p>
-                            </div>
-                            <img id="currentSelectionImg" src="" class="w-12 h-12 rounded-full border border-blue-400 bg-white">
-                        </div>
-                        <div id="avatarGallery" class="grid grid-cols-5 md:grid-cols-8 gap-2 max-h-40 overflow-y-auto p-2 border rounded bg-white mb-3"></div>
-                        <div class="flex gap-2">
-                            <input type="text" id="customAvatarSeed" placeholder="Type for custom..." class="flex-1 p-2 text-xs border rounded outline-none focus:ring-1 focus:ring-blue-500">
-                            <button type="button" onclick="previewCustomSeed()" class="bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-bold">Generate</button>
-                        </div>
-                    </section>
+async function runSearch() {
+  const q = searchInput.value.toLowerCase().trim();
+  if (!q) return;
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="md:col-span-2">
-                            <label class="text-xs font-bold text-gray-500 block mb-1">FULL NAME *</label>
-                            <input type="text" id="editName" class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500" required>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 block mb-1">DATE OF BIRTH</label>
-                            <input type="date" id="editDOB" onchange="updateAgeDisplay()" class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500">
-                            <span id="modalAgeDisplay" class="text-[10px] text-blue-600 font-bold uppercase mt-1">Age: --</span>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 block mb-1">EXPERIENCE YEARS</label>
-                            <select id="editExperience" class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="Fresher">Fresher / Entry Level</option>
-                                <option value="1-2 Years">1-2 Years</option>
-                                <option value="3-5 Years">3-5 Years</option>
-                                <option value="5-10 Years">5-10 Years</option>
-                                <option value="10+ Years">Senior (10+ Years)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 block mb-1">EDUCATION LEVEL</label>
-                            <select id="editEducation" class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="Bachelor's Degree">Bachelor's Degree</option>
-                                <option value="Master's Degree">Master's Degree</option>
-                                <option value="PhD">PhD / Doctorate</option>
-                                <option value="Certification">Professional Certification</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-xs font-bold text-gray-500 block mb-1">UNIVERSITY NAME</label>
-                            <input type="text" id="editUniversity" class="w-full p-2 border rounded outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
-                    </div>
+  mainView.innerHTML = `<div class="text-center text-gray-400 py-10">Searching...</div>`;
 
-                    <div class="border-t pt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-xs font-bold text-gray-500">SKILLS & QUALIFICATIONS</label>
-                            <button type="button" onclick="addQualificationRow()" class="text-blue-600 text-xs font-bold flex items-center gap-1">
-                                <i data-lucide="plus-circle" class="w-3 h-3"></i> Add
-                            </button>
-                        </div>
-                        <div id="editQualificationsList" class="space-y-2"></div>
-                    </div>
-                </div>
+  const snap = await db.collection("users").get();
+  const users = [];
 
-                <div class="p-4 border-t flex justify-end gap-2 bg-gray-50">
-                    <button type="button" onclick="toggleEditModal(false)" class="px-4 py-1.5 rounded-full text-sm font-bold border border-gray-300 hover:bg-white transition">Cancel</button>
-                    <button type="submit" id="saveProfileBtn" class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-sm font-bold hover:bg-blue-700 transition">Save Changes</button>
-                </div>
-            </form>
-        </div>
+  snap.forEach(doc => {
+    const u = doc.data();
+    const text = `
+      ${u.fullName || ""}
+      ${u.education || ""}
+      ${u.university || ""}
+      ${u.experience || ""}
+    `.toLowerCase();
+
+    if (text.includes(q)) users.push({ id: doc.id, ...u });
+  });
+
+  renderList(users);
+}
+
+/* ================= RENDER LIST ================= */
+function renderList(users) {
+  mainView.innerHTML = `
+    <div class="bg-white p-4 rounded border font-bold">
+      Search Results (${users.length})
     </div>
+  `;
 
-    <script>
-        const firebaseConfig = JSON.parse(__firebase_config);
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+  if (!users.length) {
+    mainView.innerHTML += `
+      <div class="bg-white p-6 rounded border text-center text-gray-500">
+        No profiles found
+      </div>`;
+    return;
+  }
 
-        let currentUser = null;
-        let myConnections = new Set();
-        let selectedAvatarUrl = "";
-        let allUsers = [];
+  users.forEach(u => {
+    mainView.innerHTML += `
+      <div class="bg-white p-4 rounded border flex justify-between items-center hover:shadow">
+        <div class="flex gap-4 items-center">
+          <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
+            class="w-14 h-14 rounded-full border" />
+          <div>
+            <p class="font-bold">${u.fullName || "User"}</p>
+            <p class="text-xs text-gray-500">
+              ${u.education || "Professional"} • ${u.experience || ""}
+            </p>
+            <p class="text-xs text-gray-400">${u.university || ""}</p>
+          </div>
+        </div>
 
-        const avatarStyles = ['bottts', 'miniavs', 'avataaars', 'pixel-art', 'lorelei', 'micah'];
+        <button onclick="openProfile('${u.id}')"
+          class="border border-blue-600 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold">
+          View
+        </button>
+      </div>
+    `;
+  });
+}
 
-        async function initApp() {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await auth.signInWithCustomToken(__initial_auth_token);
-            } else {
-                await auth.signInAnonymously();
-            }
+/* ================= PROFILE VIEW ================= */
+async function openProfile(uid) {
+  const doc = await db.collection("users").doc(uid).get();
+  const u = doc.data();
+  const isMe = currentUser && currentUser.uid === uid;
 
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    loadProfile();
-                    syncConnections();
-                    setupSearchLogic();
-                    fetchAllUsers();
-                }
-            });
-            lucide.createIcons();
-        }
+  mainView.innerHTML = `
+    <div class="bg-white p-6 rounded border">
+      <button onclick="runSearch()" class="text-sm text-blue-600 mb-4">← Back</button>
 
-        async function fetchAllUsers() {
-            try {
-                const snap = await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').get();
-                allUsers = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            } catch (err) {
-                console.error("Error fetching users:", err);
-            }
-        }
+      <div class="flex gap-6 items-center">
+        <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
+          class="w-24 h-24 rounded-full border" />
 
-        function calculateAge(dob) {
-            if (!dob) return null;
-            const birth = new Date(dob);
-            const ageDifMs = Date.now() - birth.getTime();
-            const ageDate = new Date(ageDifMs);
-            return Math.abs(ageDate.getUTCFullYear() - 1970);
-        }
+        <div>
+          <h2 class="text-xl font-bold">${u.fullName || "User"}</h2>
+          <p class="text-gray-600 text-sm">${u.education || ""}</p>
+          <p class="text-gray-500 text-sm">${u.university || ""}</p>
+          <p class="text-gray-500 text-sm">${u.experience || ""}</p>
+        </div>
+      </div>
 
-        window.updateAgeDisplay = () => {
-            const ageInput = document.getElementById('editDOB').value;
-            const age = calculateAge(ageInput);
-            document.getElementById('modalAgeDisplay').textContent = age !== null ? `Age: ${age} Years Old` : 'Age: --';
-        };
+      ${isMe ? `
+      <button onclick="editProfile('${uid}')"
+        class="mt-6 bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
+        Edit Profile
+      </button>` : ""}
+    </div>
+  `;
+}
 
-        function populateAvatarGallery(current) {
-            const gallery = document.getElementById('avatarGallery');
-            gallery.innerHTML = "";
-            avatarStyles.forEach(style => {
-                for(let i=0; i<4; i++) { 
-                    const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${currentUser.uid}_${i}`;
-                    const opt = document.createElement('div');
-                    opt.className = `avatar-option p-1 rounded ${url === current ? 'selected' : ''}`;
-                    opt.innerHTML = `<img src="${url}" class="w-full h-auto">`;
-                    opt.onclick = () => {
-                        document.querySelectorAll('.avatar-option').forEach(x => x.classList.remove('selected'));
-                        opt.classList.add('selected');
-                        selectedAvatarUrl = url;
-                        document.getElementById('currentSelectionImg').src = url;
-                    };
-                    gallery.appendChild(opt);
-                }
-            });
-        }
+/* ================= EDIT PROFILE ================= */
+function editProfile(uid) {
+  db.collection("users").doc(uid).get().then(doc => {
+    const u = doc.data();
 
-        window.previewCustomSeed = () => {
-            const seed = document.getElementById('customAvatarSeed').value;
-            if(!seed) return;
-            const url = `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}`;
-            selectedAvatarUrl = url;
-            document.getElementById('currentSelectionImg').src = url;
-        };
+    mainView.innerHTML = `
+      <div class="bg-white p-6 rounded border space-y-4">
+        <h2 class="font-bold text-lg">Edit Profile</h2>
 
-        window.addQualificationRow = (val = "") => {
-            const div = document.createElement('div');
-            div.className = "flex gap-2 items-center";
-            div.innerHTML = `
-                <input type="text" value="${val}" class="qual-item flex-1 p-2 text-sm border rounded outline-none bg-gray-50 focus:bg-white" placeholder="Skill or Certificate">
-                <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600 px-2">&times;</button>
-            `;
-            document.getElementById('editQualificationsList').appendChild(div);
-        };
+        <input id="name" class="w-full border p-2 rounded" placeholder="Full Name" value="${u.fullName || ""}">
+        <input id="edu" class="w-full border p-2 rounded" placeholder="Education" value="${u.education || ""}">
+        <input id="uni" class="w-full border p-2 rounded" placeholder="University" value="${u.university || ""}">
+        <input id="exp" class="w-full border p-2 rounded" placeholder="Experience" value="${u.experience || ""}">
+        <input id="photo" class="w-full border p-2 rounded" placeholder="Photo URL" value="${u.photoURL || ""}">
 
-        function setupSearchLogic() {
-            const input = document.getElementById('userSearchInput');
-            const dropdown = document.getElementById('searchDropdown');
-            const content = document.getElementById('dropdownContent');
-            const seeAllDropdown = document.getElementById('seeAllBtnDropdown');
-            const searchActionBtn = document.getElementById('searchActionBtn');
+        <div class="flex gap-2">
+          <button onclick="saveProfile('${uid}')"
+            class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
+            Save
+          </button>
+          <button onclick="openProfile('${uid}')"
+            class="border px-4 py-2 rounded text-sm">
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
 
-            const triggerFullSearch = () => {
-                const q = input.value.toLowerCase().trim();
-                const filtered = allUsers.filter(u => u.id !== currentUser.uid && (u.fullName || "").toLowerCase().includes(q));
-                renderFullResults(filtered);
-                dropdown.classList.add('hidden');
-            };
+function saveProfile(uid) {
+  db.collection("users").doc(uid).update({
+    fullName: name.value,
+    education: edu.value,
+    university: uni.value,
+    experience: exp.value,
+    photoURL: photo.value
+  }).then(() => openProfile(uid));
+}
+</script>
 
-            input.addEventListener('input', () => {
-                const q = input.value.toLowerCase().trim();
-                if (!q) { dropdown.classList.add('hidden'); return; }
-
-                const filtered = allUsers.filter(u => 
-                    u.id !== currentUser.uid && 
-                    (u.fullName || "").toLowerCase().includes(q)
-                ).slice(0, 5);
-
-                content.innerHTML = filtered.length 
-                    ? filtered.map(u => `
-                        <div class="search-item p-3 flex items-center gap-3 cursor-pointer" onclick="viewUser('${u.id}')">
-                            <img src="${u.photoURL}" class="w-10 h-10 rounded-full bg-gray-100">
-                            <div>
-                                <p class="text-sm font-bold text-gray-800">${u.fullName}</p>
-                                <p class="text-[10px] text-gray-500">${u.education || 'Member'}</p>
-                            </div>
-                        </div>`).join('')
-                    : `<div class="p-3 text-sm text-gray-400 italic">No results found</div>`;
-                
-                dropdown.classList.remove('hidden');
-            });
-
-            input.addEventListener('keypress', (e) => {
-                if(e.key === 'Enter') triggerFullSearch();
-            });
-
-            seeAllDropdown.onclick = triggerFullSearch;
-            searchActionBtn.onclick = triggerFullSearch;
-
-            document.addEventListener('click', (e) => {
-                if (!input.contains(e.target) && !dropdown.contains(e.target) && !searchActionBtn.contains(e.target)) {
-                    dropdown.classList.add('hidden');
-                }
-            });
-        }
-
-        window.viewUser = (id) => {
-            const user = allUsers.find(u => u.id === id);
-            if(user) renderFullResults([user]);
-            document.getElementById('searchDropdown').classList.add('hidden');
-        };
-
-        function renderFullResults(users) {
-            showView('results');
-            const cont = document.getElementById('resultsContent');
-            cont.innerHTML = users.map(u => {
-                const isConnected = myConnections.has(u.id);
-                return `
-                <div class="bg-white p-4 rounded-lg border border-gray-200 flex items-center justify-between hover:shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <img src="${u.photoURL}" class="w-14 h-14 rounded-full border border-gray-100 bg-gray-100">
-                        <div>
-                            <p class="font-bold text-gray-900">${u.fullName}</p>
-                            <p class="text-xs text-gray-500">${u.education || 'Member'} @ ${u.university || 'Professional Network'}</p>
-                            <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold">${u.experience || 'Experience Level'}</p>
-                        </div>
-                    </div>
-                    <button onclick="handleConnect('${u.id}', '${u.fullName}', '${u.photoURL}')" 
-                        class="px-5 py-1.5 rounded-full text-xs font-bold border transition ${isConnected ? 'bg-gray-100 text-gray-400 border-transparent cursor-not-allowed' : 'border-blue-600 text-blue-600 hover:bg-blue-50'}">
-                        ${isConnected ? 'Connected' : 'Connect'}
-                    </button>
-                </div>`;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        window.handleConnect = async (id, name, pic) => {
-            if (myConnections.has(id)) return;
-            try {
-                await db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('connections').doc(id).set({
-                    fullName: name, photoURL: pic, added: Date.now()
-                });
-            } catch (err) {
-                console.error("Connection error:", err);
-            }
-        };
-
-        async function loadProfile() {
-            if (!currentUser) return;
-            try {
-                const userDocRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(currentUser.uid);
-                const snap = await userDocRef.get();
-                const d = snap.exists ? snap.data() : { 
-                    fullName: currentUser.displayName || "Professional Member", 
-                    photoURL: `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`,
-                    education: "Bachelor's Degree",
-                    experience: "Fresher",
-                    university: "University",
-                    qualifications: []
-                };
-                
-                document.getElementById('displayName').textContent = d.fullName;
-                document.getElementById('displayHeadline').textContent = `${d.education} • ${d.experience}`;
-                document.getElementById('displayUniversity').textContent = d.university;
-                document.getElementById('displayUniversitySub').textContent = d.university;
-                document.getElementById('displayExperience').textContent = d.experience;
-                document.getElementById('displayEducation').textContent = d.education;
-                document.getElementById('displayEmail').textContent = currentUser.email || "Private Account";
-                document.getElementById('displayDOB').textContent = d.dob ? `Born: ${new Date(d.dob).toLocaleDateString()}` : "Not Set";
-                
-                const pic = d.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${currentUser.uid}`;
-                document.getElementById('profilePic').src = pic;
-                document.getElementById('sidebarPic').src = pic;
-                document.getElementById('navProfilePic').src = pic;
-                document.getElementById('sidebarName').textContent = d.fullName;
-                document.getElementById('sidebarEdu').textContent = d.education;
-                
-                const qList = document.getElementById('qualificationsList');
-                const quals = d.qualifications || [];
-                qList.innerHTML = quals.length 
-                    ? quals.map(q => `<span class="bg-gray-100 text-gray-700 px-3 py-1 rounded text-xs font-bold border border-gray-200">${q}</span>`).join('') 
-                    : '<span class="text-xs text-gray-400 italic">No skills listed yet.</span>';
-
-                document.getElementById('editName').value = d.fullName;
-                document.getElementById('editEducation').value = d.education;
-                document.getElementById('editExperience').value = d.experience;
-                document.getElementById('editUniversity').value = d.university;
-                document.getElementById('editDOB').value = d.dob || "";
-                document.getElementById('currentSelectionImg').src = pic;
-                selectedAvatarUrl = pic;
-                
-                document.getElementById('editQualificationsList').innerHTML = "";
-                quals.forEach(q => addQualificationRow(q));
-                
-                updateAgeDisplay();
-                populateAvatarGallery(pic);
-                lucide.createIcons();
-            } catch (err) {
-                console.error("Error loading profile:", err);
-            }
-        }
-
-        function syncConnections() {
-            if (!currentUser) return;
-            const connRef = db.collection('artifacts').doc(appId).collection('users').doc(currentUser.uid).collection('connections');
-            connRef.onSnapshot(snap => {
-                myConnections.clear();
-                const list = document.getElementById('connectionsList');
-                list.innerHTML = "";
-                document.getElementById('sidebarConnCount').textContent = snap.size;
-                document.getElementById('connectionDisplayCount').textContent = snap.size;
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    myConnections.add(doc.id);
-                    list.innerHTML += `
-                        <div class="flex items-center gap-3 border-b border-gray-50 pb-2">
-                            <img src="${d.photoURL}" class="w-8 h-8 rounded-full bg-gray-50">
-                            <span class="text-xs font-bold text-gray-800 truncate">${d.fullName}</span>
-                        </div>`;
-                });
-            }, (err) => console.error("Snapshot error:", err));
-        }
-
-        function showView(v) {
-            document.getElementById('profileView').classList.toggle('hidden', v !== 'profile');
-            document.getElementById('resultsView').classList.toggle('hidden', v !== 'results');
-            if(v === 'profile') document.getElementById('userSearchInput').value = "";
-        }
-
-        function toggleEditModal(s) { 
-            document.getElementById('editModal').classList.toggle('hidden', !s);
-            if(s) {
-                document.querySelector('.modal-scroll-area').scrollTop = 0;
-                updateAgeDisplay();
-            }
-        }
-
-        document.getElementById('profileForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('saveProfileBtn');
-            btn.innerHTML = "Saving...";
-            btn.disabled = true;
-            
-            const quals = Array.from(document.querySelectorAll('.qual-item'))
-                .map(i => i.value.trim())
-                .filter(v => v);
-            
-            const data = {
-                fullName: document.getElementById('editName').value,
-                education: document.getElementById('editEducation').value,
-                experience: document.getElementById('editExperience').value,
-                university: document.getElementById('editUniversity').value,
-                dob: document.getElementById('editDOB').value,
-                photoURL: selectedAvatarUrl,
-                qualifications: quals,
-                updatedAt: Date.now()
-            };
-
-            try {
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('users').doc(currentUser.uid).set(data, {merge: true});
-                await loadProfile();
-                await fetchAllUsers();
-                toggleEditModal(false);
-            } catch (err) {
-                console.error("Save error:", err);
-            } finally {
-                btn.innerHTML = "Save Changes";
-                btn.disabled = false;
-            }
-        };
-
-        initApp();
-    </script>
 </body>
 </html>
