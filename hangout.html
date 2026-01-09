@@ -5,13 +5,15 @@
 <title>Places to Hangout – BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- Tailwind & Icons -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
 </head>
 
 <body class="bg-gray-100">
 
-<!-- 🔥 NAVBAR CONTAINER -->
+<!-- 🔥 NAVBAR -->
 <div id="navbar"></div>
 
 <!-- PAGE HEADER -->
@@ -25,9 +27,9 @@
 
 
 <!-- ================= FIREBASE ================= -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
 firebase.initializeApp({
@@ -46,57 +48,11 @@ fetch("navbar.html")
 .then(res => res.text())
 .then(html => {
   document.getElementById("navbar").innerHTML = html;
-  initNavbarAuth();   // run after navbar loaded
+
+  const s = document.createElement("script");
+  s.src = "navbar.js";
+  document.body.appendChild(s);
 });
-</script>
-
-<!-- ================= NAVBAR LOGIC ================= -->
-<script>
-function initNavbarAuth(){
-
-  const loginBtn = document.getElementById("loginBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const avatar = document.getElementById("avatar");
-  const logoutModal = document.getElementById("logoutModal");
-  const loader = document.getElementById("loader");
-
-  auth.onAuthStateChanged(user=>{
-    if(user){
-      loginBtn.classList.add("hidden");
-      logoutBtn.classList.remove("hidden");
-
-      db.collection("users").doc(user.uid).get().then(doc=>{
-        if(doc.exists && doc.data().photoURL){
-          avatar.src = doc.data().photoURL;
-          avatar.classList.remove("hidden");
-        }
-      });
-
-    }else{
-      loginBtn.classList.remove("hidden");
-      logoutBtn.classList.add("hidden");
-      avatar.classList.add("hidden");
-    }
-  });
-
-  logoutBtn.onclick = ()=> logoutModal.classList.remove("hidden");
-  window.closeLogout = ()=> logoutModal.classList.add("hidden");
-
-  window.confirmLogout = ()=>{
-    loader.classList.remove("hidden");
-    auth.signOut().then(()=>{
-      location.href = "login.html";
-    });
-  };
-
-  // Active menu
-  const page = location.pathname.split("/").pop();
-  document.querySelectorAll("[data-link]").forEach(link=>{
-    if(link.getAttribute("href") === page){
-      link.classList.add("text-purple-500","font-bold");
-    }
-  });
-}
 </script>
 
 <!-- ================= LOAD PLACES ================= -->
