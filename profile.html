@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>BooterSpace | Search Profiles</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>BooterSpace | Network</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -17,23 +17,19 @@
 
 <!-- 🔍 SEARCH BAR -->
 <div class="bg-white border-b sticky top-0 z-10">
-  <div class="max-w-4xl mx-auto p-4 flex gap-2">
-    <input id="searchInput" type="text"
-      placeholder="Search people, education, university..."
-      class="flex-1 border rounded px-4 py-2 text-sm" />
-    <button id="searchBtn"
-      class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
-      Search
-    </button>
+  <div class="max-w-4xl mx-auto p-4 relative">
+    <input id="searchInput"
+      placeholder="Search people..."
+      class="w-full border rounded px-4 py-2 text-sm" />
+
+    <!-- Dropdown -->
+    <div id="dropdown"
+      class="absolute bg-white border rounded w-full mt-1 hidden z-20 max-h-60 overflow-y-auto"></div>
   </div>
 </div>
 
-<!-- MAIN VIEW -->
-<div class="max-w-4xl mx-auto p-4 space-y-4" id="mainView">
-  <div class="text-gray-400 text-center mt-10">
-    Start searching to see profiles
-  </div>
-</div>
+<!-- MAIN AREA -->
+<div id="mainView" class="max-w-4xl mx-auto p-4 space-y-4"></div>
 
 <script>
 /* ================= FIREBASE ================= */
@@ -45,157 +41,195 @@ const firebaseConfig = {
   messagingSenderId: "554147696994",
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
-
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentUser = null;
+let currentUser;
+let allUsers = [];
+let myConnections = new Set();
 
 /* ================= AUTH ================= */
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
+  if (!user) return location.href = "login.html";
   currentUser = user;
+  await fetchAllUsers();
+  await fetchMyConnections();
+  loadMyProfile();
 });
 
-/* ================= SEARCH ================= */
-document.getElementById("searchBtn").onclick = runSearch;
-document.getElementById("searchInput").onkeypress = e => {
-  if (e.key === "Enter") runSearch();
-};
-
-async function runSearch() {
-  const q = searchInput.value.toLowerCase().trim();
-  if (!q) return;
-
-  mainView.innerHTML = `<div class="text-center text-gray-400 py-10">Searching...</div>`;
-
+/* ================= FETCH ================= */
+async function fetchAllUsers() {
   const snap = await db.collection("users").get();
-  const users = [];
+  allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
 
-  snap.forEach(doc => {
-    const u = doc.data();
-    const text = `
-      ${u.fullName || ""}
-      ${u.education || ""}
-      ${u.university || ""}
-      ${u.experience || ""}
-    `.toLowerCase();
+async function fetchMyConnections() {
+  const snap = await db.collection("connections")
+    .where("from", "==", currentUser.uid).get();
 
-    if (text.includes(q)) users.push({ id: doc.id, ...u });
+  snap.forEach(d => myConnections.add(d.data().to));
+}
+
+/* ================= MY PROFILE ================= */
+async function loadMyProfile() {
+  const doc = await db.collection("users").doc(currentUser.uid).get();
+  const u = doc.data();
+
+  mainView.innerHTML = `
+    <div class="bg-white p-6 rounded border">
+      <div class="flex gap-6 items-center">
+        <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
+          class="w-24 h-24 rounded-full border" />
+        <div>
+          <h2 class="text-xl font-bold">${u.fullName}</h2>
+          <p class="text-sm text-gray-500">${currentUser.email}</p>
+          <p class="text-sm">${u.education || ""}</p>
+          <p class="text-sm">${u.university || ""}</p>
+          <p class="text-sm">${u.experience || ""}</p>
+          <p class="text-sm font-bold mt-2">
+            Connections: ${myConnections.size}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ================= SEARCH INPUT ================= */
+const input = document.getElementById("searchInput");
+const dropdown = document.getElementById("dropdown");
+
+input.addEventListener("focus", () => {
+  mainView.innerHTML = "";
+});
+
+input.addEventListener("input", () => {
+  const q = input.value.toLowerCase().trim();
+  if (!q) return dropdown.classList.add("hidden");
+
+  const matches = allUsers.filter(u =>
+    u.id !== currentUser.uid &&
+    (u.fullName || "").toLowerCase().includes(q)
+  );
+
+  renderDropdown(matches.slice(0, 6));
+});
+
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") runSearch(input.value);
+});
+
+/* ================= DROPDOWN ================= */
+function renderDropdown(list) {
+  dropdown.innerHTML = "";
+  dropdown.classList.remove("hidden");
+
+  list.forEach(u => {
+    dropdown.innerHTML += `
+      <div onclick="runSearch('${u.fullName}')"
+        class="p-2 hover:bg-gray-100 cursor-pointer flex gap-2 items-center">
+        <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
+          class="w-8 h-8 rounded-full" />
+        <span class="text-sm font-semibold">${u.fullName}</span>
+      </div>
+    `;
   });
+}
 
-  renderList(users);
+/* ================= SEARCH RESULTS ================= */
+function runSearch(q) {
+  dropdown.classList.add("hidden");
+  const query = q.toLowerCase();
+
+  const results = allUsers.filter(u =>
+    u.id !== currentUser.uid &&
+    (
+      (u.fullName || "").toLowerCase().includes(query) ||
+      (u.education || "").toLowerCase().includes(query) ||
+      (u.university || "").toLowerCase().includes(query)
+    )
+  );
+
+  renderResults(results);
 }
 
 /* ================= RENDER LIST ================= */
-function renderList(users) {
+function renderResults(users) {
   mainView.innerHTML = `
     <div class="bg-white p-4 rounded border font-bold">
       Search Results (${users.length})
     </div>
   `;
 
-  if (!users.length) {
-    mainView.innerHTML += `
-      <div class="bg-white p-6 rounded border text-center text-gray-500">
-        No profiles found
-      </div>`;
-    return;
-  }
-
   users.forEach(u => {
+    const connected = myConnections.has(u.id);
+
     mainView.innerHTML += `
-      <div class="bg-white p-4 rounded border flex justify-between items-center hover:shadow">
+      <div class="bg-white p-4 rounded border flex justify-between items-center">
         <div class="flex gap-4 items-center">
           <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
             class="w-14 h-14 rounded-full border" />
           <div>
-            <p class="font-bold">${u.fullName || "User"}</p>
+            <p class="font-bold">${u.fullName}</p>
             <p class="text-xs text-gray-500">
-              ${u.education || "Professional"} • ${u.experience || ""}
+              ${u.education || ""} • ${u.experience || ""}
             </p>
-            <p class="text-xs text-gray-400">${u.university || ""}</p>
           </div>
         </div>
 
-        <button onclick="openProfile('${u.id}')"
-          class="border border-blue-600 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold">
-          View
-        </button>
+        <div class="flex gap-2">
+          <button onclick="viewProfile('${u.id}')"
+            class="border px-3 py-1 rounded text-xs font-bold">
+            View
+          </button>
+          <button
+            ${connected ? "disabled" : ""}
+            onclick="connectUser('${u.id}')"
+            class="border border-blue-600 text-blue-600 px-3 py-1 rounded text-xs font-bold">
+            ${connected ? "Connected" : "Connect"}
+          </button>
+        </div>
       </div>
     `;
   });
 }
 
-/* ================= PROFILE VIEW ================= */
-async function openProfile(uid) {
+/* ================= VIEW PROFILE ================= */
+async function viewProfile(uid) {
   const doc = await db.collection("users").doc(uid).get();
   const u = doc.data();
-  const isMe = currentUser && currentUser.uid === uid;
 
   mainView.innerHTML = `
     <div class="bg-white p-6 rounded border">
-      <button onclick="runSearch()" class="text-sm text-blue-600 mb-4">← Back</button>
+      <button onclick="runSearch(input.value)"
+        class="text-blue-600 text-sm mb-4">← Back</button>
 
       <div class="flex gap-6 items-center">
         <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
           class="w-24 h-24 rounded-full border" />
-
         <div>
-          <h2 class="text-xl font-bold">${u.fullName || "User"}</h2>
-          <p class="text-gray-600 text-sm">${u.education || ""}</p>
-          <p class="text-gray-500 text-sm">${u.university || ""}</p>
-          <p class="text-gray-500 text-sm">${u.experience || ""}</p>
+          <h2 class="text-xl font-bold">${u.fullName}</h2>
+          <p>${u.education || ""}</p>
+          <p>${u.university || ""}</p>
+          <p>${u.experience || ""}</p>
         </div>
       </div>
-
-      ${isMe ? `
-      <button onclick="editProfile('${uid}')"
-        class="mt-6 bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
-        Edit Profile
-      </button>` : ""}
     </div>
   `;
 }
 
-/* ================= EDIT PROFILE ================= */
-function editProfile(uid) {
-  db.collection("users").doc(uid).get().then(doc => {
-    const u = doc.data();
-
-    mainView.innerHTML = `
-      <div class="bg-white p-6 rounded border space-y-4">
-        <h2 class="font-bold text-lg">Edit Profile</h2>
-
-        <input id="name" class="w-full border p-2 rounded" placeholder="Full Name" value="${u.fullName || ""}">
-        <input id="edu" class="w-full border p-2 rounded" placeholder="Education" value="${u.education || ""}">
-        <input id="uni" class="w-full border p-2 rounded" placeholder="University" value="${u.university || ""}">
-        <input id="exp" class="w-full border p-2 rounded" placeholder="Experience" value="${u.experience || ""}">
-        <input id="photo" class="w-full border p-2 rounded" placeholder="Photo URL" value="${u.photoURL || ""}">
-
-        <div class="flex gap-2">
-          <button onclick="saveProfile('${uid}')"
-            class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">
-            Save
-          </button>
-          <button onclick="openProfile('${uid}')"
-            class="border px-4 py-2 rounded text-sm">
-            Cancel
-          </button>
-        </div>
-      </div>
-    `;
+/* ================= CONNECT ================= */
+async function connectUser(uid) {
+  await db.collection("connections").add({
+    from: currentUser.uid,
+    to: uid,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
-}
 
-function saveProfile(uid) {
-  db.collection("users").doc(uid).update({
-    fullName: name.value,
-    education: edu.value,
-    university: uni.value,
-    experience: exp.value,
-    photoURL: photo.value
-  }).then(() => openProfile(uid));
+  myConnections.add(uid);
+  runSearch(input.value);
 }
 </script>
 
