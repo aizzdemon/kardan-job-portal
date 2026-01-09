@@ -116,5 +116,62 @@
 
     window.onload = fetchPlaces;
   </script>
+  <script>
+const page = location.pathname.split("/").pop();
+document.querySelectorAll("[data-link]").forEach(link=>{
+ if(link.getAttribute("href") === page){
+   link.classList.add("active");
+ }
+});
+</script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+ apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+ authDomain: "kar-kardan.firebaseapp.com",
+ projectId: "kar-kardan"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(user=>{
+ if(user){
+  loginBtn.classList.add("hidden");
+  logoutBtn.classList.remove("hidden");
+
+  db.collection("users").doc(user.uid).get().then(doc=>{
+   if(doc.exists && doc.data().photoURL){
+     avatar.src = doc.data().photoURL;
+     avatar.classList.remove("hidden");
+   }
+  });
+
+ }else{
+  loginBtn.classList.remove("hidden");
+  logoutBtn.classList.add("hidden");
+ }
+});
+
+logoutBtn.onclick = ()=> logoutModal.classList.remove("hidden");
+
+function closeLogout(){
+ logoutModal.classList.add("hidden");
+}
+
+function confirmLogout(){
+ loader.classList.remove("hidden");
+ auth.signOut().then(()=>{
+  window.location = "login.html";
+ });
+}
+</script>
+
 </body>
 </html>
+
