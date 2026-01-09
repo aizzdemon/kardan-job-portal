@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>BooterSpace | Search</title>
+<title>BooterSpace | Search & Profile</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -13,14 +13,16 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-  /* Smooth transitions for layout changes */
-  .transition-layout {
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  .transition-layout { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
+  .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
 </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col">
+
+<!-- 🔷 NAVBAR -->
+<div id="navbar-container"></div>
 
 <!-- 🔍 SEARCH BAR -->
 <div class="bg-white border-b sticky top-0 z-20 shadow-sm">
@@ -41,325 +43,56 @@
 
 <!-- 📐 MAIN LAYOUT -->
 <div id="mainContainer" class="flex-1 max-w-6xl mx-auto p-4 w-full relative">
-  
   <div id="gridWrapper" class="grid grid-cols-1 gap-6 transition-layout">
     
     <!-- 👈 LEFT PANEL (Search Results & Dynamic Details) -->
-    <!-- Initially hidden via CSS classes controlled by JS -->
     <div id="leftPanel" class="hidden transition-all duration-500 opacity-0 transform -translate-x-4">
-      
-      <!-- List View -->
       <div id="resultsListContainer">
         <div id="resultsHeader" class="mb-4 flex justify-between items-center hidden">
           <h3 class="font-bold text-gray-700 text-lg">Search Results</h3>
           <span id="resultsCount" class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">0 found</span>
         </div>
-        <div id="resultsView" class="space-y-4">
-          <!-- Results injected here -->
-        </div>
+        <div id="resultsView" class="space-y-4"></div>
       </div>
-
-      <!-- Detail View (Initially Hidden) -->
-      <div id="detailViewContainer" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border">
-        <!-- Content injected dynamically -->
-      </div>
-
+      <div id="detailViewContainer" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border"></div>
     </div>
 
     <!-- 👉 RIGHT PANEL (My Profile) -->
-    <!-- Initially Centered -->
     <div id="rightPanel" class="w-full max-w-2xl mx-auto transition-layout">
-      <div class="bg-white rounded-xl shadow-lg border overflow-hidden relative">
+      <div id="myProfileCard" class="bg-white rounded-xl shadow-lg border overflow-hidden relative opacity-0 transition-opacity duration-500">
         <div class="h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
         <div class="px-6 pb-6 relative">
-          <!-- Profile Image -->
-          <div class="relative -mt-12 mb-4 flex justify-center lg:justify-start">
-             <img id="myPhoto" src="" class="w-24 h-24 rounded-full border-4 border-white shadow-md bg-gray-200 object-cover">
+
+          <div class="relative -mt-12 mb-4 flex justify-center lg:justify-start group cursor-pointer" onclick="openAvatarModal()">
+             <img id="myPhoto" src="https://i.imgur.com/6VBx3io.png" class="w-24 h-24 rounded-full border-4 border-white shadow-md bg-gray-200 object-cover group-hover:brightness-75 transition">
           </div>
-          
+
           <div class="text-center lg:text-left">
-            <h1 id="myName" class="text-2xl font-bold text-gray-800"></h1>
+            <h1 id="myName" class="text-2xl font-bold text-gray-800">Loading...</h1>
             <p id="myRole" class="text-blue-600 font-medium"></p>
             <p id="myLoc" class="text-gray-500 text-sm mb-4"></p>
-            
-            <div class="border-t pt-4 mt-4 space-y-3 text-left">
-              <div>
-                <span class="text-xs font-bold text-gray-400 uppercase">Education</span>
-                <p id="myEdu" class="text-gray-700 text-sm"></p>
-              </div>
-              <div>
-                 <span class="text-xs font-bold text-gray-400 uppercase">Current Position</span>
-                 <p id="myExp" class="text-gray-700 text-sm"></p>
-              </div>
-            </div>
 
             <div class="mt-6 flex gap-2 justify-center lg:justify-start">
-              <button class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 text-sm">Edit Profile</button>
+              <button onclick="openEditModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 text-sm">Edit Profile</button>
               <button class="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg font-semibold hover:bg-blue-100 text-sm">Stats</button>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- Instructions Helper (Visible only when not searching) -->
-      <div id="searchHint" class="text-center mt-8 text-gray-400 animate-pulse">
-        Type above to search for people...
-      </div>
-    </div>
 
+      <div id="searchHint" class="text-center mt-8 text-gray-400 animate-pulse">Type above to search for people...</div>
+    </div>
   </div>
 </div>
 
+<!-- 🔹 Load Navbar -->
 <script>
-/* ================= FIREBASE CONFIG ================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-/* ================= STATE & DATA ================= */
-const state = {
-  isSearching: false,
-  searchResults: [],
-  myProfile: {
-    fullName: "Alex Morgan",
-    role: "Senior Product Designer",
-    location: "San Francisco, CA",
-    education: "Stanford University • Human Computer Interaction",
-    experience: "Product Lead at TechFlow (3 yrs)",
-    photoURL: "https://i.pravatar.cc/300?img=33"
-  }
-};
-
-/* ================= DOM ELEMENTS ================= */
-const input = document.getElementById("searchInput");
-const btn = document.getElementById("searchBtn");
-const resultsView = document.getElementById("resultsView");
-const gridWrapper = document.getElementById("gridWrapper");
-const leftPanel = document.getElementById("leftPanel");
-const rightPanel = document.getElementById("rightPanel");
-const searchHint = document.getElementById("searchHint");
-const resultsListContainer = document.getElementById("resultsListContainer");
-const detailViewContainer = document.getElementById("detailViewContainer");
-const resultsHeader = document.getElementById("resultsHeader");
-const resultsCount = document.getElementById("resultsCount");
-
-/* ================= INITIALIZATION ================= */
-window.onload = () => {
-  renderMyProfile();
-};
-
-function renderMyProfile() {
-  // Simulate fetching logged-in user data
-  document.getElementById('myName').innerText = state.myProfile.fullName;
-  document.getElementById('myRole').innerText = state.myProfile.role;
-  document.getElementById('myLoc').innerText = state.myProfile.location;
-  document.getElementById('myEdu').innerText = state.myProfile.education;
-  document.getElementById('myExp').innerText = state.myProfile.experience;
-  document.getElementById('myPhoto').src = state.myProfile.photoURL;
-}
-
-/* ================= SEARCH LOGIC ================= */
-btn.addEventListener("click", runSearch);
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") runSearch();
-});
-
-async function runSearch() {
-  const q = input.value.toLowerCase().trim();
-  if (!q) return;
-
-  // 1. Trigger Layout Shift
-  activateSearchLayout();
-
-  // 2. Show Loading
-  resultsView.innerHTML = `
-    <div class="flex flex-col items-center justify-center py-12 text-gray-400">
-      <svg class="animate-spin h-8 w-8 text-blue-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <span>Searching users...</span>
-    </div>
-  `;
-  showResultsList(); // Ensure list is visible, detail is hidden
-
-  // 3. Fetch Data
-  try {
-    const snapshot = await db.collection("users").get();
-    const results = [];
-
-    snapshot.forEach(doc => {
-      const u = doc.data();
-      const text = `
-        ${u.fullName || ""}
-        ${u.education || ""}
-        ${u.university || ""}
-        ${u.experience || ""}
-      `.toLowerCase();
-
-      if (text.includes(q)) {
-        results.push({ id: doc.id, ...u });
-      }
-    });
-
-    state.searchResults = results;
-    renderResults(results);
-    
-  } catch (error) {
-    console.error(error);
-    resultsView.innerHTML = `<div class="p-4 text-red-500 text-center">Error fetching results.</div>`;
-  }
-}
-
-function activateSearchLayout() {
-  if (state.isSearching) return;
-  state.isSearching = true;
-
-  // Change Grid to split view
-  gridWrapper.classList.remove('grid-cols-1');
-  gridWrapper.classList.add('grid-cols-1', 'lg:grid-cols-3');
-
-  // Move "My Profile" to right sidebar
-  rightPanel.classList.remove('max-w-2xl', 'mx-auto');
-  rightPanel.classList.add('lg:col-span-1');
-  searchHint.classList.add('hidden');
-
-  // Show Left Panel
-  leftPanel.classList.remove('hidden');
-  
-  // Little delay to allow DOM to calculate before transition kicks in for opacity
-  setTimeout(() => {
-    leftPanel.classList.remove('opacity-0', '-translate-x-4');
-    leftPanel.classList.add('lg:col-span-2');
-  }, 50);
-}
-
-/* ================= RENDER LIST ================= */
-function renderResults(users) {
-  resultsHeader.classList.remove('hidden');
-  resultsCount.innerText = `${users.length} found`;
-  resultsView.innerHTML = '';
-
-  if (!users.length) {
-    resultsView.innerHTML = `
-      <div class="bg-white p-8 rounded-xl border border-dashed text-center text-gray-500">
-        No profiles found matching "${input.value}"
-      </div>
-    `;
-    return;
-  }
-
-  users.forEach(u => {
-    const card = document.createElement('div');
-    card.className = "bg-white p-4 rounded-xl border hover:shadow-md transition-shadow flex justify-between items-center cursor-pointer group";
-    card.onclick = (e) => {
-      // Prevent triggering if clicking buttons directly (optional preference, but here we allow card click)
-      openDetailView(u.id);
-    };
-
-    card.innerHTML = `
-      <div class="flex gap-4 items-center">
-        <img
-          src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
-          class="w-14 h-14 rounded-full border bg-gray-50 object-cover"
-        />
-        <div>
-          <p class="font-bold text-gray-800 group-hover:text-blue-600 transition-colors">${u.fullName || "User"}</p>
-          <p class="text-xs text-gray-500 line-clamp-1">
-            ${u.education || "Professional"}
-          </p>
-          <p class="text-xs text-gray-400">
-            ${u.university || ""}
-          </p>
-        </div>
-      </div>
-      <button class="text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs font-bold group-hover:bg-blue-100 transition">
-        View
-      </button>
-    `;
-    resultsView.appendChild(card);
-  });
-}
-
-/* ================= DYNAMIC DETAIL VIEW (LEFT PANEL) ================= */
-function openDetailView(userId) {
-  const user = state.searchResults.find(u => u.id === userId);
-  if (!user) return;
-
-  // 1. Hide List, Show Detail Container
-  resultsListContainer.classList.add('hidden');
-  detailViewContainer.classList.remove('hidden');
-
-  // 2. Render Detail Content
-  detailViewContainer.innerHTML = `
-    <!-- Header Image / Banner -->
-    <div class="h-32 bg-gray-100 border-b relative">
-        <button onclick="showResultsList()" class="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm backdrop-blur-sm transition flex items-center gap-2">
-            ← Back to results
-        </button>
-    </div>
-    
-    <div class="p-6 md:p-8 relative">
-        <!-- Profile Pic -->
-        <div class="absolute -top-16 left-8">
-            <img src="${user.photoURL || 'https://i.imgur.com/6VBx3io.png'}" class="w-28 h-28 rounded-full border-4 border-white shadow-lg bg-white object-cover">
-        </div>
-
-        <!-- Actions -->
-        <div class="flex justify-end gap-3 mb-6">
-            <button class="px-6 py-2 border border-gray-300 rounded-lg font-semibold text-gray-600 hover:bg-gray-50 transition">Message</button>
-            <button onclick="alert('Connected with ${user.fullName || 'User'}!')" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 shadow-sm transition">Connect</button>
-        </div>
-
-        <!-- Info -->
-        <div class="mt-4">
-            <h2 class="text-3xl font-bold text-gray-900">${user.fullName || "User"}</h2>
-            <p class="text-lg text-blue-600 font-medium mt-1">${user.education || "Professional"}</p>
-            <p class="text-gray-500 mt-1 flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                ${user.university || "University not specified"}
-            </p>
-        </div>
-
-        <hr class="my-8 border-gray-100">
-
-        <!-- Experience Section -->
-        <div class="space-y-6">
-            <h3 class="text-lg font-bold text-gray-800 uppercase tracking-wide text-xs">Professional Experience</h3>
-            
-            <div class="flex gap-4">
-                <div class="mt-1">
-                    <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    </div>
-                </div>
-                <div>
-                    <p class="font-bold text-gray-800 text-lg">${user.experience || "Experience not listed"}</p>
-                    <p class="text-gray-500">Previously / Current</p>
-                    <p class="text-gray-400 text-sm mt-2 leading-relaxed">
-                        This user has not provided a detailed description of their role responsibilities yet.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-  `;
-}
-
-function showResultsList() {
-  detailViewContainer.classList.add('hidden');
-  resultsListContainer.classList.remove('hidden');
-}
-
+fetch("navbar.html")
+  .then(res => res.text())
+  .then(data => {
+    document.getElementById("navbar-container").innerHTML = data;
+  })
+  .catch(err => console.error("Navbar load error:", err));
 </script>
 
 </body>
