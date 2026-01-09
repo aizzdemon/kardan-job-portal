@@ -1,68 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BooterSpace Navbar</title>
+<meta charset="UTF-8">
+<title>BooterSpace Navbar</title>
 
-    <script src="https://cdn.tailwindcss.com"></script>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Firebase SDKs (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
-    <style>
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #64748b;
-            transition: .25s;
-        }
-
-        .nav-link.active {
-            color: #2563eb;
-        }
-
-        .nav-link:hover {
-            color: #2563eb;
-        }
-
-        /* Smooth fade in for avatar */
-        #avatar {
-            transition: opacity 0.3s ease-in-out;
-        }
-        
-        /* Ensure icons are aligned */
-        .ph, .ph-fill {
-            font-size: 1.25rem;
-            vertical-align: middle;
-            margin-top: -2px;
-        }
-    </style>
+<style>
+.nav-link{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+  font-size:14px;
+  color:#64748b;
+  transition:.25s;
+}
+.nav-link:hover,
+.nav-link.active{
+  color:#2563eb;
+}
+.ph-fill{
+  font-size:18px;
+}
+</style>
 </head>
 
-<body class="bg-gray-100 font-sans">
+<body>
 
-    <!-- NAVBAR -->
-    <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
+<nav class="bg-white border-b sticky top-0 shadow z-50">
+<div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
 
-                <!-- LOGO -->
-                <a href="index.html" class="flex items-center gap-2 font-bold text-xl text-slate-800 hover:text-blue-600 transition">
-                    <i class="ph-fill ph-rocket-launch text-2xl text-blue-600"></i> BooterSpace
-                </a>
+<!-- LOGO -->
+<a href="index.html" class="flex items-center gap-2 text-xl font-bold text-slate-800 hover:text-blue-600">
+<i class="ph-fill ph-rocket-launch text-blue-600 text-2xl"></i> BooterSpace
+</a>
 
-                <!-- DESKTOP MENU -->
-                <div class="hidden md:flex items-center gap-7">
-                    <a href="index.html" class="nav-link" data-link>
-                        <i class="ph-fill ph-house text-blue-500"></i> Home
-                    </a>
-                    <a href="jobs.html" class="nav-link" data-link>
+<!-- MENU -->
+<div class="flex items-center gap-7">
+
+<a href="index.html" class="nav-link" data-link>
+<i class="ph-fill ph-house"></i> Home
+</a>
+
+<a href="jobs.html" class="nav-link" data-link>
+<i class="ph-fill ph-briefcase"></i> Jobs
+</a>
+
+<a href="companies.html" class="nav-link" data-link>
+<i class="ph-fill ph-buildings"></i> Companies
+</a>
+
+<a href="places-to-hangout.html" class="nav-link" data-link>
+<i class="ph-fill ph-map-pin"></i> Hangouts
+</a>
+
+<a href="profile.html" class="nav-link" data-link>
+<i class="ph-fill ph-user"></i> Profile
+</a>
+
+<!-- 🔔 Notification -->
+<button class="relative">
+<i class="ph-fill ph-bell text-xl text-slate-600"></i>
+<span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded-full">3</span>
+</button>
+
+<!-- Avatar -->
+<img id="avatar" src="https://i.imgur.com/HeIi0wU.png"
+class="w-10 h-10 rounded-full border-2 border-blue-500 hidden object-cover">
+
+<!-- Auth Buttons -->
+<button id="loginBtn" class="bg-blue-600 text-white px-4 py-1 rounded hidden">Login</button>
+<button id="logoutBtn" class="bg-red-500 text-white px-4 py-1 rounded hidden">Logout</button>
+
+</div>
+</div>
+</nav>
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+<div class="bg-white p-6 rounded-lg shadow text-center w-80">
+<h3 class="text-lg font-bold mb-2">Logout</h3>
+<p class="mb-4 text-gray-600">Are you sure you want to logout?</p>
+<div class="flex justify-center gap-4">
+<button onclick="confirmLogout()" class="bg-red-500 text-white px-4 py-2 rounded">Yes</button>
+<button onclick="closeLogout()" class="px-4 py-2 border rounded">Cancel</button>
+</div>
+</div>
+</div>
+
+<!-- Loader -->
+<div id="loader" class="fixed inset-0 bg-black/40 hidden flex items-center justify-center z-50">
+<div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+</div>
+
+</body>
+</html>
