@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>BooterSpace | Network</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<title>BooterSpace | Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -15,24 +15,56 @@
 
 <body class="bg-gray-100">
 
-<!-- 🔍 SEARCH BAR -->
+<!-- 🔍 SEARCH BAR (UI SAME) -->
 <div class="bg-white border-b sticky top-0 z-10">
-  <div class="max-w-4xl mx-auto p-4 relative">
-    <input id="searchInput"
-      placeholder="Search people..."
-      class="w-full border rounded px-4 py-2 text-sm" />
-
-    <!-- Dropdown -->
-    <div id="dropdown"
-      class="absolute bg-white border rounded w-full mt-1 hidden z-20 max-h-60 overflow-y-auto"></div>
+  <div class="max-w-4xl mx-auto p-4 flex gap-2">
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Search people, education, university..."
+      class="flex-1 border rounded px-4 py-2 text-sm focus:outline-none focus:ring"
+    />
+    <button
+      id="searchBtn"
+      class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold">
+      Search
+    </button>
   </div>
 </div>
 
-<!-- MAIN AREA -->
-<div id="mainView" class="max-w-4xl mx-auto p-4 space-y-4"></div>
+<!-- 📄 RESULTS VIEW -->
+<div class="max-w-4xl mx-auto p-4 space-y-4" id="resultsView">
+  <div class="text-gray-400 text-center mt-10">
+    Start searching to see results
+  </div>
+</div>
+
+<!-- 🆕 PROFILE MODAL -->
+<div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 opacity-0 transition-opacity duration-300">
+  <div class="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl transform scale-95 transition-transform duration-300" id="modalContent">
+    <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    
+    <div class="flex flex-col items-center text-center">
+      <img id="mPhoto" src="" class="w-24 h-24 rounded-full border-4 border-white shadow-lg mb-4 object-cover bg-gray-200">
+      
+      <h2 id="mName" class="text-2xl font-bold text-gray-800"></h2>
+      <p id="mEdu" class="text-blue-600 font-medium mb-1"></p>
+      <p id="mUni" class="text-gray-500 text-sm mb-6"></p>
+
+      <div class="w-full text-left bg-gray-50 p-4 rounded-lg border mb-6">
+        <label class="text-xs font-bold text-gray-400 uppercase tracking-wider">Experience</label>
+        <p id="mExp" class="text-gray-700 mt-1"></p>
+      </div>
+
+      <button onclick="handleConnect()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">
+        Connect
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
-/* ================= FIREBASE ================= */
+/* ================= FIREBASE CONFIG ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -41,196 +73,151 @@ const firebaseConfig = {
   messagingSenderId: "554147696994",
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
-firebase.initializeApp(firebaseConfig);
 
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let currentUser;
-let allUsers = [];
-let myConnections = new Set();
+/* ================= SEARCH LOGIC ================= */
+const input = document.getElementById("searchInput");
+const btn = document.getElementById("searchBtn");
+const resultsView = document.getElementById("resultsView");
+const profileModal = document.getElementById("profileModal");
+const modalContent = document.getElementById("modalContent");
 
-/* ================= AUTH ================= */
-auth.onAuthStateChanged(async user => {
-  if (!user) return location.href = "login.html";
-  currentUser = user;
-  await fetchAllUsers();
-  await fetchMyConnections();
-  loadMyProfile();
+let currentSearchResults = []; // Store results to access data later
+
+btn.addEventListener("click", runSearch);
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") runSearch();
 });
 
-/* ================= FETCH ================= */
-async function fetchAllUsers() {
-  const snap = await db.collection("users").get();
-  allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
+async function runSearch() {
+  const q = input.value.toLowerCase().trim();
+  if (!q) return;
 
-async function fetchMyConnections() {
-  const snap = await db.collection("connections")
-    .where("from", "==", currentUser.uid).get();
-
-  snap.forEach(d => myConnections.add(d.data().to));
-}
-
-/* ================= MY PROFILE ================= */
-async function loadMyProfile() {
-  const doc = await db.collection("users").doc(currentUser.uid).get();
-  const u = doc.data();
-
-  mainView.innerHTML = `
-    <div class="bg-white p-6 rounded border">
-      <div class="flex gap-6 items-center">
-        <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
-          class="w-24 h-24 rounded-full border" />
-        <div>
-          <h2 class="text-xl font-bold">${u.fullName}</h2>
-          <p class="text-sm text-gray-500">${currentUser.email}</p>
-          <p class="text-sm">${u.education || ""}</p>
-          <p class="text-sm">${u.university || ""}</p>
-          <p class="text-sm">${u.experience || ""}</p>
-          <p class="text-sm font-bold mt-2">
-            Connections: ${myConnections.size}
-          </p>
-        </div>
-      </div>
+  resultsView.innerHTML = `
+    <div class="text-center text-gray-400 py-10">
+      Searching...
     </div>
   `;
-}
 
-/* ================= SEARCH INPUT ================= */
-const input = document.getElementById("searchInput");
-const dropdown = document.getElementById("dropdown");
+  // Note: This relies on your existing 'users' collection
+  const snapshot = await db.collection("users").get();
+  const results = [];
 
-input.addEventListener("focus", () => {
-  mainView.innerHTML = "";
-});
+  snapshot.forEach(doc => {
+    const u = doc.data();
+    const text = `
+      ${u.fullName || ""}
+      ${u.education || ""}
+      ${u.university || ""}
+      ${u.experience || ""}
+    `.toLowerCase();
 
-input.addEventListener("input", () => {
-  const q = input.value.toLowerCase().trim();
-  if (!q) return dropdown.classList.add("hidden");
-
-  const matches = allUsers.filter(u =>
-    u.id !== currentUser.uid &&
-    (u.fullName || "").toLowerCase().includes(q)
-  );
-
-  renderDropdown(matches.slice(0, 6));
-});
-
-input.addEventListener("keypress", e => {
-  if (e.key === "Enter") runSearch(input.value);
-});
-
-/* ================= DROPDOWN ================= */
-function renderDropdown(list) {
-  dropdown.innerHTML = "";
-  dropdown.classList.remove("hidden");
-
-  list.forEach(u => {
-    dropdown.innerHTML += `
-      <div onclick="runSearch('${u.fullName}')"
-        class="p-2 hover:bg-gray-100 cursor-pointer flex gap-2 items-center">
-        <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
-          class="w-8 h-8 rounded-full" />
-        <span class="text-sm font-semibold">${u.fullName}</span>
-      </div>
-    `;
+    if (text.includes(q)) {
+      results.push({ id: doc.id, ...u });
+    }
   });
-}
 
-/* ================= SEARCH RESULTS ================= */
-function runSearch(q) {
-  dropdown.classList.add("hidden");
-  const query = q.toLowerCase();
-
-  const results = allUsers.filter(u =>
-    u.id !== currentUser.uid &&
-    (
-      (u.fullName || "").toLowerCase().includes(query) ||
-      (u.education || "").toLowerCase().includes(query) ||
-      (u.university || "").toLowerCase().includes(query)
-    )
-  );
-
+  currentSearchResults = results;
   renderResults(results);
 }
 
-/* ================= RENDER LIST ================= */
+/* ================= RENDER LIKE JOB LIST ================= */
 function renderResults(users) {
-  mainView.innerHTML = `
+  resultsView.innerHTML = `
     <div class="bg-white p-4 rounded border font-bold">
       Search Results (${users.length})
     </div>
   `;
 
-  users.forEach(u => {
-    const connected = myConnections.has(u.id);
+  if (!users.length) {
+    resultsView.innerHTML += `
+      <div class="bg-white p-6 rounded border text-center text-gray-500">
+        No profiles found
+      </div>
+    `;
+    return;
+  }
 
-    mainView.innerHTML += `
-      <div class="bg-white p-4 rounded border flex justify-between items-center">
+  users.forEach(u => {
+    resultsView.innerHTML += `
+      <div class="bg-white p-4 rounded border hover:shadow transition flex justify-between items-center">
         <div class="flex gap-4 items-center">
-          <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
-            class="w-14 h-14 rounded-full border" />
+          <img
+            src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
+            class="w-14 h-14 rounded-full border"
+          />
           <div>
-            <p class="font-bold">${u.fullName}</p>
+            <p class="font-bold">${u.fullName || "User"}</p>
             <p class="text-xs text-gray-500">
-              ${u.education || ""} • ${u.experience || ""}
+              ${u.education || "Professional"} • ${u.experience || ""}
+            </p>
+            <p class="text-xs text-gray-400">
+              ${u.university || ""}
             </p>
           </div>
         </div>
 
         <div class="flex gap-2">
-          <button onclick="viewProfile('${u.id}')"
-            class="border px-3 py-1 rounded text-xs font-bold">
-            View
-          </button>
-          <button
-            ${connected ? "disabled" : ""}
-            onclick="connectUser('${u.id}')"
-            class="border border-blue-600 text-blue-600 px-3 py-1 rounded text-xs font-bold">
-            ${connected ? "Connected" : "Connect"}
-          </button>
+            <button
+              onclick="openModal('${u.id}')"
+              class="border border-blue-600 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-50">
+              View
+            </button>
+            <button
+              onclick="openModal('${u.id}')"
+              class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-700">
+              Connect
+            </button>
         </div>
       </div>
     `;
   });
 }
 
-/* ================= VIEW PROFILE ================= */
-async function viewProfile(uid) {
-  const doc = await db.collection("users").doc(uid).get();
-  const u = doc.data();
+/* ================= MODAL LOGIC ================= */
+function openModal(userId) {
+  const user = currentSearchResults.find(u => u.id === userId);
+  if (!user) return;
 
-  mainView.innerHTML = `
-    <div class="bg-white p-6 rounded border">
-      <button onclick="runSearch(input.value)"
-        class="text-blue-600 text-sm mb-4">← Back</button>
+  // Populate Modal
+  document.getElementById('mPhoto').src = user.photoURL || 'https://i.imgur.com/6VBx3io.png';
+  document.getElementById('mName').innerText = user.fullName || "User";
+  document.getElementById('mEdu').innerText = user.education || "Professional";
+  document.getElementById('mUni').innerText = user.university || "";
+  document.getElementById('mExp').innerText = user.experience || "No experience listed";
 
-      <div class="flex gap-6 items-center">
-        <img src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
-          class="w-24 h-24 rounded-full border" />
-        <div>
-          <h2 class="text-xl font-bold">${u.fullName}</h2>
-          <p>${u.education || ""}</p>
-          <p>${u.university || ""}</p>
-          <p>${u.experience || ""}</p>
-        </div>
-      </div>
-    </div>
-  `;
+  // Show Modal
+  profileModal.classList.remove('hidden');
+  // Small delay for transition
+  setTimeout(() => {
+    profileModal.classList.remove('opacity-0');
+    modalContent.classList.remove('scale-95');
+    modalContent.classList.add('scale-100');
+  }, 10);
 }
 
-/* ================= CONNECT ================= */
-async function connectUser(uid) {
-  await db.collection("connections").add({
-    from: currentUser.uid,
-    to: uid,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-
-  myConnections.add(uid);
-  runSearch(input.value);
+function closeModal() {
+  profileModal.classList.add('opacity-0');
+  modalContent.classList.remove('scale-100');
+  modalContent.classList.add('scale-95');
+  
+  setTimeout(() => {
+    profileModal.classList.add('hidden');
+  }, 300);
 }
+
+function handleConnect() {
+  alert("Connection request sent! (Simulation)");
+  closeModal();
+}
+
+// Close modal when clicking outside
+profileModal.addEventListener('click', (e) => {
+  if (e.target === profileModal) closeModal();
+});
 </script>
 
 </body>
