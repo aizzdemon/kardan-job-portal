@@ -1,99 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>BooterSpace | Search & Profile</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BooterSpace Navbar</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<style>
-  .transition-layout { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-  .avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
-  .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-</style>
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    <style>
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748b;
+            transition: .25s;
+        }
+
+        .nav-link.active {
+            color: #2563eb;
+        }
+
+        .nav-link:hover {
+            color: #2563eb;
+        }
+
+        /* Smooth fade in for avatar */
+        #avatar {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Ensure icons are aligned */
+        .ph, .ph-fill {
+            font-size: 1.25rem;
+            vertical-align: middle;
+            margin-top: -2px;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-100 font-sans">
 
-<!-- 🔷 NAVBAR -->
-<div id="navbar-container"></div>
+    <!-- NAVBAR -->
+    <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
 
-<!-- 🔍 SEARCH BAR -->
-<div class="bg-white border-b sticky top-0 z-20 shadow-sm">
-  <div class="max-w-6xl mx-auto p-4 flex gap-2">
-    <input
-      id="searchInput"
-      type="text"
-      placeholder="Search people, education, university..."
-      class="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-inner"
-    />
-    <button
-      id="searchBtn"
-      class="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-md">
-      Search
-    </button>
-  </div>
-</div>
+                <!-- LOGO -->
+                <a href="index.html" class="flex items-center gap-2 font-bold text-xl text-slate-800 hover:text-blue-600 transition">
+                    <i class="ph-fill ph-rocket-launch text-2xl text-blue-600"></i> BooterSpace
+                </a>
 
-<!-- 📐 MAIN LAYOUT -->
-<div id="mainContainer" class="flex-1 max-w-6xl mx-auto p-4 w-full relative">
-  <div id="gridWrapper" class="grid grid-cols-1 gap-6 transition-layout">
-    
-    <!-- 👈 LEFT PANEL (Search Results & Dynamic Details) -->
-    <div id="leftPanel" class="hidden transition-all duration-500 opacity-0 transform -translate-x-4">
-      <div id="resultsListContainer">
-        <div id="resultsHeader" class="mb-4 flex justify-between items-center hidden">
-          <h3 class="font-bold text-gray-700 text-lg">Search Results</h3>
-          <span id="resultsCount" class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">0 found</span>
-        </div>
-        <div id="resultsView" class="space-y-4"></div>
-      </div>
-      <div id="detailViewContainer" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border"></div>
-    </div>
-
-    <!-- 👉 RIGHT PANEL (My Profile) -->
-    <div id="rightPanel" class="w-full max-w-2xl mx-auto transition-layout">
-      <div id="myProfileCard" class="bg-white rounded-xl shadow-lg border overflow-hidden relative opacity-0 transition-opacity duration-500">
-        <div class="h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-        <div class="px-6 pb-6 relative">
-
-          <div class="relative -mt-12 mb-4 flex justify-center lg:justify-start group cursor-pointer" onclick="openAvatarModal()">
-             <img id="myPhoto" src="https://i.imgur.com/6VBx3io.png" class="w-24 h-24 rounded-full border-4 border-white shadow-md bg-gray-200 object-cover group-hover:brightness-75 transition">
-          </div>
-
-          <div class="text-center lg:text-left">
-            <h1 id="myName" class="text-2xl font-bold text-gray-800">Loading...</h1>
-            <p id="myRole" class="text-blue-600 font-medium"></p>
-            <p id="myLoc" class="text-gray-500 text-sm mb-4"></p>
-
-            <div class="mt-6 flex gap-2 justify-center lg:justify-start">
-              <button onclick="openEditModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 text-sm">Edit Profile</button>
-              <button class="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg font-semibold hover:bg-blue-100 text-sm">Stats</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="searchHint" class="text-center mt-8 text-gray-400 animate-pulse">Type above to search for people...</div>
-    </div>
-  </div>
-</div>
-
-<!-- 🔹 Load Navbar -->
-<script>
-fetch("navbar.html")
-  .then(res => res.text())
-  .then(data => {
-    document.getElementById("navbar-container").innerHTML = data;
-  })
-  .catch(err => console.error("Navbar load error:", err));
-</script>
-
-</body>
-</html>
+                <!-- DESKTOP MENU -->
+                <div class="hidden md:flex items-center gap-7">
+                    <a href="index.html" class="nav-link" data-link>
+                        <i class="ph-fill ph-house text-blue-500"></i> Home
+                    </a>
+                    <a href="jobs.html" class="nav-link" data-link>
