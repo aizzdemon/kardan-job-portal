@@ -1,137 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>KARDAN - User Search</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8" />
+<title>BooterSpace | Search</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body class="bg-gray-100">
 
-<!-- 🔵 NAVBAR -->
-<nav class="bg-white border-b sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-    <!-- LEFT -->
-    <div class="flex items-center gap-4">
-      <a href="index.html" class="font-bold text-xl text-blue-600">
-        KARDAN
-      </a>
-
-      <!-- 🔍 USER SEARCH (Jobs page jaisa) -->
-      <div class="relative w-72">
-        <input
-          id="userSearch"
-          type="text"
-          placeholder="Search users..."
-          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <ul
-          id="userSuggestionBox"
-          class="absolute bg-white border rounded-lg w-full mt-1 max-h-56 overflow-y-auto hidden z-50 shadow"
-        ></ul>
-      </div>
-    </div>
-
-    <!-- RIGHT -->
-    <img
-      class="w-8 h-8 rounded-full"
-      src="https://api.dicebear.com/7.x/adventurer/svg?seed=user"
+<!-- 🔍 SEARCH BAR (UI SAME) -->
+<div class="bg-white border-b sticky top-0 z-10">
+  <div class="max-w-4xl mx-auto p-4 flex gap-2">
+    <input
+      id="searchInput"
+      type="text"
+      placeholder="Search people, education, university..."
+      class="flex-1 border rounded px-4 py-2 text-sm focus:outline-none focus:ring"
     />
+    <button
+      id="searchBtn"
+      class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold">
+      Search
+    </button>
   </div>
-</nav>
+</div>
 
-<!-- PAGE CONTENT -->
-<div class="max-w-5xl mx-auto p-6 text-gray-600">
-  <p>This is demo page. Navbar user search is working.</p>
+<!-- 📄 RESULTS VIEW -->
+<div class="max-w-4xl mx-auto p-4 space-y-4" id="resultsView">
+  <div class="text-gray-400 text-center mt-10">
+    Start searching to see results
+  </div>
 </div>
 
 <script>
-  // 🔥 Firebase Config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-    authDomain: "kar-kardan.firebaseapp.com",
-    projectId: "kar-kardan"
-  };
+/* ================= FIREBASE CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-  const userSearch = document.getElementById("userSearch");
-  const suggestionBox = document.getElementById("userSuggestionBox");
+/* ================= SEARCH LOGIC ================= */
+const input = document.getElementById("searchInput");
+const btn = document.getElementById("searchBtn");
+const resultsView = document.getElementById("resultsView");
 
-  let users = [];
+btn.addEventListener("click", runSearch);
+input.addEventListener("keypress", e => {
+  if (e.key === "Enter") runSearch();
+});
 
-  // 🔥 LOAD USERS ONCE (jobs page jaisa)
-  async function loadUsers() {
-    const snap = await db.collection("users").get();
-    users = snap.docs.map(doc => doc.data());
-  }
-  loadUsers();
+async function runSearch() {
+  const q = input.value.toLowerCase().trim();
+  if (!q) return;
 
-  // 🔍 FILTER USERS
-  function filterUsers(value) {
-    const v = value.toLowerCase();
-    return users.filter(u =>
-      u.nameLower.includes(v) ||
-      u.usernameLower.includes(v)
-    );
-  }
+  resultsView.innerHTML = `
+    <div class="text-center text-gray-400 py-10">
+      Searching...
+    </div>
+  `;
 
-  // 👤 SHOW SUGGESTIONS
-  function showSuggestions(list) {
-    suggestionBox.innerHTML = "";
+  const snapshot = await db.collection("users").get();
+  const results = [];
 
-    if (list.length === 0) {
-      suggestionBox.classList.add("hidden");
-      return;
+  snapshot.forEach(doc => {
+    const u = doc.data();
+    const text = `
+      ${u.fullName || ""}
+      ${u.education || ""}
+      ${u.university || ""}
+      ${u.experience || ""}
+    `.toLowerCase();
+
+    if (text.includes(q)) {
+      results.push({ id: doc.id, ...u });
     }
+  });
 
-    list.slice(0, 8).forEach(user => {
-      const li = document.createElement("li");
-      li.className =
-        "flex items-center gap-3 px-3 py-2 hover:bg-gray-100 cursor-pointer";
+  renderResults(results);
+}
 
-      li.innerHTML = `
-        <img src="${user.photoURL}" class="w-8 h-8 rounded-full">
-        <div>
-          <p class="text-sm font-medium">${user.name}</p>
-          <p class="text-xs text-gray-500">@${user.username}</p>
+/* ================= RENDER LIKE JOB LIST ================= */
+function renderResults(users) {
+  resultsView.innerHTML = `
+    <div class="bg-white p-4 rounded border font-bold">
+      Search Results (${users.length})
+    </div>
+  `;
+
+  if (!users.length) {
+    resultsView.innerHTML += `
+      <div class="bg-white p-6 rounded border text-center text-gray-500">
+        No profiles found
+      </div>
+    `;
+    return;
+  }
+
+  users.forEach(u => {
+    resultsView.innerHTML += `
+      <div class="bg-white p-4 rounded border hover:shadow transition flex justify-between items-center">
+        <div class="flex gap-4 items-center">
+          <img
+            src="${u.photoURL || 'https://i.imgur.com/6VBx3io.png'}"
+            class="w-14 h-14 rounded-full border"
+          />
+          <div>
+            <p class="font-bold">${u.fullName || "User"}</p>
+            <p class="text-xs text-gray-500">
+              ${u.education || "Professional"} • ${u.experience || ""}
+            </p>
+            <p class="text-xs text-gray-400">
+              ${u.university || ""}
+            </p>
+          </div>
         </div>
-      `;
 
-      li.onclick = () => {
-        window.location.href = "profile.html?username=" + user.username;
-      };
-
-      suggestionBox.appendChild(li);
-    });
-
-    suggestionBox.classList.remove("hidden");
-  }
-
-  // ⌨ INPUT EVENT
-  userSearch.addEventListener("input", () => {
-    const value = userSearch.value.trim();
-    if (!value) {
-      suggestionBox.classList.add("hidden");
-      return;
-    }
-    showSuggestions(filterUsers(value));
+        <button
+          class="border border-blue-600 text-blue-600 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-blue-50">
+          View
+        </button>
+      </div>
+    `;
   });
-
-  // ❌ CLICK OUTSIDE
-  document.addEventListener("click", e => {
-    if (!userSearch.contains(e.target) && !suggestionBox.contains(e.target)) {
-      suggestionBox.classList.add("hidden");
-    }
-  });
+}
 </script>
 
 </body>
