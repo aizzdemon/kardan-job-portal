@@ -1,58 +1,36 @@
-<link rel="stylesheet" href="https://cdn.tailwindcss.com">
-<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web">
-
-<style>
-.nav-link{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-weight:600;
-  color:#475569;
-  transition:.2s;
-}
-.nav-link:hover{color:#2563eb}
-</style>
-
-<nav class="bg-white border-b shadow-sm sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4">
-    <div class="flex justify-between items-center h-16">
-
+<nav class="bg-white border-b border-gray-200 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16 items-center">
       <!-- Logo -->
-      <a href="index.html" class="flex items-center gap-2 font-bold text-xl">
-        <i class="ph-fill ph-rocket-launch text-blue-600 text-2xl"></i>
-        BooterSpace
+      <a href="index.html" class="flex items-center space-x-2">
+        <img src="https://img.icons8.com/ios-filled/50/rocket.png" class="h-8 w-8"/>
+        <span class="font-black text-blue-600 text-xl tracking-tight">BooterSpace</span>
       </a>
 
-      <!-- Menu -->
-      <div class="hidden md:flex gap-8">
-        <a href="index.html" class="nav-link"><i class="ph-fill ph-house"></i> Home</a>
-        <a href="jobs.html" class="nav-link"><i class="ph-fill ph-briefcase"></i> Jobs</a>
-        <a href="companies.html" class="nav-link"><i class="ph-fill ph-buildings"></i> Companies</a>
-        <a href="hangout.html" class="nav-link"><i class="ph-fill ph-briefcase"></i> Hangout</a>
-        <a href="profile.html" class="nav-link"><i class="ph-fill ph-briefcase"></i> Profile</a>
-        <a href="search.html" class="nav-link"><i class="ph-fill ph-briefcase"></i> Connect</a>
-        <a href="dashboard.html" id="dashboardLink" class="nav-link hidden">
-          <i class="ph-fill ph-chart-bar"></i> Dashboard
+      <!-- Navigation -->
+      <div class="flex items-center space-x-6">
+        <a href="index.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold">
+          <span id="home-icon"></span>
+          <span class="ml-1">Home</span>
         </a>
-      </div>
+        <a href="jobs.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold">
+          <span id="jobs-icon"></span>
+          <span class="ml-1">Jobs</span>
+        </a>
+        <a href="by-books.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold">
+          <span id="books-icon"></span>
+          <span class="ml-1">Books</span>
+        </a>
 
-      <!-- Right -->
-      <div class="flex items-center gap-4">
-
-        <div id="userBox" class="hidden flex items-center gap-3">
-          <img id="navAvatar" class="w-9 h-9 rounded-full border object-cover">
-          <span id="navName" class="font-semibold text-sm"></span>
-          <button id="logoutBtn" class="text-red-500 font-semibold hover:text-red-600">
-            Logout
+        <!-- Profile & Logout -->
+        <div class="flex items-center space-x-3">
+          <img id="profile-pic" src="https://ui-avatars.com/api/?name=User" class="h-10 w-10 rounded-full border border-gray-200 object-cover" />
+          <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg font-bold flex items-center space-x-1">
+            <span id="logout-icon"></span>
+            <span>Logout</span>
           </button>
         </div>
-
-        <button id="loginBtn" class="text-blue-600 font-semibold hover:text-blue-700">
-          Login
-        </button>
-
       </div>
-
     </div>
   </div>
 </nav>
