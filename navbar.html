@@ -1,49 +1,14 @@
 <!-- navbar.html -->
-<nav class="bg-white border-b border-gray-200 shadow-sm">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between h-16 items-center">
-      
-      <!-- Logo -->
-      <a href="index.html" class="flex items-center space-x-2">
-        <img src="https://img.icons8.com/ios-filled/50/rocket.png" class="h-8 w-8"/>
-        <span class="font-black text-blue-600 text-xl tracking-tight">BooterSpace</span>
-      </a>
+<nav class="bg-gray-900 text-white shadow-md p-4 flex justify-between items-center">
+  <!-- Logo -->
+  <a href="index.html" class="flex items-center gap-2 text-xl font-bold">
+    <img src="https://img.icons8.com/emoji/48/rocket-emoji.png" class="w-8 h-8" />
+    BooterSpace
+  </a>
 
-      <!-- Navigation -->
-      <div class="flex items-center space-x-6">
-        <a href="index.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold">
-          <i class="ph-house"></i>
-          <span class="ml-1">Home</span>
-        </a>
-        <a href="jobs.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold">
-          <i class="ph-briefcase"></i>
-          <span class="ml-1">Jobs</span>
-        </a>
-        <a href="books.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold">
-          <i class="ph-book"></i>
-          <span class="ml-1">Books</span>
-        </a>
-
-        <!-- Profile & Dashboard buttons (hidden by default) -->
-        <a id="profileBtn" href="profile.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold hidden">
-          <i class="ph-user"></i>
-          <span class="ml-1">Profile</span>
-        </a>
-        <a id="dashboardBtn" href="dashboard.html" class="flex items-center text-gray-700 hover:text-blue-600 font-bold hidden">
-          <i class="ph-gauge"></i>
-          <span class="ml-1">Dashboard</span>
-        </a>
-
-        <!-- Profile picture & Logout -->
-        <div class="flex items-center space-x-3">
-          <img id="profile-pic" src="https://ui-avatars.com/api/?name=User" class="h-10 w-10 rounded-full border border-gray-200 object-cover hidden" />
-          <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg font-bold flex items-center space-x-1 hidden">
-            <i class="ph-sign-out"></i>
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-    </div>
+  <!-- Navigation buttons -->
+  <div class="flex items-center gap-4" id="nav-links">
+    <!-- Buttons will be dynamically populated by JS -->
   </div>
 </nav>
 
@@ -51,48 +16,3 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
-<script>
-// ======== Initialize Firebase ========
-// Replace with your Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firbasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-  measurementId: "G-RRC3X485KQ"
-};
-firebase.initializeApp(firebaseConfig);
-
-// ======== Navbar functionality ========
-firebase.auth().onAuthStateChanged((user) => {
-  const profileBtn = document.getElementById("profileBtn");
-  const dashboardBtn = document.getElementById("dashboardBtn");
-  const profilePic = document.getElementById("profile-pic");
-  const logoutBtn = document.getElementById("logout-btn");
-
-  if(user){
-    // Show profile, dashboard, pic, logout
-    profileBtn.classList.remove("hidden");
-    dashboardBtn.classList.remove("hidden");
-    profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}`;
-    profilePic.classList.remove("hidden");
-    logoutBtn.classList.remove("hidden");
-  } else {
-    // Hide them if not logged in
-    profileBtn.classList.add("hidden");
-    dashboardBtn.classList.add("hidden");
-    profilePic.classList.add("hidden");
-    logoutBtn.classList.add("hidden");
-  }
-
-  // Logout functionality
-  logoutBtn.onclick = () => {
-    firebase.auth().signOut().then(() => {
-      window.location.href = "index.html";
-    });
-  }
-});
-</script>
