@@ -147,8 +147,11 @@
 
   <!-- Navbar -->
   <div id="navbar"></div>
-  <script type="module" src="navbar.js"></script>
-
+<script>
+  fetch('navbar.html')
+    .then(res => res.text())
+    .then(data => document.getElementById('navbar').innerHTML = data);
+</script>
   <!-- Hero Section -->
   <header class="bg-white border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 py-12 text-center">
@@ -231,3 +234,4 @@
 
 </body>
 </html>
+
