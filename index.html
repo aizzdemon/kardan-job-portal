@@ -144,14 +144,81 @@
 </head>
 
 <body class="font-sans antialiased text-gray-900">
-
-  <!-- Navbar -->
+// === NANBAR CODE === //
   <div id="navbar"></div>
 <script>
+  // ====== Load navbar.html dynamically ======
   fetch('navbar.html')
     .then(res => res.text())
-    .then(data => document.getElementById('navbar').innerHTML = data);
+    .then(html => {
+      document.getElementById('navbar').innerHTML = html;
+
+      // ====== Initialize Firebase ======
+      const firebaseConfig = {
+        apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+        authDomain: "kar-kardan.firebaseapp.com",
+        projectId: "kar-kardan",
+        storageBucket: "kar-kardan.firbasestorage.app",
+        messagingSenderId: "554147696994",
+        appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+        measurementId: "G-RRC3X485KQ"
+      };
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+      // ====== Navbar functionality ======
+      const navLinks = document.getElementById("nav-links");
+
+      firebase.auth().onAuthStateChanged((user) => {
+        let html = `
+          <a href="index.html" class="flex items-center gap-1 hover:text-yellow-400">
+            <i class="ph-house"></i> Home
+          </a>
+          <a href="jobs.html" class="flex items-center gap-1 hover:text-yellow-400">
+            <i class="ph-briefcase"></i> Jobs
+          </a>
+          <a href="places-to-hangout.html" class="flex items-center gap-1 hover:text-yellow-400">
+            <i class="ph-map-pin"></i> Hangouts
+          </a>
+          <a href="by-books.html" class="flex items-center gap-1 hover:text-yellow-400">
+            <i class="ph-book"></i> Books
+          </a>
+        `;
+
+        if(user){
+          html += `
+            <a href="profile.html" class="flex items-center gap-1 hover:text-yellow-400">
+              <img src="${user.photoURL || 'https://img.icons8.com/ios-filled/50/user.png'}" class="w-8 h-8 rounded-full"/>
+              ${user.displayName || "Profile"}
+            </a>
+            <a href="dashboard.html" class="flex items-center gap-1 hover:text-yellow-400">
+              <i class="ph-gauge"></i> Dashboard
+            </a>
+            <button id="logoutBtn" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700 flex items-center gap-1">
+              <i class="ph-sign-out"></i> Logout
+            </button>
+          `;
+        } else {
+          html += `
+            <a href="login.html" class="bg-green-600 px-3 py-1 rounded hover:bg-green-700">Login</a>
+            <a href="signup.html" class="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Join Now</a>
+          `;
+        }
+
+        navLinks.innerHTML = html;
+
+        // Attach logout click
+        const logoutBtn = document.getElementById("logoutBtn");
+        if(logoutBtn){
+          logoutBtn.addEventListener("click", () => {
+            firebase.auth().signOut().then(() => {
+              window.location.href = "index.html";
+            });
+          });
+        }
+      });
+    });
 </script>
+
   <!-- Hero Section -->
   <header class="bg-white border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 py-12 text-center">
@@ -234,4 +301,5 @@
 
 </body>
 </html>
+
 
