@@ -1,522 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jobs - KARDAN</title>
+<meta charset="UTF-8">
+<title>BooterSpace | Jobs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
-  <style>
-    .latest-badge {
-      animation: flash 1s infinite;
-    }
-    @keyframes flash {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-    /* Skeleton Loading Animation */
-    @keyframes shimmer {
-      0% { background-position: -468px 0; }
-      100% { background-position: 468px 0; }
-    }
-    .skeleton {
-      background: #f6f7f8;
-      background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-      background-repeat: no-repeat;
-      background-size: 800px 104px;
-      display: inline-block;
-      position: relative;
-      animation: shimmer 1.2s infinite linear;
-    }
-    /* Custom scrollbar for suggestions */
-    .suggestions-list::-webkit-scrollbar {
-      width: 6px;
-    }
-    .suggestions-list::-webkit-scrollbar-track {
-      background: #f1f1f1; 
-    }
-    .suggestions-list::-webkit-scrollbar-thumb {
-      background: #888; 
-      border-radius: 3px;
-    }
-    .suggestions-list::-webkit-scrollbar-thumb:hover {
-      background: #555; 
-    }
-  </style>
 </head>
-
-<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+<body class="bg-gray-100">
 
 <!-- NAVBAR -->
 <div id="navbar"></div>
-<script>
-  fetch("navbar.html")
-    .then(res => {
-        if(res.ok) return res.text();
-        return `<nav class="bg-white border-b border-gray-100 text-blue-900 p-4 sticky top-0 z-50">
-                  <div class="max-w-6xl mx-auto flex justify-between items-center">
-                    <div class="font-bold text-2xl tracking-tighter text-blue-700">KARDAN</div>
-                    <div class="hidden md:flex space-x-6 text-sm font-medium text-gray-600">
-                      <a href="#" class="hover:text-blue-600">Find Jobs</a>
-                      <a href="#" class="hover:text-blue-600">Companies</a>
-                      <a href="#" class="hover:text-blue-600">Salaries</a>
-                    </div>
-                  </div>
-                </nav>`;
-    })
-    .then(html => document.getElementById("navbar").innerHTML = html)
-    .catch(e => console.log(e));
+
+<!-- HEADER -->
+<header class="bg-blue-600 text-white p-6 text-center shadow">
+  <h1 class="text-3xl font-bold">Latest Jobs</h1>
+  <p class="opacity-90">Find your dream career at BooterSpace</p>
+</header>
+
+<!-- JOBS -->
+<div id="jobsContainer" class="max-w-7xl mx-auto p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+<!-- NAVBAR LOAD -->
+<script type="module">
+fetch("navbar.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("navbar").innerHTML = html;
+    const s = document.createElement("script");
+    s.type = "module";
+    s.src = "navbar.js";
+    document.body.appendChild(s);
+  });
 </script>
 
-<!-- HEADER & SEARCH SECTION -->
-<div class="bg-white border-b border-gray-200">
-  <div class="max-w-6xl mx-auto pt-10 pb-12 px-4">
-    <div class="text-center mb-8">
-      <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Explore the <span class="text-blue-600">Perfect Career</span></h1>
-      <p class="text-lg text-gray-500 mt-2">Discover thousands of job opportunities across the globe</p>
-    </div>
+<!-- ================= FIREBASE v10 ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-    <!-- SEARCH BAR CONTAINER -->
-    <div class="bg-white p-2 rounded-2xl shadow-xl border border-gray-100 max-w-5xl mx-auto">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
-          
-          <!-- 1. KEYWORD SEARCH -->
-          <div class="md:col-span-4 relative">
-              <div class="relative group">
-                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  </div>
-                  <input 
-                      type="text" 
-                      id="searchInput" 
-                      class="block w-full pl-11 pr-10 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all" 
-                      placeholder="Job title, keywords, or company" 
-                      autocomplete="off"
-                  >
-                  <button id="clearSearchBtn" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                  </button>
-              </div>
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
 
-              <!-- DROPDOWN SUGGESTIONS -->
-              <div id="suggestionsBox" class="hidden absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-72 overflow-y-auto suggestions-list">
-                  <!-- Content injected by JS -->
-              </div>
-          </div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-          <!-- 2. LOCATION SEARCH -->
-          <div class="md:col-span-3 relative">
-              <div class="relative group">
-                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  </div>
-                  <input 
-                      type="text" 
-                      id="locationInput" 
-                      class="block w-full pl-11 pr-10 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all" 
-                      placeholder="City or Remote" 
-                      autocomplete="off"
-                  >
-                  <button id="clearLocationBtn" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                  </button>
-              </div>
-          </div>
+const jobsContainer = document.getElementById("jobsContainer");
 
-          <!-- 3. DATE FILTER -->
-          <div class="md:col-span-3 relative">
-              <div class="relative group">
-                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-gray-400 group-focus-within:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                  </div>
-                  <select id="dateFilter" class="block w-full pl-11 pr-4 py-4 bg-gray-50 border-transparent rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 appearance-none cursor-pointer transition-all">
-                      <option value="all">Any time posted</option>
-                      <option value="1">Past 24 hours</option>
-                      <option value="7">Past week</option>
-                      <option value="30">Past month</option>
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </div>
-              </div>
-          </div>
+async function loadJobs(){
+  jobsContainer.innerHTML = "<p class='text-center col-span-3'>Loading jobs...</p>";
 
-          <!-- 4. SEARCH BUTTON -->
-          <div class="md:col-span-2">
-              <button id="mainSearchBtn" class="w-full h-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95 flex justify-center items-center gap-2">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                  Find Jobs
-              </button>
-          </div>
+  const q = query(
+    collection(db,"jobs"),
+    where("status","==","approved"),
+    orderBy("createdAt","desc")
+  );
 
+  const snapshot = await getDocs(q);
+
+  jobsContainer.innerHTML = "";
+
+  if(snapshot.empty){
+    jobsContainer.innerHTML = "<p class='text-center col-span-3'>No jobs found</p>";
+    return;
+  }
+
+  snapshot.forEach(doc=>{
+    const job = doc.data();
+
+    jobsContainer.innerHTML += `
+      <div class="bg-white rounded-lg shadow p-5 hover:shadow-lg transition">
+        <h3 class="font-bold text-xl text-blue-600">${job.title}</h3>
+        <p class="text-sm text-gray-600 mt-1">${job.company}</p>
+        <p class="text-sm mt-2">📍 ${job.location}</p>
+        <p class="text-sm mt-1">💰 ${job.salary || "Not disclosed"}</p>
+
+        <a href="job-detail.html?id=${doc.id}" class="block mt-4 text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+          View Job
+        </a>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- JOB LIST SECTION -->
-<div class="max-w-4xl mx-auto px-4 py-10 flex-grow">
-  
-  <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-    <h2 id="jobCount" class="text-gray-900 font-bold text-xl">Loading jobs...</h2>
-    <div class="flex items-center gap-2 text-sm">
-        <span class="text-gray-500">Sort by:</span>
-        <select class="bg-transparent border-none font-semibold text-blue-600 focus:ring-0 cursor-pointer p-0">
-            <option>Newest first</option>
-            <option>Oldest first</option>
-        </select>
-    </div>
-  </div>
-
-  <div id="jobsList" class="space-y-6">
-      <!-- SKELETON LOADING STATE -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div class="flex gap-4">
-              <div class="w-16 h-16 rounded-xl skeleton"></div>
-              <div class="flex-grow space-y-3">
-                  <div class="h-6 w-1/3 skeleton rounded"></div>
-                  <div class="h-4 w-1/2 skeleton rounded"></div>
-                  <div class="h-4 w-1/4 skeleton rounded"></div>
-              </div>
-          </div>
-      </div>
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div class="flex gap-4">
-              <div class="w-16 h-16 rounded-xl skeleton"></div>
-              <div class="flex-grow space-y-3">
-                  <div class="h-6 w-1/3 skeleton rounded"></div>
-                  <div class="h-4 w-1/2 skeleton rounded"></div>
-                  <div class="h-4 w-1/4 skeleton rounded"></div>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <div class="text-center mt-12">
-    <button
-      id="loadMoreBtn"
-      class="hidden bg-white border border-gray-200 text-gray-700 px-8 py-3 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 transition-all font-bold">
-      Load More Jobs
-    </button>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer class="bg-white border-t border-gray-200 py-10 mt-12">
-    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="flex flex-col items-center md:items-start">
-            <div class="font-bold text-xl text-blue-700 mb-2">KARDAN</div>
-            <p class="text-gray-400 text-sm">Connecting talent with destiny.</p>
-        </div>
-        <div class="flex gap-8 text-sm text-gray-500">
-            <a href="#" class="hover:text-blue-600">Privacy Policy</a>
-            <a href="#" class="hover:text-blue-600">Terms of Service</a>
-            <a href="#" class="hover:text-blue-600">Contact Us</a>
-        </div>
-        <p class="text-gray-400 text-sm">&copy; 2024 KARDAN. All rights reserved.</p>
-    </div>
-</footer>
-
-<!-- FIREBASE LOGIC -->
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-    authDomain: "kar-kardan.firebaseapp.com",
-    projectId: "kar-kardan",
-    storageBucket: "kar-kardan.firebasestorage.app",
-    messagingSenderId: "554147696994",
-    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  // DOM Elements
-  const jobsList = document.getElementById("jobsList");
-  const loadMoreBtn = document.getElementById("loadMoreBtn");
-  const searchInput = document.getElementById("searchInput");
-  const locationInput = document.getElementById("locationInput"); 
-  const dateFilter = document.getElementById("dateFilter");
-  const mainSearchBtn = document.getElementById("mainSearchBtn");
-  const suggestionsBox = document.getElementById("suggestionsBox");
-  const clearSearchBtn = document.getElementById("clearSearchBtn");
-  const clearLocationBtn = document.getElementById("clearLocationBtn"); 
-  const jobCountLabel = document.getElementById("jobCount");
-
-  // State
-  let allJobs = [];       
-  let filteredJobs = [];  
-  let visibleJobs = [];   
-  let pageSize = 10;
-  let currentIndex = 0;
-
-  /* ================= FETCH DATA ================= */
-  async function fetchJobs() {
-    try {
-      const snapshot = await db
-        .collection("jobs")
-        .where("status", "==", "approved")
-        .orderBy("timestamp", "desc")
-        .get();
-
-      allJobs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
-      filteredJobs = [...allJobs];
-      resetPagination();
-
-    } catch (error) {
-      console.error(error);
-      jobsList.innerHTML = `
-        <div class="text-center py-12 bg-red-50 rounded-2xl border border-red-100">
-          <p class="text-red-600 font-bold">Failed to load job board</p>
-          <p class="text-sm text-red-500 mt-2">Please check your internet connection.</p>
-        </div>`;
-    }
-  }
-
-  /* ================= PAGINATION ================= */
-  function resetPagination() {
-    currentIndex = 0;
-    visibleJobs = [];
-    renderPagination();
-  }
-
-  function renderPagination() {
-    const nextBatch = filteredJobs.slice(currentIndex, currentIndex + pageSize);
-    visibleJobs = visibleJobs.concat(nextBatch);
-    renderJobs(visibleJobs);
-    currentIndex += pageSize;
-
-    loadMoreBtn.classList.toggle("hidden", currentIndex >= filteredJobs.length);
-    jobCountLabel.innerHTML = filteredJobs.length === 0 ? "No jobs match your search" : `${filteredJobs.length} results found`;
-  }
-
-  loadMoreBtn.addEventListener("click", renderPagination);
-
-  /* ================= RENDER UI ================= */
-  function renderJobs(jobs) {
-    if (currentIndex === 0) jobsList.innerHTML = "";
-
-    if (jobs.length === 0) {
-      jobsList.innerHTML = `
-        <div class="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 px-6">
-            <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-500">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">No matching jobs</h3>
-            <p class="text-gray-500 max-w-sm mx-auto mb-8">We couldn't find any positions for your current filters. Try adjusting your search criteria.</p>
-            <button onclick="clearAllFilters()" class="text-blue-600 font-bold hover:underline">Clear all filters</button>
-        </div>`;
-      return;
-    }
-
-    const currentBatch = jobs.slice(currentIndex, currentIndex + pageSize);
-
-    currentBatch.forEach(job => {
-      const date = job.timestamp?.toDate();
-      const isLatest = date && (new Date() - date) / (1000 * 60 * 60 * 24) <= 7;
-      
-      const div = document.createElement("div");
-      div.className = "group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col md:flex-row gap-6 relative";
-
-      const imgUrl = job.companyImageUrl ? job.companyImageUrl : `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=random`;
-
-      // Badge logic
-      const typeLabel = job.type || 'Full-time';
-      const typeColors = {
-          'Full-time': 'bg-blue-50 text-blue-700',
-          'Part-time': 'bg-purple-50 text-purple-700',
-          'Contract': 'bg-orange-50 text-orange-700',
-          'Remote': 'bg-green-50 text-green-700'
-      };
-      const badgeClass = typeColors[typeLabel] || 'bg-gray-100 text-gray-700';
-
-      // Salary Display Logic - Only show if salary exists
-      const salaryHtml = job.salary ? `
-        <span class="text-blue-600 font-semibold flex items-center gap-1">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          ${job.salary}
-        </span>
-      ` : '';
-
-      div.innerHTML = `
-        <div class="flex-shrink-0">
-          <img src="${imgUrl}" 
-               class="w-16 h-16 rounded-xl border border-gray-100 object-cover bg-gray-50 shadow-sm">
-        </div>
-
-        <div class="flex-grow">
-          <div class="flex flex-wrap items-center gap-2 mb-2">
-            <h3 class="font-bold text-xl text-gray-900 group-hover:text-blue-600 transition-colors">${job.title}</h3>
-            ${isLatest ? `<span class="latest-badge bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Latest</span>` : ""}
-          </div>
-          
-          <div class="flex flex-wrap items-center gap-y-1 gap-x-4 mb-4 text-sm text-gray-500">
-              <span class="font-semibold text-gray-700">${job.company}</span>
-              <span class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  ${job.location || "Remote"}
-              </span>
-              <span class="flex items-center gap-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                  ${date ? timeAgo(date) : "Recent"}
-              </span>
-              ${salaryHtml}
-          </div>
-
-          <div class="flex gap-2">
-              <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${typeLabel}</span>
-          </div>
-        </div>
-
-        <div class="flex md:flex-col justify-end items-end gap-3 mt-4 md:mt-0">
-            <button onclick="applyJob('${job.id}')" 
-                    class="w-full md:w-32 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition-all shadow-sm shadow-blue-100">
-                Apply Now
-            </button>
-            <button onclick="viewJob('${job.id}')" 
-                    class="w-full md:w-32 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg text-sm transition-all">
-                Details
-            </button>
-        </div>
-      `;
-
-      jobsList.appendChild(div);
-    });
-  }
-
-  function timeAgo(date) {
-      const seconds = Math.floor((new Date() - date) / 1000);
-      let interval = seconds / 31536000;
-      if (interval > 1) return Math.floor(interval) + "y ago";
-      interval = seconds / 2592000;
-      if (interval > 1) return Math.floor(interval) + "mo ago";
-      interval = seconds / 86400;
-      if (interval > 1) return Math.floor(interval) + "d ago";
-      interval = seconds / 3600;
-      if (interval > 1) return Math.floor(interval) + "h ago";
-      return "Just now";
-  }
-
-  /* ================= SEARCH LOGIC ================= */
-  
-  function filterJobs() {
-    const textQuery = searchInput.value.toLowerCase().trim();
-    const locQuery = locationInput.value.toLowerCase().trim();
-    const dateValue = dateFilter.value;
-
-    filteredJobs = allJobs.filter(job => {
-        const title = (job.title || '').toLowerCase();
-        const company = (job.company || '').toLowerCase();
-        const location = (job.location || '').toLowerCase();
-
-        const matchesText = !textQuery || title.includes(textQuery) || company.includes(textQuery);
-        const matchesLocation = !locQuery || location.includes(locQuery);
-
-        let matchesDate = true;
-        if (dateValue !== 'all' && job.timestamp) {
-            const jobDate = job.timestamp.toDate();
-            const now = new Date();
-            const diffDays = (now - jobDate) / (1000 * 60 * 60 * 24);
-            matchesDate = diffDays <= parseInt(dateValue);
-        }
-
-        return matchesText && matchesLocation && matchesDate;
-    });
-
-    resetPagination();
-  }
-
-  function clearAllFilters() {
-      searchInput.value = '';
-      locationInput.value = '';
-      dateFilter.value = 'all';
-      toggleClearBtn(searchInput, clearSearchBtn);
-      toggleClearBtn(locationInput, clearLocationBtn);
-      filterJobs();
-  }
-
-  // Inputs
-  searchInput.addEventListener('input', () => {
-    toggleClearBtn(searchInput, clearSearchBtn);
-    filterJobs();
-    if(searchInput.value.trim().length > 0) showSuggestions(searchInput.value.trim().toLowerCase());
-    else suggestionsBox.classList.add('hidden');
+    `;
   });
+}
 
-  locationInput.addEventListener('input', () => {
-    toggleClearBtn(locationInput, clearLocationBtn);
-    filterJobs();
-  });
-
-  dateFilter.addEventListener('change', filterJobs);
-  mainSearchBtn.addEventListener('click', filterJobs);
-
-  function toggleClearBtn(input, btn) {
-    btn.classList.toggle('hidden', input.value.trim().length === 0);
-  }
-
-  clearSearchBtn.addEventListener('click', () => {
-      searchInput.value = '';
-      toggleClearBtn(searchInput, clearSearchBtn);
-      suggestionsBox.classList.add('hidden');
-      filterJobs();
-  });
-
-  clearLocationBtn.addEventListener('click', () => {
-      locationInput.value = '';
-      toggleClearBtn(locationInput, clearLocationBtn);
-      filterJobs();
-  });
-
-  function showSuggestions(query) {
-    const matches = allJobs.filter(j => 
-        j.title.toLowerCase().includes(query) || j.company.toLowerCase().includes(query)
-    ).slice(0, 6);
-
-    if (matches.length === 0) {
-        suggestionsBox.classList.add('hidden');
-        return;
-    }
-
-    suggestionsBox.innerHTML = matches.map(j => `
-        <div class="px-5 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0 flex flex-col" 
-             onclick="selectSuggestion('${j.title.replace(/'/g, "\\'")}')">
-            <span class="text-gray-900 font-bold text-sm">${j.title}</span>
-            <span class="text-xs text-gray-400">${j.company}</span>
-        </div>
-    `).join('');
-
-    suggestionsBox.classList.remove('hidden');
-  }
-
-  window.selectSuggestion = function(text) {
-      searchInput.value = text;
-      suggestionsBox.classList.add('hidden');
-      toggleClearBtn(searchInput, clearSearchBtn);
-      filterJobs();
-  };
-
-  document.addEventListener('click', (e) => {
-      if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
-          suggestionsBox.classList.add('hidden');
-      }
-  });
-
-  function viewJob(id) { window.location.href = `job-detail.html?id=${id}`; }
-  function applyJob(id) { window.location.href = `job-detail.html?id=${id}`; }
-
-  fetchJobs();
+loadJobs();
 </script>
 
 </body>
