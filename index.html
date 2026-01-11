@@ -1,23 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BooterSpace</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Page ka character format -->
+  <meta charset="UTF-8" />
 
-  <!-- Firebase SDKs -->
+  <!-- Responsive banane ke liye -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Page title -->
+  <title>BooterSpace | Jobs for Everyone</title>
+
+  <!-- Tailwind CSS (Design ke liye) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- ================= NAVBAR ================= -->
+  <!-- Navbar yaha load hoga (JS se) -->
+  <div id="navbar"></div>
+
+  <!-- ================= HERO SECTION ================= -->
+  <section class="bg-white py-10">
+    <div class="max-w-6xl mx-auto px-4">
+
+      <!-- Main Heading -->
+      <h1 class="text-3xl font-bold text-gray-800 mb-2">
+        Find Your Dream Job 🚀
+      </h1>
+
+      <!-- Sub Heading -->
+      <p class="text-gray-600">
+        Latest private, government & featured jobs in one place
+      </p>
+
+    </div>
+  </section>
+
+  <!-- ================= JOB CATEGORY TABS ================= -->
+  <section class="max-w-6xl mx-auto px-4 mt-8">
+
+    <!-- Tabs container -->
+    <div class="flex gap-6 border-b mb-6">
+
+      <!-- Featured Jobs -->
+      <button onclick="loadJobs('featured')" 
+        class="tab-btn text-blue-600 font-semibold border-b-2 border-blue-600 pb-2">
+        Featured Jobs
+      </button>
+
+      <!-- Govt Jobs -->
+      <button onclick="loadJobs('govt')" 
+        class="tab-btn text-gray-600 hover:text-blue-600 pb-2">
+        Govt. Jobs
+      </button>
+
+      <!-- Latest Updates -->
+      <button onclick="loadJobs('latest')" 
+        class="tab-btn text-gray-600 hover:text-blue-600 pb-2">
+        Latest Updates
+      </button>
+
+    </div>
+
+    <!-- ================= JOB LIST ================= -->
+    <!-- Firebase se jobs yaha show hongi -->
+    <div id="jobList" class="grid md:grid-cols-2 gap-6">
+      <!-- Jobs JS se inject hongi -->
+    </div>
+
+  </section>
+
+  <!-- ================= FIREBASE + JS ================= -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      query, 
-      where, 
-      orderBy, 
-      limit, 
-      getDocs 
-    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    /* ================= FIREBASE IMPORTS ================= */
+
+    // Firebase App init karne ke liye
+    import { initializeApp } from 
+    "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+    // Firestore database ke liye
+    import { getFirestore, collection, query, where, getDocs } from 
+    "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Auth ke liye
+    import { getAuth, onAuthStateChanged, signOut } from 
+    "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    /* ================= FIREBASE CONFIG ================= */
 
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -25,281 +96,102 @@
       projectId: "kar-kardan",
       storageBucket: "kar-kardan.firebasestorage.app",
       messagingSenderId: "554147696994",
-      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-      measurementId: "G-RRC3X485KQ"
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
     };
 
+    // Firebase initialize
     const app = initializeApp(firebaseConfig);
+
+    // Firestore database instance
     const db = getFirestore(app);
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const featuredContainer = document.getElementById("featured-jobs");
-      const govtContainer = document.getElementById("govt-jobs");
-      const latestContainer = document.getElementById("latest-updates");
+    // Auth instance
+    const auth = getAuth(app);
 
-      // --- FEATURED JOBS (APPROVED) ---
-      try {
-        const featuredQuery = query(
-          collection(db, "jobs"),
-          where("status", "==", "approved"),
-          orderBy("timestamp", "desc"),
-          limit(10)
-        );
+    /* ================= NAVBAR LOAD ================= */
 
-        const featuredSnapshot = await getDocs(featuredQuery);
-        if (featuredSnapshot.empty) {
-          featuredContainer.innerHTML = `<p class="text-gray-500 text-sm">No featured jobs available</p>`;
-        } else {
-          featuredSnapshot.forEach(doc => {
-            const job = doc.data();
-            const jobId = doc.id;
-            const logo = job.companyImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
+    const navbarDiv = document.getElementById("navbar");
 
-            featuredContainer.innerHTML += `
-              <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow">
-                <div class="flex items-start space-x-4">
-                  <img src="${logo}" class="w-12 h-12 object-cover rounded-xl border border-gray-50" />
-                  <div class="flex-grow">
-                    <h3 class="text-md font-bold text-gray-900 leading-tight">${job.title}</h3>
-                    <p class="text-blue-600 text-sm font-medium">${job.company || ""}</p>
-                    <p class="text-gray-400 text-xs mt-1 flex items-center">
-                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                      ${job.location || "Remote"}
-                    </p>
-                  </div>
-                </div>
-                <div class="flex space-x-2 mt-4">
-                  <a href="job-detail.html?id=${jobId}" class="flex-1 bg-gray-50 text-gray-700 text-center py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors">Details</a>
-                  <a href="job-detail.html?id=${jobId}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">Apply</a>
-                </div>
-              </div>
-            `;
-          });
-        }
-      } catch (err) {
-        console.error(err);
-        featuredContainer.innerHTML = `<p class="text-red-500 text-sm">Unable to load jobs</p>`;
-      }
+    // User login hai ya nahi check karta hai
+    onAuthStateChanged(auth, (user) => {
 
-      // --- GOVT JOBS ---
-      try {
-        const govtQuery = query(collection(db, "govtJobs"), orderBy("timestamp", "desc"), limit(10));
-        const govtSnapshot = await getDocs(govtQuery);
-        
-        if (govtSnapshot.empty) {
-            govtContainer.innerHTML = `<p class="text-gray-500 text-sm">No government jobs available</p>`;
-        } else {
-            govtSnapshot.forEach(doc => {
-                const job = doc.data();
-                const jobId = doc.id;
-                const logo = job.companyImageUrl || "https://img.icons8.com/color/96/government-buildings.png";
-
-                govtContainer.innerHTML += `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-start space-x-4">
-                    <img src="${logo}" class="w-12 h-12 object-contain" />
-                    <div class="flex-grow">
-                        <h3 class="text-md font-bold text-gray-900 leading-tight">${job.title}</h3>
-                        <p class="text-orange-600 text-sm font-medium">${job.companyName || "Govt Sector"}</p>
-                    </div>
-                    </div>
-                    <div class="flex space-x-2 mt-4">
-                        <a href="job-detail.html?id=${jobId}" class="w-full bg-orange-50 text-orange-700 text-center py-2 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors">View Notification</a>
-                    </div>
-                </div>
-                `;
-            });
-        }
-      } catch (e) { console.error(e); }
-
-      // --- LATEST UPDATES (Flash Links) ---
-      try {
-        const latestQuery = query(collection(db, "flashLinks"), orderBy("timestamp", "desc"), limit(15));
-        const latestSnapshot = await getDocs(latestQuery);
-
-        latestSnapshot.forEach(doc => {
-          const item = doc.data();
-          latestContainer.innerHTML += `
-            <div class="group p-3 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors rounded-lg">
-              <a href="${item.url}" target="_blank" class="text-sm text-gray-800 font-semibold group-hover:text-blue-700 flex items-start">
-                <span class="mr-2">🔥</span>
-                <span>${item.title}</span>
-              </a>
-              <p class="text-[10px] text-gray-400 mt-1 ml-6 uppercase tracking-wider">
-                ${item.timestamp ? new Date(item.timestamp.toDate()).toLocaleDateString() : ""}
-              </p>
+      if (user) {
+        // Agar user logged in hai
+        navbarDiv.innerHTML = `
+          <nav class="bg-white shadow p-4 flex justify-between">
+            <h2 class="font-bold text-xl">BooterSpace</h2>
+            <div class="flex gap-4">
+              <span class="text-gray-600">${user.email}</span>
+              <button id="logoutBtn" class="text-red-500 font-semibold">
+                Logout
+              </button>
             </div>
-          `;
-        });
-      } catch (e) { console.error(e); }
-    });
-  </script>
-
-  <style>
-    body { background-color: #f8fafc; }
-    .latest-card { max-height: 80vh; overflow-y: auto; }
-    .latest-card::-webkit-scrollbar { width: 4px; }
-    .latest-card::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-  </style>
-</head>
-
-<body class="font-sans antialiased text-gray-900">
-// === NANBAR CODE === //
-  <div id="navbar"></div>
-<script>
-  // ====== Load navbar.html dynamically ======
-  fetch('navbar.html')
-    .then(res => res.text())
-    .then(html => {
-      document.getElementById('navbar').innerHTML = html;
-
-      // ====== Initialize Firebase ======
-      const firebaseConfig = {
-        apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-        authDomain: "kar-kardan.firebaseapp.com",
-        projectId: "kar-kardan",
-        storageBucket: "kar-kardan.firbasestorage.app",
-        messagingSenderId: "554147696994",
-        appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-        measurementId: "G-RRC3X485KQ"
-      };
-      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
-      // ====== Navbar functionality ======
-      const navLinks = document.getElementById("nav-links");
-
-      firebase.auth().onAuthStateChanged((user) => {
-        let html = `
-          <a href="index.html" class="flex items-center gap-1 hover:text-yellow-400">
-            <i class="ph-house"></i> Home
-          </a>
-          <a href="jobs.html" class="flex items-center gap-1 hover:text-yellow-400">
-            <i class="ph-briefcase"></i> Jobs
-          </a>
-          <a href="places-to-hangout.html" class="flex items-center gap-1 hover:text-yellow-400">
-            <i class="ph-map-pin"></i> Hangouts
-          </a>
-          <a href="by-books.html" class="flex items-center gap-1 hover:text-yellow-400">
-            <i class="ph-book"></i> Books
-          </a>
+          </nav>
         `;
 
-        if(user){
-          html += `
-            <a href="profile.html" class="flex items-center gap-1 hover:text-yellow-400">
-              <img src="${user.photoURL || 'https://img.icons8.com/ios-filled/50/user.png'}" class="w-8 h-8 rounded-full"/>
-              ${user.displayName || "Profile"}
-            </a>
-            <a href="dashboard.html" class="flex items-center gap-1 hover:text-yellow-400">
-              <i class="ph-gauge"></i> Dashboard
-            </a>
-            <button id="logoutBtn" class="bg-red-600 px-3 py-1 rounded hover:bg-red-700 flex items-center gap-1">
-              <i class="ph-sign-out"></i> Logout
-            </button>
-          `;
-        } else {
-          html += `
-            <a href="login.html" class="bg-green-600 px-3 py-1 rounded hover:bg-green-700">Login</a>
-            <a href="signup.html" class="bg-blue-600 px-3 py-1 rounded hover:bg-blue-700">Join Now</a>
-          `;
-        }
+        // Logout button ka action
+        document.getElementById("logoutBtn").onclick = () => {
+          signOut(auth);
+        };
 
-        navLinks.innerHTML = html;
-
-        // Attach logout click
-        const logoutBtn = document.getElementById("logoutBtn");
-        if(logoutBtn){
-          logoutBtn.addEventListener("click", () => {
-            firebase.auth().signOut().then(() => {
-              window.location.href = "index.html";
-            });
-          });
-        }
-      });
+      } else {
+        // Agar user login nahi hai
+        navbarDiv.innerHTML = `
+          <nav class="bg-white shadow p-4 flex justify-between">
+            <h2 class="font-bold text-xl">BooterSpace</h2>
+            <a href="login.html" class="text-blue-600 font-semibold">
+              Login
+            </a>
+          </nav>
+        `;
+      }
     });
-</script>
 
-  <!-- Hero Section -->
-  <header class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-            Find your next <span class="text-blue-600">career move</span>
-        </h1>
-        <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            Browse through private sector openings, government notifications, and the latest career updates in one place.
-        </p>
-    </div>
-  </header>
+    /* ================= JOB LOAD FUNCTION ================= */
 
-  <!-- Main Content Grid -->
-  <main class="max-w-7xl mx-auto py-8 px-4">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      
-      <!-- Left Column: Featured Jobs -->
-      <div class="lg:col-span-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-black text-gray-900 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                Featured Jobs
-            </h2>
-            <a href="jobs.html" class="text-sm font-bold text-blue-600 hover:underline">See all</a>
-        </div>
-        <div id="featured-jobs" class="space-y-4">
-          <!-- Loader -->
-          <div class="animate-pulse flex space-x-4 p-4 bg-white rounded-xl">
-            <div class="rounded-xl bg-gray-200 h-12 w-12"></div>
-            <div class="flex-1 space-y-3 py-1">
-              <div class="h-2 bg-gray-200 rounded w-3/4"></div>
-              <div class="h-2 bg-gray-200 rounded w-1/2"></div>
-            </div>
+    // Job category ke hisaab se jobs load karega
+    window.loadJobs = async (type) => {
+
+      const jobList = document.getElementById("jobList");
+
+      // Purani jobs clear
+      jobList.innerHTML = "Loading jobs...";
+
+      // Firestore query
+      const q = query(
+        collection(db, "jobs"),
+        where("category", "==", type)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      jobList.innerHTML = "";
+
+      // Agar koi job nahi mili
+      if (querySnapshot.empty) {
+        jobList.innerHTML = "<p>No jobs found</p>";
+        return;
+      }
+
+      // Har job ko show karna
+      querySnapshot.forEach((doc) => {
+
+        const job = doc.data();
+
+        jobList.innerHTML += `
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-bold text-lg">${job.title}</h3>
+            <p class="text-gray-600">${job.company}</p>
+            <p class="text-sm text-gray-500">${job.location}</p>
           </div>
-        </div>
-      </div>
+        `;
+      });
+    };
 
-      <!-- Center Column: Govt. Jobs Notification -->
-      <div class="lg:col-span-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-black text-gray-900 flex items-center">
-                <span class="w-2 h-8 bg-orange-500 rounded-full mr-3"></span>
-                Govt. Jobs Notification
-            </h2>
-            <a href="#" class="text-sm font-bold text-orange-600 hover:underline">See all</a>
-        </div>
-        <div id="govt-jobs" class="space-y-4">
-          <!-- Loader -->
-          <div class="animate-pulse flex space-x-4 p-4 bg-white rounded-xl">
-            <div class="rounded-xl bg-gray-200 h-12 w-12"></div>
-            <div class="flex-1 space-y-3 py-1">
-              <div class="h-2 bg-gray-200 rounded w-3/4"></div>
-              <div class="h-2 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          </div>
-        </div>
-      </div>
+    // Page load hote hi Featured Jobs load hon
+    loadJobs("featured");
 
-      <!-- Right Column: Latest Updates -->
-      <div class="lg:col-span-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-black text-gray-900 flex items-center">
-                <span class="w-2 h-8 bg-yellow-400 rounded-full mr-3"></span>
-                Latest Updates
-            </h2>
-        </div>
-        <div id="latest-updates" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 latest-card">
-            <!-- Links loaded here -->
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <footer class="mt-20 border-t border-gray-200 bg-white py-12">
-      <div class="max-w-7xl mx-auto px-4 text-center">
-          <p class="text-gray-400 text-sm font-medium">© 2026 BooterSpace. Connecting talent with opportunity.</p>
-      </div>
-  </footer>
+  </script>
 
 </body>
 </html>
-
-
