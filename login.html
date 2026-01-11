@@ -44,7 +44,7 @@
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
                     alert("Sign-in successful! ✅ Redirecting...");
-                    window.location.href = "dashboard.html";
+                    window.location.href = "profile.html";
                 } catch (error) {
                     console.error("Sign-in Error:", error);
                     alert("Sign-in Failed: " + error.message);
@@ -198,3 +198,4 @@
     </div>
 </body>
 </html>
+
