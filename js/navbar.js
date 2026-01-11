@@ -1,66 +1,64 @@
+// ===== Import Firebase modular v10 =====
+import { getAuth, onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Firebase auth import kar rahe hain
-import { auth } from "../firebase/firebase-config.js";
+// Tumhara Firebase config file (auth export) 
+import { auth } from "./firebase/firebase-config.js";
 
-// Firebase ke auth functions
-import {
-  onAuthStateChanged, // check karta hai user logged in hai ya nahi
-  signOut             // logout ke liye
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// Navbar ke div ko pakad rahe hain
+const navLinks = document.getElementById("nav-links");
 
+// ===== Listen: User login hai ya nahi =====
+onAuthStateChanged(auth, (user) => {
 
-// 1️⃣ Navbar HTML file ko load kar rahe hain
-fetch("/components/navbar.html")
-  .then(response => response.text()) // HTML ko text me convert
-  .then(data => {
-    // Navbar ka HTML page me inject kar diya
-    document.getElementById("navbar").innerHTML = data;
+  // ===== Agar user logged in hai =====
+  if(user){
+    navLinks.innerHTML = `
+      <!-- Public links left -->
+      <a href="index.html" class="text-gray-700 font-medium hover:text-blue-600">Home</a>
+      <a href="jobs.html" class="text-gray-700 font-medium hover:text-blue-600">Jobs</a>
+      <a href="govt.html" class="text-gray-700 font-medium hover:text-blue-600">Govt. Jobs</a>
 
-    // Ab navbar ka logic start karo
-    navbarLogic();
-  });
+      <!-- Right side user profile + logout -->
+      <div class="ml-auto flex items-center gap-3">
 
+        <!-- Profile Picture -->
+        <img src="${user.photoURL || 'https://img.icons8.com/ios-filled/50/user.png'}" 
+          class="w-8 h-8 rounded-full border border-gray-200" 
+          alt="Profile Picture" 
+          title="${user.displayName || user.email}">
 
-// 2️⃣ Navbar logic function
-function navbarLogic() {
+        <!-- Logout Button -->
+        <button id="logoutBtn" 
+          class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+          Logout
+        </button>
+      </div>
+    `;
 
-  // Navbar ke right side ka div
-  const navLinks = document.getElementById("nav-links");
-
-  // Firebase check karega: user logged in hai ya nahi
-  onAuthStateChanged(auth, (user) => {
-
-    // Agar user logged in hai
-    if (user) {
-
-      // Logged-in user ke liye navbar
-      navLinks.innerHTML = `
-        <a href="jobs.html">Jobs</a>
-        <a href="dashboard.html">Dashboard</a>
-        <button id="logoutBtn">Logout</button>
-      `;
-
-      // Logout button pe click event
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-
-        // Firebase se logout
-        signOut(auth).then(() => {
-
-          // Logout ke baad login page pe bhejo
-          window.location.href = "login.html";
-        });
+    // ===== Logout button action =====
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      signOut(auth).then(() => {
+        window.location.href = "index.html"; // Logout ke baad redirect
       });
+    });
 
-    } 
-    // Agar user logged in nahi hai
-    else {
+  } else {
+    // ===== Agar user NOT logged in =====
+    navLinks.innerHTML = `
+      <!-- Public links left -->
+      <a href="index.html" class="text-gray-700 font-medium hover:text-blue-600">Home</a>
+      <a href="jobs.html" class="text-gray-700 font-medium hover:text-blue-600">Jobs</a>
+      <a href="govt.html" class="text-gray-700 font-medium hover:text-blue-600">Govt. Jobs</a>
 
-      // Guest user ke liye navbar
-      navLinks.innerHTML = `
-        <a href="jobs.html">Jobs</a>
-        <a href="login.html">Login</a>
-        <a href="signup.html">Join Now</a>
-      `;
-    }
-  });
-}
+      <!-- Right side login button -->
+      <div class="ml-auto">
+        <a href="login.html" 
+           class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+          Login
+        </a>
+      </div>
+    `;
+  }
+
+});
