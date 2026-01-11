@@ -18,7 +18,20 @@
 
   <!-- ================= NAVBAR ================= -->
   <!-- Navbar yaha load hoga (JS se) -->
-  <div id="navbar"></div>
+  <<!-- 🔥 SaaS Navbar -->
+<div id="navbar"></div>
+
+<script>
+fetch("navbar.html")
+.then(r=>r.text())
+.then(html=>{
+  document.getElementById("navbar").innerHTML=html;
+  const s=document.createElement("script");
+  s.src="navbar.js";
+  document.body.appendChild(s);
+});
+</script>
+
 
   <!-- ================= HERO SECTION ================= -->
   <section class="bg-white py-10">
@@ -195,3 +208,4 @@
 
 </body>
 </html>
+
