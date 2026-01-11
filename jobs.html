@@ -41,8 +41,19 @@
 <body class="bg-gray-50 min-h-screen flex flex-col font-sans">
 
   <!-- ===== NAVBAR ===== -->
-  <div id="navbar"></div>
-  <script type="module" src="js/navbar.js"></script>
+  <<!-- 🔥 SaaS Navbar -->
+<div id="navbar"></div>
+
+<script>
+fetch("navbar.html")
+.then(r=>r.text())
+.then(html=>{
+  document.getElementById("navbar").innerHTML=html;
+  const s=document.createElement("script");
+  s.src="navbar.js";
+  document.body.appendChild(s);
+});
+</script>
 
   <!-- ===== HEADER & SEARCH ===== -->
   <header class="bg-white border-b border-gray-200">
