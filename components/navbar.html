@@ -6,58 +6,30 @@
     BooterSpace
   </a>
 
-  <!-- Desktop links -->
+  <!-- Desktop Links -->
   <div class="hidden md:flex gap-4 items-center">
+
     <a href="index.html" class="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M13 5v6h6m-6 6v6m0-6H7"/>
-      </svg>
       Home
     </a>
 
     <a href="jobs.html" class="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
       Jobs
     </a>
 
     <a href="govt.html" class="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.84 4.43c0 3.45-2.54 6.39-6 6.93V14z"/>
-      </svg>
       Govt. Jobs
     </a>
 
-    <!-- Auth buttons -->
-    <div id="authLinks" class="flex gap-3 items-center">
-      <button id="loginBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-all">
-        Login
-      </button>
-      <button id="signupBtn" class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-all">
-        Sign Up
-      </button>
-    </div>
+    <!-- Placeholder for Auth buttons -->
+    <div id="authLinks" class="flex gap-3 items-center"></div>
 
-    <!-- User dropdown -->
-    <div id="userDropdown" class="relative hidden">
-      <button id="userBtn" class="flex items-center gap-2 focus:outline-none">
-        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User" class="w-8 h-8 rounded-full border border-gray-200">
-        <span id="userName" class="font-medium text-gray-700">User</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-        </svg>
-      </button>
-      <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-50">
-        <a href="profile.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-        <a href="dashboard.html" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Dashboard</a>
-        <button id="logoutBtn" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 font-medium">Logout</button>
-      </div>
-    </div>
+    <!-- Placeholder for User Dropdown -->
+    <div id="userDropdown" class="relative hidden"></div>
+
   </div>
 
-  <!-- Mobile menu button -->
+  <!-- Mobile Menu Button -->
   <div class="md:hidden flex items-center gap-2">
     <button id="mobileMenuBtn" class="text-gray-700 focus:outline-none">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -73,63 +45,10 @@
   <a href="index.html" class="block px-6 py-3 text-gray-700 hover:bg-blue-50">Home</a>
   <a href="jobs.html" class="block px-6 py-3 text-gray-700 hover:bg-blue-50">Jobs</a>
   <a href="govt.html" class="block px-6 py-3 text-gray-700 hover:bg-blue-50">Govt. Jobs</a>
-  <div id="mobileAuthLinks" class="flex flex-col gap-2 px-6 py-3">
-    <button id="mobileLoginBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700">Login</button>
-    <button id="mobileSignupBtn" class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg font-medium hover:bg-blue-50">Sign Up</button>
-  </div>
+
+  <!-- Placeholder for Mobile Auth Links -->
+  <div id="mobileAuthLinks" class="flex flex-col gap-2 px-6 py-3"></div>
 </div>
 
-<!-- Navbar JS -->
-<script>
-  // Elements
-  const loginBtn = document.getElementById("loginBtn");
-  const signupBtn = document.getElementById("signupBtn");
-  const mobileLoginBtn = document.getElementById("mobileLoginBtn");
-  const mobileSignupBtn = document.getElementById("mobileSignupBtn");
-  const authLinks = document.getElementById("authLinks");
-  const userDropdown = document.getElementById("userDropdown");
-  const userBtn = document.getElementById("userBtn");
-  const dropdownMenu = document.getElementById("dropdownMenu");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const userName = document.getElementById("userName");
-  const userAvatar = document.getElementById("userAvatar");
-  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
-
-  // Simulated login state
-  let isLoggedIn = false;
-
-  function updateNavbar() {
-    if(isLoggedIn){
-      authLinks.classList.add("hidden");
-      userDropdown.classList.remove("hidden");
-      userName.textContent = "Khilzi Demon"; // Fetch from Firebase
-      userAvatar.src = "https://ui-avatars.com/api/?name=Khilzi+Demon";
-      mobileMenu.querySelector("#mobileAuthLinks").classList.add("hidden");
-    } else {
-      authLinks.classList.remove("hidden");
-      userDropdown.classList.add("hidden");
-      mobileMenu.querySelector("#mobileAuthLinks").classList.remove("hidden");
-    }
-  }
-
-  // Toggle dropdown
-  userBtn.addEventListener("click", ()=> {
-    dropdownMenu.classList.toggle("hidden");
-  });
-
-  // Toggle mobile menu
-  mobileMenuBtn.addEventListener("click", ()=> {
-    mobileMenu.classList.toggle("hidden");
-  });
-
-  // Login / Logout simulation
-  loginBtn.addEventListener("click", ()=> { isLoggedIn = true; updateNavbar(); });
-  signupBtn.addEventListener("click", ()=> { isLoggedIn = true; updateNavbar(); });
-  mobileLoginBtn.addEventListener("click", ()=> { isLoggedIn = true; updateNavbar(); mobileMenu.classList.add("hidden"); });
-  mobileSignupBtn.addEventListener("click", ()=> { isLoggedIn = true; updateNavbar(); mobileMenu.classList.add("hidden"); });
-  logoutBtn.addEventListener("click", ()=> { isLoggedIn = false; updateNavbar(); });
-
-  updateNavbar();
-</script>
-
+<!-- JS file -->
+<script type="module" src="js/navbar.js"></script>
