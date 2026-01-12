@@ -1,6 +1,13 @@
-// navbar.js (GitHub Pages compatible)
+// navbar.js
 
 var auth = firebase.auth();
+
+const menuBtn = document.getElementById("menuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+
+menuBtn.onclick = () => {
+  mobileMenu.classList.toggle("hidden");
+};
 
 auth.onAuthStateChanged(user => {
 
@@ -12,32 +19,51 @@ auth.onAuthStateChanged(user => {
   const userName = document.getElementById("userName");
   const userPhoto = document.getElementById("userPhoto");
 
+  const mLoginBtn = document.getElementById("mLoginBtn");
+  const mSignupBtn = document.getElementById("mSignupBtn");
+  const mProfileBtn = document.getElementById("mProfileBtn");
+  const mLogoutBtn = document.getElementById("mLogoutBtn");
+
   if (user) {
-    // Logged in
     loginBtn?.classList.add("hidden");
     signupBtn?.classList.add("hidden");
-
     profileBtn?.classList.remove("hidden");
     logoutBtn?.classList.remove("hidden");
 
-    if (userName) userName.innerText = user.displayName || "User";
-    if (userPhoto) userPhoto.src = user.photoURL || "https://ui-avatars.com/api/?name=User";
+    mLoginBtn?.classList.add("hidden");
+    mSignupBtn?.classList.add("hidden");
+    mProfileBtn?.classList.remove("hidden");
+    mLogoutBtn?.classList.remove("hidden");
 
-    // Admin example (email based)
+    if (userName) {
+      userName.innerText = user.displayName || "User";
+      userName.classList.remove("hidden");
+    }
+    if (userPhoto) {
+      userPhoto.src = user.photoURL || "https://ui-avatars.com/api/?name=User";
+      userPhoto.classList.remove("hidden");
+    }
+
+    logoutBtn.onclick = mLogoutBtn.onclick = () => auth.signOut();
+
     if (user.email === "admin@gmail.com") {
       adminBtn?.classList.remove("hidden");
     }
 
-    logoutBtn?.addEventListener("click", () => auth.signOut());
-
   } else {
-    // Guest
     loginBtn?.classList.remove("hidden");
     signupBtn?.classList.remove("hidden");
-
     profileBtn?.classList.add("hidden");
     logoutBtn?.classList.add("hidden");
     adminBtn?.classList.add("hidden");
+
+    mLoginBtn?.classList.remove("hidden");
+    mSignupBtn?.classList.remove("hidden");
+    mProfileBtn?.classList.add("hidden");
+    mLogoutBtn?.classList.add("hidden");
+
+    userName?.classList.add("hidden");
+    userPhoto?.classList.add("hidden");
   }
 
 });
