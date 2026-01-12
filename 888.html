@@ -200,15 +200,44 @@ function updateNavbar(user){
   }
 }
 
-navLogin.onclick=()=>auth.signInWithEmailAndPassword(prompt("Email"),prompt("Password"));
-navSignup.onclick=()=>auth.createUserWithEmailAndPassword(prompt("Email"),prompt("Password"));
+navLogin.onclick=async ()=>{
+  try{
+    const email=prompt("Email");
+    const pass=prompt("Password");
+    await auth.signInWithEmailAndPassword(email,pass);
+  }catch(e){ alert("Login failed: "+e.message);}
+}
+navSignup.onclick=async ()=>{
+  try{
+    const email=prompt("Email");
+    const pass=prompt("Password");
+    await auth.createUserWithEmailAndPassword(email,pass);
+    alert("User created. Please login now.");
+  }catch(e){ alert("Signup failed: "+e.message);}
+}
 navLogout.onclick=()=>auth.signOut();
 
 /* ================= AUTH ================= */
-auth.onAuthStateChanged(user=>{
+auth.onAuthStateChanged(async user=>{
   state.currentUser=user;
   updateNavbar(user);
-  if(user) fetchAndRenderMyProfile(user.uid);
+  if(user){
+    // Auto create Firestore doc if missing
+    const docRef=db.collection("users").doc(user.uid);
+    const doc=await docRef.get();
+    if(!doc.exists){
+      await docRef.set({
+        fullName: user.email.split("@")[0],
+        photoURL:"https://i.imgur.com/6VBx3io.png",
+        education:"",
+        university:"",
+        position:"",
+        expYears:0,
+        role:"Professional"
+      });
+    }
+    fetchAndRenderMyProfile(user.uid);
+  }
 });
 
 /* ================= PROFILE ================= */
@@ -229,6 +258,7 @@ async function fetchAndRenderMyProfile(uid){
   finally{ document.getElementById('myProfileCard').classList.remove('opacity-0'); }
 }
 
+/* ================= MODALS ================= */
 function openEditModal(){
   const d = state.profileData;
   document.getElementById('editName').value=d.fullName||"";
@@ -238,132 +268,52 @@ function openEditModal(){
   document.getElementById('editYears').value=d.expYears||"";
   document.getElementById('editModal').classList.remove('hidden');
 }
-function closeEditModal(){ document.getElementById('editModal').classList.add('hidden'); }
+function closeEditModal(){document.getElementById('editModal').classList.add('hidden');}
 async function saveProfile(){
-  const btn=document.getElementById('saveProfileBtn'); btn.innerText="Saving..."; btn.disabled=true;
-  const updatedData={
+  const d={
     fullName:document.getElementById('editName').value,
     education:document.getElementById('editEdu').value,
     university:document.getElementById('editUni').value,
     position:document.getElementById('editPos').value,
-    expYears:parseInt(document.getElementById('editYears').value)||0
+    expYears:Number(document.getElementById('editYears').value||0)
   };
-  await db.collection('users').doc(state.currentUser.uid).set(updatedData,{merge:true});
-  state.profileData={...state.profileData,...updatedData};
+  if(!state.currentUser) return alert("Not logged in");
+  await db.collection("users").doc(state.currentUser.uid).update(d);
+  state.profileData={...state.profileData,...d};
   fetchAndRenderMyProfile(state.currentUser.uid);
-  closeEditModal(); btn.innerText="Save Changes"; btn.disabled=false;
+  closeEditModal();
 }
 
 /* ================= AVATAR ================= */
-const avatars = [
-  "https://i.pravatar.cc/100?img=1",
-  "https://i.pravatar.cc/100?img=2",
-  "https://i.pravatar.cc/100?img=3",
-  "https://i.pravatar.cc/100?img=4",
-  "https://i.pravatar.cc/100?img=5"
+const avatars=[
+"https://i.pravatar.cc/100?img=1",
+"https://i.pravatar.cc/100?img=2",
+"https://i.pravatar.cc/100?img=3",
+"https://i.pravatar.cc/100?img=4",
+"https://i.pravatar.cc/100?img=5",
+"https://i.pravatar.cc/100?img=6",
+"https://i.pravatar.cc/100?img=7",
+"https://i.pravatar.cc/100?img=8"
 ];
-const avatarGrid=document.getElementById('avatarGrid');
-avatars.forEach(url=>{
-  const img=document.createElement('img');
-  img.src=url;
-  img.className="w-16 h-16 rounded-full border cursor-pointer hover:ring-2 hover:ring-blue-500 transition";
-  img.onclick=()=>selectAvatar(url);
-  avatarGrid.appendChild(img);
-});
-function openAvatarModal(){ document.getElementById('avatarModal').classList.remove('hidden'); }
-function closeAvatarModal(){ document.getElementById('avatarModal').classList.add('hidden'); }
-async function selectAvatar(url){
-  await db.collection('users').doc(state.currentUser.uid).set({photoURL:url},{merge:true});
-  state.profileData.photoURL=url;
-  document.getElementById('myPhoto').src=url;
-  closeAvatarModal();
-}
-
-/* ================= SEARCH ================= */
-const searchInput=document.getElementById('searchInput');
-const searchBtn=document.getElementById('searchBtn');
-searchBtn.onclick=()=>searchUsers();
-
-async function searchUsers(){
-  const q=searchInput.value.toLowerCase().trim(); if(!q) return;
-  activateSearchLayout();
-  const resultsView=document.getElementById('resultsView');
-  resultsView.innerHTML='<div class="p-4 text-gray-400">Searching...</div>';
-  try{
-    const snapshot=await db.collection("users").get();
-    const results=[];
-    snapshot.forEach(doc=>{
-      if(state.currentUser && doc.id===state.currentUser.uid) return;
-      const u=doc.data();
-      const searchable=`${u.fullName} ${u.education} ${u.university} ${u.position}`.toLowerCase();
-      if(searchable.includes(q)) results.push({id:doc.id,...u});
-    });
-    state.searchResults=results;
-    renderResults(results);
-  }catch(e){console.error(e);}
-}
-
-function activateSearchLayout(){
-  if(state.isSearching) return; state.isSearching=true;
-  document.getElementById('leftPanel').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('leftPanel').classList.remove('opacity-0','-translate-x-4'),50);
-}
-
-function renderResults(users){
-  const resultsView=document.getElementById('resultsView');
-  const resultsHeader=document.getElementById('resultsHeader');
-  const resultsCount=document.getElementById('resultsCount');
-  resultsHeader.classList.remove('hidden');
-  resultsCount.innerText=`${users.length} found`;
-  resultsView.innerHTML=users.length? '':'<div class="p-4 bg-white rounded-xl border text-center text-gray-400">No matches found</div>';
-  users.forEach(u=>{
-    const card=document.createElement('div');
-    card.className="bg-white p-4 rounded-xl border hover:shadow-md transition flex justify-between items-center cursor-pointer group";
-    card.onclick=()=>openDetailView(u.id);
-    card.innerHTML=`
-      <div class="flex gap-4 items-center">
-        <img src="${u.photoURL||'https://i.imgur.com/6VBx3io.png'}" class="w-12 h-12 rounded-full border bg-gray-50 object-cover">
-        <div>
-          <p class="font-bold text-gray-800 group-hover:text-blue-600">${u.fullName||"User"}</p>
-          <p class="text-xs text-gray-500">${u.position||u.education||"Professional"}</p>
-        </div>
-      </div>
-      <button class="text-blue-600 bg-blue-50 px-3 py-1 rounded-full text-xs font-bold">View</button>
-    `;
-    resultsView.appendChild(card);
+function openAvatarModal(){
+  const grid=document.getElementById('avatarGrid');
+  grid.innerHTML="";
+  avatars.forEach(url=>{
+    const img=document.createElement('img');
+    img.src=url;
+    img.className="w-16 h-16 rounded-full cursor-pointer border hover:ring-2 hover:ring-blue-500";
+    img.onclick=async ()=>{
+      if(!state.currentUser) return alert("Login first");
+      await db.collection("users").doc(state.currentUser.uid).update({photoURL:url});
+      fetchAndRenderMyProfile(state.currentUser.uid);
+      closeAvatarModal();
+    }
+    grid.appendChild(img);
   });
+  document.getElementById('avatarModal').classList.remove('hidden');
 }
+function closeAvatarModal(){document.getElementById('avatarModal').classList.add('hidden');}
 
-function openDetailView(userId){
-  const user=state.searchResults.find(u=>u.id===userId); if(!user) return;
-  document.getElementById('resultsListContainer').classList.add('hidden');
-  const detailView=document.getElementById('detailViewContainer');
-  detailView.classList.remove('hidden');
-  detailView.innerHTML=`
-    <div class="h-24 bg-gray-50 border-b flex items-center px-6">
-      <button onclick="showResultsList()" class="text-blue-600 font-bold text-sm flex items-center gap-1">← Back</button>
-    </div>
-    <div class="p-8">
-      <div class="flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
-        <img src="${user.photoURL||'https://i.imgur.com/6VBx3io.png'}" class="w-24 h-24 rounded-full border-4 border-white shadow-lg">
-        <div class="flex-1">
-          <h2 class="text-3xl font-bold text-gray-900">${user.fullName}</h2>
-          <p class="text-lg text-blue-600">${user.position||"Professional"}</p>
-          <p class="text-gray-500 text-sm mt-1">${user.education} @ ${user.university}</p>
-        </div>
-      </div>
-      <div class="mt-6 flex gap-2">
-        <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-sm hover:bg-blue-700 transition">Connect</button>
-        <button class="px-6 py-2 border rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition">Message</button>
-      </div>
-    </div>
-  `;
-}
-
-function showResultsList(){ 
-  document.getElementById('detailViewContainer').classList.add('hidden'); 
-  document.getElementById('resultsListContainer').classList.remove('hidden'); 
-}
 </script>
 </body>
 </html>
