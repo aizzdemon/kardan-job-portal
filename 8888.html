@@ -1,145 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Jobs - BooterSpace</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jobs – BooterSpace</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-.latest-badge{animation:flash 1s infinite}
-@keyframes flash{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-</style>
-</head>
-
-<body class="bg-gray-50 min-h-screen flex flex-col">
-
-<!-- ================= NAVBAR ================= -->
-<nav class="bg-white shadow-md px-6 py-4">
-<div class="max-w-7xl mx-auto flex justify-between items-center">
-
-<a href="index.html" class="text-xl font-bold text-blue-600">BooterSpace</a>
-
-<div class="hidden md:flex items-center gap-6">
-  <a href="jobs.html">Jobs</a>
-  <a href="companies.html">Companies</a>
-
-  <span id="userName" class="font-semibold hidden"></span>
-  <img id="userPhoto" class="w-8 h-8 rounded-full hidden"/>
-
-  <a id="loginBtn" href="login.html">Login</a>
-  <a id="signupBtn" href="signup.html">Sign Up</a>
-  <a id="profileBtn" href="profile.html" class="hidden">Profile</a>
-  <a id="adminBtn" href="admin.html" class="hidden text-purple-600">Admin</a>
-  <button id="logoutBtn" class="hidden text-red-600">Logout</button>
-</div>
-
-<button id="menuBtn" class="md:hidden text-2xl">☰</button>
-</div>
-
-<div id="mobileMenu" class="hidden md:hidden mt-4 space-y-3">
-  <a href="jobs.html" class="block">Jobs</a>
-  <a href="companies.html" class="block">Companies</a>
-  <a id="mLoginBtn" href="login.html">Login</a>
-  <a id="mSignupBtn" href="signup.html">Signup</a>
-  <a id="mProfileBtn" href="profile.html" class="hidden">Profile</a>
-  <button id="mLogoutBtn" class="hidden text-red-600">Logout</button>
-</div>
-</nav>
-
-<!-- ================= JOBS ================= -->
-<main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
-<h2 id="jobCount" class="font-bold text-xl mb-6">Loading jobs...</h2>
-<div id="jobsList" class="space-y-6"></div>
-<button id="loadMoreBtn" class="hidden mt-10 border px-6 py-3 rounded">Load More</button>
-</main>
-
-<!-- ================= FIREBASE ================= -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+<style>
+/* Modal */
+.modal-bg{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);
+  display:none;justify-content:center;align-items:center;z-index:50;
+}
+.modal{
+  background:white;padding:2rem;border-radius:1rem;
+  max-width:400px;width:90%;text-align:center;
+}
+</style>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<!-- NAVBAR -->
+<nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+  <a href="index.html" class="text-xl font-bold text-blue-600">BooterSpace</a>
+
+  <div class="hidden md:flex items-center space-x-4 font-semibold">
+    <a href="jobs.html">Jobs</a>
+    <a href="companies.html">Companies</a>
+    <a href="places-to-hangout.html">Hangouts</a>
+
+    <div id="userInfo" class="flex items-center gap-2 hidden">
+      <img id="userPhoto" class="w-8 h-8 rounded-full" />
+      <span id="userName"></span>
+    </div>
+
+    <a href="profile.html" id="profileBtn" class="hidden">Profile</a>
+    <a href="admin.html" id="adminBtn" class="hidden text-red-600">Admin</a>
+
+    <a href="login.html" id="loginBtn">Login</a>
+    <a href="signup.html" id="signupBtn">Signup</a>
+    <button id="logoutBtn" class="hidden text-red-500">Sign Out</button>
+  </div>
+
+  <button id="hamburger" class="md:hidden text-2xl">☰</button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div id="mobileMenu" class="hidden bg-white shadow-md p-4 md:hidden space-y-3 font-semibold">
+  <a href="jobs.html">Jobs</a>
+  <a href="companies.html">Companies</a>
+  <a href="places-to-hangout.html">Hangouts</a>
+
+  <div id="mUserInfo" class="flex items-center gap-2 hidden">
+    <img id="mUserPhoto" class="w-8 h-8 rounded-full" />
+    <span id="mUserName"></span>
+  </div>
+
+  <a href="profile.html" id="mProfileBtn" class="hidden">Profile</a>
+  <a href="admin.html" id="mAdminBtn" class="hidden text-red-600">Admin</a>
+
+  <a href="login.html" id="mLoginBtn">Login</a>
+  <a href="signup.html" id="mSignupBtn">Signup</a>
+  <button id="mLogoutBtn" class="hidden text-red-500">Sign Out</button>
+</div>
+
+<!-- MODAL -->
+<div id="loginModal" class="modal-bg">
+  <div class="modal">
+    <h2 class="text-xl font-bold mb-4">You need to login first</h2>
+    <p class="mb-4">Please login or sign up to continue.</p>
+    <div class="flex justify-center gap-4">
+      <button id="modalLoginBtn" class="px-4 py-2 bg-blue-600 text-white rounded">Login</button>
+      <button id="modalSignupBtn" class="px-4 py-2 bg-green-600 text-white rounded">Sign Up</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOBS AREA -->
+<main class="max-w-4xl mx-auto p-6">
+<h2 id="jobCount" class="text-xl font-bold mb-6">Loading jobs...</h2>
+<div id="jobsList" class="space-y-6"></div>
+</main>
+
+<!-- FIREBASE -->
 <script>
-const firebaseConfig={
- apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
- authDomain:"kar-kardan.firebaseapp.com",
- projectId:"kar-kardan"
-};
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
-
-/* ===== NAVBAR ===== */
-menuBtn.onclick=()=>mobileMenu.classList.toggle("hidden");
-
-auth.onAuthStateChanged(user=>{
- if(user){
-  loginBtn.classList.add("hidden");
-  signupBtn.classList.add("hidden");
-  profileBtn.classList.remove("hidden");
-  logoutBtn.classList.remove("hidden");
-  mLoginBtn.classList.add("hidden");
-  mSignupBtn.classList.add("hidden");
-  mProfileBtn.classList.remove("hidden");
-  mLogoutBtn.classList.remove("hidden");
-
-  userName.innerText=user.displayName||"User";
-  userName.classList.remove("hidden");
-  userPhoto.src=user.photoURL||"https://ui-avatars.com/api/?name=User";
-  userPhoto.classList.remove("hidden");
-
-  if(user.email==="admin@gmail.com") adminBtn.classList.remove("hidden");
-
-  logoutBtn.onclick=mLogoutBtn.onclick=()=>auth.signOut();
- }else{
-  loginBtn.classList.remove("hidden");
-  signupBtn.classList.remove("hidden");
-  profileBtn.classList.add("hidden");
-  logoutBtn.classList.add("hidden");
-  adminBtn.classList.add("hidden");
-
-  mLoginBtn.classList.remove("hidden");
-  mSignupBtn.classList.remove("hidden");
-  mProfileBtn.classList.add("hidden");
-  mLogoutBtn.classList.add("hidden");
-
-  userName.classList.add("hidden");
-  userPhoto.classList.add("hidden");
- }
+firebase.initializeApp({
+  apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain:"kar-kardan.firebaseapp.com",
+  projectId:"kar-kardan",
+  storageBucket:"kar-kardan.firebasestorage.app",
+  messagingSenderId:"554147696994",
+  appId:"1:554147696994:web:221dcb883e3b65dcea5c3b"
 });
-
-/* ===== JOBS ===== */
-const jobsList=document.getElementById("jobsList");
-const jobCount=document.getElementById("jobCount");
-let allJobs=[],index=0,pageSize=6;
-
-async function loadJobs(){
- const snap=await db.collection("jobs").where("status","==","approved").orderBy("timestamp","desc").get();
- allJobs=snap.docs.map(d=>({id:d.id,...d.data()}));
- render();
-}
-
-function render(){
- const batch=allJobs.slice(index,index+pageSize);
- batch.forEach(j=>{
-  const div=document.createElement("div");
-  div.className="bg-white p-5 rounded-xl shadow";
-  div.innerHTML=`
-   <h3 class="font-bold">${j.title}</h3>
-   <p>${j.company} — ${j.location||"Remote"}</p>
-   <div class="mt-3">
-    <a href="job-detail.html?id=${j.id}" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</a>
-   </div>`;
-  jobsList.appendChild(div);
- });
- index+=pageSize;
- jobCount.innerText=`${allJobs.length} jobs found`;
- loadMoreBtn.classList.toggle("hidden",index>=allJobs.length);
-}
-
-loadMoreBtn.onclick=render;
-loadJobs();
+const auth = firebase.auth();
+const db = firebase.firestore();
 </script>
 
+<!-- JS LOGIC -->
+<script>
+// NAVBAR & MOBILE
+const hamburger = document.getElementById("hamburger");
+const mobileMenu = document.getElementById("mobileMenu");
+hamburger.onclick = ()=>mobileMenu.classList.toggle("hidden");
+
+// DOM elements
+const profileBtn=document.getElementById("profileBtn");
+const adminBtn=document.getElementById("adminBtn");
+const loginBtn=document.getElementById("loginBtn");
+const signupBtn=document.getElementById("signupBtn");
+const logoutBtn=document.getElementById("logoutBtn");
+const userInfo=document.getElementById("userInfo");
+const userName=document.getElementById("userName");
+const userPhoto=document.getElementById("userPhoto");
+
+const mProfileBtn=document.getElementById("mProfileBtn");
+const mAdminBtn=document.getElementById("mAdminBtn");
+const mLoginBtn=document.getElementById("mLoginBtn");
+const mSignupBtn=document.getElementById("mSignupBtn");
+const mLogoutBtn=document.getElementById("mLogoutBtn");
+const mUserInfo=document.getElementById("mUserInfo");
+const mUserName=document.getElementById("mUserName");
+const mUserPhoto=document.getElementById("mUserPhoto");
+
+const modal = document.getElementById("loginModal");
+const modalLoginBtn = document.getElementById("modalLoginBtn");
+const modalSignupBtn = document.getElementById("modalSignupBtn");
+
+// Auth State
+auth.onAuthStateChanged(user=>{
+  const loggedIn = !!user;
+
+  // Desktop
+  profileBtn.classList.toggle("hidden", !loggedIn);
+  loginBtn.classList.toggle("hidden", loggedIn);
+  signupBtn.classList.toggle("hidden", loggedIn);
+  logoutBtn.classList.toggle("hidden", !loggedIn);
+
+  userInfo.classList.toggle("hidden", !loggedIn);
+  if(user){
+    userName.innerText = user.displayName||"User";
+    userPhoto.src = user.photoURL||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||"User")}`;
+  }
+
+  // Mobile
+  mProfileBtn.classList.toggle("hidden", !loggedIn);
+  mLoginBtn.classList.toggle("hidden", loggedIn);
+  mSignupBtn.classList.toggle("hidden", loggedIn);
+  mLogoutBtn.classList.toggle("hidden", !loggedIn);
+
+  mUserInfo.classList.toggle("hidden", !loggedIn);
+  if(user){
+    mUserName.innerText = user.displayName||"User";
+    mUserPhoto.src = user.photoURL||`https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||"User")}`;
+  }
+
+  // Admin only
+  if(user && user.email === "admin@booter.com"){
+    adminBtn.classList.remove("hidden");
+    mAdminBtn.classList.remove("hidden");
+  } else {
+    adminBtn.classList.add("hidden");
+    mAdminBtn.classList.add("hidden");
+  }
+});
+
+// Logout buttons
+logoutBtn.onclick = mLogoutBtn.onclick = ()=>auth.signOut();
+
+// Modal login/signup
+modalLoginBtn.onclick = ()=>location.href="login.html";
+modalSignupBtn.onclick = ()=>location.href="signup.html";
+
+// ===== PROTECTED BUTTON EXAMPLE =====
+// Any button with class 'login-required' will show modal if not logged in
+document.addEventListener("click", e=>{
+  const target = e.target;
+  if(target.classList.contains("login-required")){
+    if(!auth.currentUser){
+      e.preventDefault();
+      modal.style.display="flex";
+    }
+  }
+});
+</script>
+
+<!-- JOB LOADING -->
+<script>
+const jobsList = document.getElementById("jobsList");
+const jobCount = document.getElementById("jobCount");
+
+db.collection("jobs").where("status","==","approved")
+.orderBy("timestamp","desc")
+.get()
+.then(snap=>{
+  jobCount.innerText = snap.size+" jobs found";
+  snap.forEach(doc=>{
+    const job = doc.data();
+    const div = document.createElement("div");
+    div.className="bg-white p-6 rounded-xl shadow";
+
+    div.innerHTML=`
+      <h3 class="text-xl font-bold">${job.title}</h3>
+      <p class="text-gray-500">${job.company} — ${job.location||"Remote"}</p>
+      <button onclick="location.href='job-detail.html?id=${doc.id}'"
+        class="mt-4 bg-blue-600 text-white px-4 py-2 rounded login-required">
+        Apply / View Job
+      </button>
+    `;
+    jobsList.appendChild(div);
+  });
+});
+</script>
 </body>
 </html>
