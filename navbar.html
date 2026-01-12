@@ -1,54 +1,60 @@
-<!-- navbar.html -->
-<nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+<nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
 
   <!-- Logo -->
   <a href="index.html" class="text-xl font-bold text-blue-600">
     BooterSpace
   </a>
 
-  <!-- Desktop Links -->
-  <div class="hidden md:flex gap-4 items-center">
+  <!-- Desktop -->
+  <div class="hidden md:flex items-center space-x-6">
 
-    <a href="index.html" class="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium">
-      Home
-    </a>
+    <!-- Guest -->
+    <div id="guestLinks" class="space-x-6">
+      <a href="login.html">Login</a>
+      <a href="signup.html">Join</a>
+    </div>
 
-    <a href="jobs.html" class="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium">
-      Jobs
-    </a>
+    <!-- User -->
+    <div id="userLinks" class="hidden items-center space-x-4">
+      <img id="navPhoto" class="w-8 h-8 rounded-full object-cover">
+      <span id="navName" class="font-semibold text-gray-700"></span>
 
-    <a href="govt.html" class="flex items-center gap-1 text-gray-700 hover:text-blue-600 font-medium">
-      Govt. Jobs
-    </a>
+      <a href="home.html">Home</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="jobs.html">Jobs</a>
 
-    <!-- Placeholder for Auth buttons -->
-    <div id="authLinks" class="flex gap-3 items-center"></div>
+      <a id="adminLink" href="admin.html" class="hidden text-red-600 font-semibold">
+        Admin
+      </a>
 
-    <!-- Placeholder for User Dropdown -->
-    <div id="userDropdown" class="relative hidden"></div>
+      <button id="logoutBtn" class="text-red-500">Logout</button>
+    </div>
 
   </div>
 
-  <!-- Mobile Menu Button -->
-  <div class="md:hidden flex items-center gap-2">
-    <button id="mobileMenuBtn" class="text-gray-700 focus:outline-none">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-      </svg>
-    </button>
-  </div>
-
+  <!-- Mobile Button -->
+  <button id="mobileBtn" class="md:hidden text-xl">☰</button>
 </nav>
 
 <!-- Mobile Menu -->
-<div id="mobileMenu" class="hidden md:hidden bg-white border-t border-gray-100 shadow-lg">
-  <a href="index.html" class="block px-6 py-3 text-gray-700 hover:bg-blue-50">Home</a>
-  <a href="jobs.html" class="block px-6 py-3 text-gray-700 hover:bg-blue-50">Jobs</a>
-  <a href="govt.html" class="block px-6 py-3 text-gray-700 hover:bg-blue-50">Govt. Jobs</a>
+<div id="mobileMenu" class="hidden bg-white shadow-md px-6 py-4 space-y-4">
 
-  <!-- Placeholder for Mobile Auth Links -->
-  <div id="mobileAuthLinks" class="flex flex-col gap-2 px-6 py-3"></div>
+  <div id="mobileGuest">
+    <a href="login.html" class="block">Login</a>
+    <a href="signup.html" class="block">Join</a>
+  </div>
+
+  <div id="mobileUser" class="hidden space-y-3">
+    <div class="flex items-center space-x-3">
+      <img id="mobilePhoto" class="w-10 h-10 rounded-full">
+      <span id="mobileName"></span>
+    </div>
+
+    <a href="home.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="jobs.html">Jobs</a>
+    <a id="mobileAdmin" href="admin.html" class="hidden text-red-600">Admin</a>
+    <button id="mobileLogout" class="text-red-500">Logout</button>
+  </div>
+
 </div>
-
-<!-- JS file -->
-<script type="module" src="js/navbar.js"></script>
