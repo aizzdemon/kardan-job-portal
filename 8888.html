@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jobs - BooterSpace</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    .latest-badge { animation: flash 1s infinite; }
+    @keyframes flash { 0%{opacity:1}50%{opacity:.4}100%{opacity:1} }
+
+    @keyframes shimmer { 0%{background-position:-468px 0}100%{background-position:468px 0} }
+    .skeleton{
+      background:#f6f7f8;
+      background-image:linear-gradient(to right,#f6f7f8 0%,#edeef1 20%,#f6f7f8 40%,#f6f7f8 100%);
+      background-size:800px 104px;
+      animation:shimmer 1.2s infinite linear;
+    }
+
+    .suggestions-list::-webkit-scrollbar{width:6px}
+    .suggestions-list::-webkit-scrollbar-thumb{background:#888;border-radius:3px}
+  </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+
+<div id="navbar"></div>
+
+<script>
+fetch("navbar.html")
+.then(r=>r.text())
+.then(html=>{
+  document.getElementById("navbar").innerHTML=html;
+  const s=document.createElement("script");
+  s.src="navbar.js";
+  document.body.appendChild(s);
+});
+</script>
+
+<main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
+
+<h2 id="jobCount" class="text-gray-900 font-bold text-xl mb-8">Loading jobs...</h2>
+<div id="jobsList" class="space-y-6"></div>
+
+<div class="text-center mt-12">
+  <button id="loadMoreBtn" class="hidden bg-white border px-8 py-3 rounded-xl font-bold">
+    Load More Jobs
+  </button>
+</div>
+</main>
+
+<!-- ================= Firebase ================= -->
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+// DOM
+const jobsList = document.getElementById("jobsList");
+const loadMoreBtn = document.getElementById("loadMoreBtn");
+const jobCountLabel = document.getElementById("jobCount");
+
+let allJobs=[],visibleJobs=[],pageSize=10,currentIndex=0;
+
+async function fetchJobs(){
+  const snap = await db.collection("jobs")
+    .where("status","==","approved")
+    .orderBy("timestamp","desc")
+    .get();
+
+  allJobs = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderNext();
+}
+
+function renderNext(){
+  const batch = allJobs.slice(currentIndex,currentIndex+pageSize);
+
+  batch.forEach(job=>{
+    const div = document.createElement("div");
+    div.className="bg-white p-6 rounded-2xl border shadow-sm";
+    div.innerHTML=`
+      <h3 class="font-bold text-xl">${job.title}</h3>
+      <p class="text-gray-500">${job.company} — ${job.location||'Remote'}</p>
+      <div class="mt-4 flex gap-2">
+        <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
+        <button onclick="viewJob('${job.id}')" class="border px-4 py-2 rounded">Details</button>
+      </div>
+    `;
+    jobsList.appendChild(div);
+  });
+
+  currentIndex+=pageSize;
+  jobCountLabel.innerText = `${allJobs.length} jobs found`;
+  loadMoreBtn.classList.toggle("hidden",currentIndex>=allJobs.length);
+}
+
+window.applyJob=id=>location.href=`job-detail.html?id=${id}`;
+window.viewJob=id=>location.href=`job-detail.html?id=${id}`;
+
+loadMoreBtn.onclick=renderNext;
+fetchJobs();
+
+// ====== LOGIN REQUIRED BUTTONS ======
+auth.onAuthStateChanged(user=>{
+  document.querySelectorAll(".login-required").forEach(el=>{
+    if(!user){
+      el.style.opacity="0.6";
+      el.onclick=()=>location.href="login.html";
+    }
+  });
+});
+</script>
+
+</body>
+</html>
