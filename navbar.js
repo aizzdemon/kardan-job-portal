@@ -1,76 +1,43 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// navbar.js (GitHub Pages compatible)
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-};
+const auth = firebase.auth();
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+auth.onAuthStateChanged(user => {
 
-const ADMIN_EMAIL = "aizzdemon@gmail.com";   // 👈 change to your login email
+  const loginBtn = document.getElementById("loginBtn");
+  const signupBtn = document.getElementById("signupBtn");
+  const profileBtn = document.getElementById("profileBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const adminBtn = document.getElementById("adminBtn");
+  const userName = document.getElementById("userName");
+  const userPhoto = document.getElementById("userPhoto");
 
-// Elements
-const guestLinks = document.getElementById("guestLinks");
-const userLinks = document.getElementById("userLinks");
-const navName = document.getElementById("navName");
-const navPhoto = document.getElementById("navPhoto");
-const adminLink = document.getElementById("adminLink");
-const logoutBtn = document.getElementById("logoutBtn");
-
-const mobileBtn = document.getElementById("mobileBtn");
-const mobileMenu = document.getElementById("mobileMenu");
-const mobileGuest = document.getElementById("mobileGuest");
-const mobileUser = document.getElementById("mobileUser");
-const mobileName = document.getElementById("mobileName");
-const mobilePhoto = document.getElementById("mobilePhoto");
-const mobileAdmin = document.getElementById("mobileAdmin");
-const mobileLogout = document.getElementById("mobileLogout");
-
-// Toggle mobile
-mobileBtn.addEventListener("click", () => {
-  mobileMenu.classList.toggle("hidden");
-});
-
-onAuthStateChanged(auth, (user) => {
   if (user) {
-    // Desktop
-    guestLinks.classList.add("hidden");
-    userLinks.classList.remove("hidden");
+    // Logged in
+    loginBtn?.classList.add("hidden");
+    signupBtn?.classList.add("hidden");
 
-    navName.textContent = user.displayName || "User";
-    navPhoto.src = user.photoURL || "https://i.pravatar.cc/150";
+    profileBtn?.classList.remove("hidden");
+    logoutBtn?.classList.remove("hidden");
 
-    // Mobile
-    mobileGuest.classList.add("hidden");
-    mobileUser.classList.remove("hidden");
+    if (userName) userName.innerText = user.displayName || "User";
+    if (userPhoto) userPhoto.src = user.photoURL || "https://ui-avatars.com/api/?name=User";
 
-    mobileName.textContent = user.displayName || "User";
-    mobilePhoto.src = user.photoURL || "https://i.pravatar.cc/150";
-
-    // Admin check
-    if (user.email === ADMIN_EMAIL) {
-      adminLink.classList.remove("hidden");
-      mobileAdmin.classList.remove("hidden");
+    // Admin example (email based)
+    if (user.email === "admin@gmail.com") {
+      adminBtn?.classList.remove("hidden");
     }
 
+    logoutBtn?.addEventListener("click", () => auth.signOut());
+
   } else {
-    guestLinks.classList.remove("hidden");
-    userLinks.classList.add("hidden");
+    // Guest
+    loginBtn?.classList.remove("hidden");
+    signupBtn?.classList.remove("hidden");
 
-    mobileGuest.classList.remove("hidden");
-    mobileUser.classList.add("hidden");
+    profileBtn?.classList.add("hidden");
+    logoutBtn?.classList.add("hidden");
+    adminBtn?.classList.add("hidden");
   }
-});
 
-// Logout
-logoutBtn?.addEventListener("click", () => {
-  signOut(auth).then(() => window.location.href = "index.html");
-});
-
-mobileLogout?.addEventListener("click", () => {
-  signOut(auth).then(() => window.location.href = "index.html");
 });
