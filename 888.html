@@ -22,17 +22,22 @@
 <body class="bg-gray-100 min-h-screen flex flex-col">
 
 <!-- ================= NAVBAR ================= -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html")
-  .then(r=>r.text())
-  .then(html=>{
-    document.getElementById("navbar").innerHTML = html;
-    const s=document.createElement("script");
-    s.src="navbar.js";
-    document.body.appendChild(s);
-  });
-</script>
+<nav id="navbar" class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+  <a href="#" class="text-xl font-bold text-blue-600">BooterSpace</a>
+  <div class="hidden md:flex gap-4 items-center">
+    <a href="#" id="navHome" class="hidden text-gray-700 hover:text-blue-600 transition">Home</a>
+    <a href="#" id="navJobs" class="hidden text-gray-700 hover:text-blue-600 transition">Jobs</a>
+    <a href="#" id="navProfile" class="hidden text-gray-700 hover:text-blue-600 transition">Profile</a>
+    <a href="#" id="navAdmin" class="hidden text-gray-700 hover:text-blue-600 transition">Admin</a>
+    <button id="navLogin" class="text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition">Login</button>
+    <button id="navSignup" class="text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">Signup</button>
+    <button id="navLogout" class="hidden text-white bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</button>
+  </div>
+  <!-- Mobile Hamburger -->
+  <div class="md:hidden">
+    <button id="hamburgerBtn" class="text-gray-700">☰</button>
+  </div>
+</nav>
 
 <!-- ================= SEARCH BAR ================= -->
 <div class="bg-white border-b sticky top-0 z-20 shadow-sm">
@@ -55,7 +60,7 @@ fetch("navbar.html")
 <div id="mainContainer" class="flex-1 max-w-6xl mx-auto p-4 w-full relative">
   <div id="gridWrapper" class="grid grid-cols-1 gap-6 transition-layout">
     
-    <!-- LEFT PANEL -->
+    <!-- LEFT PANEL (Search Results) -->
     <div id="leftPanel" class="hidden transition-all duration-500 opacity-0 transform -translate-x-4">
       <div id="resultsListContainer">
         <div id="resultsHeader" class="mb-4 flex justify-between items-center hidden">
@@ -81,7 +86,7 @@ fetch("navbar.html")
           </div>
           
           <div class="text-center lg:text-left">
-            <h1 id="myName" class="text-2xl font-bold text-gray-800">Loading...</h1>
+            <h1 id="myName" class="text-2xl font-bold text-gray-800">Guest User</h1>
             <p id="myRole" class="text-blue-600 font-medium"></p>
             <p id="myLoc" class="text-gray-500 text-sm mb-4"></p>
             
@@ -105,7 +110,6 @@ fetch("navbar.html")
 
             <div class="mt-6 flex gap-2 justify-center lg:justify-start">
               <button onclick="openEditModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 text-sm text-center">Edit Profile</button>
-              <button class="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg font-semibold hover:bg-blue-100 text-sm">Stats</button>
             </div>
           </div>
         </div>
@@ -118,36 +122,36 @@ fetch("navbar.html")
 <!-- ================= AVATAR & EDIT MODALS ================= -->
 <!-- Avatar Modal -->
 <div id="avatarModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h3 class="font-bold text-gray-800">Choose Avatar</h3>
-            <button onclick="closeAvatarModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
-        </div>
-        <div class="p-4 max-h-[60vh] overflow-y-auto avatar-grid" id="avatarGrid"></div>
-        <div class="p-4 border-t bg-gray-50 flex justify-end">
-            <button onclick="closeAvatarModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Done</button>
-        </div>
+  <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+    <div class="p-4 border-b flex justify-between items-center">
+      <h3 class="font-bold text-gray-800">Choose Avatar</h3>
+      <button onclick="closeAvatarModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
     </div>
+    <div class="p-4 max-h-[60vh] overflow-y-auto avatar-grid" id="avatarGrid"></div>
+    <div class="p-4 border-t bg-gray-50 flex justify-end">
+      <button onclick="closeAvatarModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Done</button>
+    </div>
+  </div>
 </div>
 
 <!-- Edit Modal -->
 <div id="editModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-        <div class="p-4 border-b">
-            <h3 class="font-bold text-gray-800">Edit Profile</h3>
-        </div>
-        <div class="p-6 space-y-4">
-            <input id="editName" type="text" placeholder="Full Name" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-            <input id="editEdu" type="text" placeholder="Education" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-            <input id="editUni" type="text" placeholder="University" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-            <input id="editPos" type="text" placeholder="Position" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-            <input id="editYears" type="number" placeholder="Exp Years" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-        </div>
-        <div class="p-4 bg-gray-50 flex gap-2">
-            <button onclick="closeEditModal()" class="flex-1 py-2 border rounded-lg font-bold text-gray-600 hover:bg-white">Cancel</button>
-            <button id="saveProfileBtn" onclick="saveProfile()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">Save Changes</button>
-        </div>
+  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+    <div class="p-4 border-b">
+      <h3 class="font-bold text-gray-800">Edit Profile</h3>
     </div>
+    <div class="p-6 space-y-4">
+      <input id="editName" type="text" placeholder="Full Name" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+      <input id="editEdu" type="text" placeholder="Education" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+      <input id="editUni" type="text" placeholder="University" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+      <input id="editPos" type="text" placeholder="Position" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+      <input id="editYears" type="number" placeholder="Exp Years" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
+    </div>
+    <div class="p-4 bg-gray-50 flex gap-2">
+      <button onclick="closeEditModal()" class="flex-1 py-2 border rounded-lg font-bold text-gray-600 hover:bg-white">Cancel</button>
+      <button id="saveProfileBtn" onclick="saveProfile()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">Save Changes</button>
+    </div>
+  </div>
 </div>
 
 <!-- ================= SCRIPT ================= -->
@@ -167,11 +171,44 @@ const db = firebase.firestore();
 
 const state = { currentUser:null, profileData:{}, searchResults:[], isSearching:false };
 
+/* ================= NAVBAR ================= */
+const navLogin=document.getElementById('navLogin');
+const navSignup=document.getElementById('navSignup');
+const navLogout=document.getElementById('navLogout');
+const navHome=document.getElementById('navHome');
+const navJobs=document.getElementById('navJobs');
+const navProfile=document.getElementById('navProfile');
+const navAdmin=document.getElementById('navAdmin');
+
+function updateNavbar(user){
+  if(user){
+    navLogin.style.display='none';
+    navSignup.style.display='none';
+    navLogout.style.display='inline-block';
+    navHome.style.display='inline-block';
+    navJobs.style.display='inline-block';
+    navProfile.style.display='inline-block';
+    navAdmin.style.display=(user.email==='admin@example.com')?'inline-block':'none';
+  }else{
+    navLogin.style.display='inline-block';
+    navSignup.style.display='inline-block';
+    navLogout.style.display='none';
+    navHome.style.display='none';
+    navJobs.style.display='none';
+    navProfile.style.display='none';
+    navAdmin.style.display='none';
+  }
+}
+
+navLogin.onclick=()=>auth.signInWithEmailAndPassword(prompt("Email"),prompt("Password"));
+navSignup.onclick=()=>auth.createUserWithEmailAndPassword(prompt("Email"),prompt("Password"));
+navLogout.onclick=()=>auth.signOut();
+
 /* ================= AUTH ================= */
 auth.onAuthStateChanged(user=>{
-  state.currentUser = user;
+  state.currentUser=user;
+  updateNavbar(user);
   if(user) fetchAndRenderMyProfile(user.uid);
-  else document.getElementById('myName').innerText="Guest User";
 });
 
 /* ================= PROFILE ================= */
@@ -183,7 +220,7 @@ async function fetchAndRenderMyProfile(uid){
       state.profileData=data;
       document.getElementById('myName').innerText=data.fullName||"User";
       document.getElementById('myRole').innerText=data.role||data.position||"Professional";
-      document.getElementById('myEdu').innerText=`${data.education||"--"} at ${data.university||"--"}`;
+      document.getElementById('myEdu').innerText=`${data.education||"--"} @ ${data.university||"--"}`;
       document.getElementById('myExp').innerText=data.position||"--";
       document.getElementById('myYears').innerText=data.expYears?`${data.expYears} Years Experience`:"";
       document.getElementById('myPhoto').src=data.photoURL||"https://i.imgur.com/6VBx3io.png";
@@ -209,55 +246,51 @@ async function saveProfile(){
     education:document.getElementById('editEdu').value,
     university:document.getElementById('editUni').value,
     position:document.getElementById('editPos').value,
-    expYears:document.getElementById('editYears').value
+    expYears:parseInt(document.getElementById('editYears').value)||0
   };
-  try{
-    await db.collection("users").doc(state.currentUser.uid).set(updatedData,{merge:true});
-    state.profileData={...state.profileData,...updatedData};
-    fetchAndRenderMyProfile(state.currentUser.uid);
-    closeEditModal();
-  }catch(e){ alert("Error saving profile"); }
-  finally{ btn.innerText="Save Changes"; btn.disabled=false; }
+  await db.collection('users').doc(state.currentUser.uid).set(updatedData,{merge:true});
+  state.profileData={...state.profileData,...updatedData};
+  fetchAndRenderMyProfile(state.currentUser.uid);
+  closeEditModal(); btn.innerText="Save Changes"; btn.disabled=false;
 }
 
 /* ================= AVATAR ================= */
-function openAvatarModal(){
-  const grid=document.getElementById('avatarGrid'); grid.innerHTML="";
-  const sets=['avataaars','bottts','lorelei','notionists'];
-  for(let i=0;i<40;i++){
-    const seed=Math.random().toString(36).substring(7);
-    const set=sets[i%sets.length];
-    const url=`https://api.dicebear.com/7.x/${set}/svg?seed=${seed}`;
-    const div=document.createElement('div');
-    div.className="cursor-pointer hover:scale-110 transition p-1 border rounded-lg hover:border-blue-500 bg-gray-50";
-    div.onclick=()=>selectAvatar(url);
-    div.innerHTML=`<img src="${url}" class="w-full h-full">`;
-    grid.appendChild(div);
-  }
-  document.getElementById('avatarModal').classList.remove('hidden');
-}
+const avatars = [
+  "https://i.pravatar.cc/100?img=1",
+  "https://i.pravatar.cc/100?img=2",
+  "https://i.pravatar.cc/100?img=3",
+  "https://i.pravatar.cc/100?img=4",
+  "https://i.pravatar.cc/100?img=5"
+];
+const avatarGrid=document.getElementById('avatarGrid');
+avatars.forEach(url=>{
+  const img=document.createElement('img');
+  img.src=url;
+  img.className="w-16 h-16 rounded-full border cursor-pointer hover:ring-2 hover:ring-blue-500 transition";
+  img.onclick=()=>selectAvatar(url);
+  avatarGrid.appendChild(img);
+});
+function openAvatarModal(){ document.getElementById('avatarModal').classList.remove('hidden'); }
 function closeAvatarModal(){ document.getElementById('avatarModal').classList.add('hidden'); }
 async function selectAvatar(url){
+  await db.collection('users').doc(state.currentUser.uid).set({photoURL:url},{merge:true});
+  state.profileData.photoURL=url;
   document.getElementById('myPhoto').src=url;
-  try{ await db.collection("users").doc(state.currentUser.uid).set({photoURL:url},{merge:true}); state.profileData.photoURL=url;}
-  catch(e){ console.error(e);}
   closeAvatarModal();
 }
 
 /* ================= SEARCH ================= */
-const input=document.getElementById("searchInput");
-const searchBtn=document.getElementById("searchBtn");
-searchBtn.addEventListener("click", runSearch);
-input.addEventListener("keypress",e=>{if(e.key==="Enter") runSearch();});
+const searchInput=document.getElementById('searchInput');
+const searchBtn=document.getElementById('searchBtn');
+searchBtn.onclick=()=>searchUsers();
 
-async function runSearch(){
-  const q=input.value.toLowerCase().trim(); if(!q)return;
+async function searchUsers(){
+  const q=searchInput.value.toLowerCase().trim(); if(!q) return;
   activateSearchLayout();
-  resultsView.innerHTML=`<div class="flex justify-center py-10"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div></div>`;
-  showResultsList();
-
+  const resultsView=document.getElementById('resultsView');
+  resultsView.innerHTML='<div class="p-4 text-gray-400">Searching...</div>';
   try{
-    const snapshot = await db.collection("users").get();
+    const snapshot=await db.collection("users").get();
     const results=[];
     snapshot.forEach(doc=>{
       if(state.currentUser && doc.id===state.currentUser.uid) return;
@@ -270,31 +303,19 @@ async function runSearch(){
   }catch(e){console.error(e);}
 }
 
-const resultsView=document.getElementById("resultsView");
-const gridWrapper=document.getElementById("gridWrapper");
-const leftPanel=document.getElementById("leftPanel");
-const rightPanel=document.getElementById("rightPanel");
-const searchHint=document.getElementById("searchHint");
-const resultsListContainer=document.getElementById("resultsListContainer");
-const detailViewContainer=document.getElementById("detailViewContainer");
-const resultsHeader=document.getElementById("resultsHeader");
-const resultsCount=document.getElementById("resultsCount");
-
 function activateSearchLayout(){
-  if(state.isSearching) return;
-  state.isSearching=true;
-  gridWrapper.classList.remove('grid-cols-1'); gridWrapper.classList.add('lg:grid-cols-3');
-  rightPanel.classList.remove('max-w-2xl','mx-auto'); rightPanel.classList.add('lg:col-span-1');
-  searchHint.classList.add('hidden');
-  leftPanel.classList.remove('hidden');
-  setTimeout(()=>leftPanel.classList.remove('opacity-0','-translate-x-4'),50);
-  leftPanel.classList.add('lg:col-span-2');
+  if(state.isSearching) return; state.isSearching=true;
+  document.getElementById('leftPanel').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('leftPanel').classList.remove('opacity-0','-translate-x-4'),50);
 }
 
 function renderResults(users){
+  const resultsView=document.getElementById('resultsView');
+  const resultsHeader=document.getElementById('resultsHeader');
+  const resultsCount=document.getElementById('resultsCount');
   resultsHeader.classList.remove('hidden');
   resultsCount.innerText=`${users.length} found`;
-  resultsView.innerHTML=users.length? '':'<div class="p-8 bg-white rounded-xl border text-center text-gray-400">No matches found</div>';
+  resultsView.innerHTML=users.length? '':'<div class="p-4 bg-white rounded-xl border text-center text-gray-400">No matches found</div>';
   users.forEach(u=>{
     const card=document.createElement('div');
     card.className="bg-white p-4 rounded-xl border hover:shadow-md transition flex justify-between items-center cursor-pointer group";
@@ -315,8 +336,10 @@ function renderResults(users){
 
 function openDetailView(userId){
   const user=state.searchResults.find(u=>u.id===userId); if(!user) return;
-  resultsListContainer.classList.add('hidden'); detailViewContainer.classList.remove('hidden');
-  detailViewContainer.innerHTML=`
+  document.getElementById('resultsListContainer').classList.add('hidden');
+  const detailView=document.getElementById('detailViewContainer');
+  detailView.classList.remove('hidden');
+  detailView.innerHTML=`
     <div class="h-24 bg-gray-50 border-b flex items-center px-6">
       <button onclick="showResultsList()" class="text-blue-600 font-bold text-sm flex items-center gap-1">← Back</button>
     </div>
@@ -327,28 +350,20 @@ function openDetailView(userId){
           <h2 class="text-3xl font-bold text-gray-900">${user.fullName}</h2>
           <p class="text-lg text-blue-600">${user.position||"Professional"}</p>
           <p class="text-gray-500 text-sm mt-1">${user.education} @ ${user.university}</p>
-          <div class="mt-4 flex gap-2 justify-center md:justify-start">
-            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-sm hover:bg-blue-700 transition">Connect</button>
-            <button class="px-6 py-2 border rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition">Message</button>
-          </div>
         </div>
       </div>
-      <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="p-4 bg-gray-50 rounded-xl border">
-          <span class="text-xs font-bold text-gray-400 uppercase">Experience</span>
-          <p class="font-bold text-gray-800 mt-1">${user.expYears||"0"} Years</p>
-        </div>
-        <div class="p-4 bg-gray-50 rounded-xl border">
-          <span class="text-xs font-bold text-gray-400 uppercase">Education</span>
-          <p class="font-bold text-gray-800 mt-1">${user.university}</p>
-        </div>
+      <div class="mt-6 flex gap-2">
+        <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold shadow-sm hover:bg-blue-700 transition">Connect</button>
+        <button class="px-6 py-2 border rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition">Message</button>
       </div>
     </div>
   `;
 }
 
-function showResultsList(){ detailViewContainer.classList.add('hidden'); resultsListContainer.classList.remove('hidden'); }
+function showResultsList(){ 
+  document.getElementById('detailViewContainer').classList.add('hidden'); 
+  document.getElementById('resultsListContainer').classList.remove('hidden'); 
+}
 </script>
-
 </body>
 </html>
