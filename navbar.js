@@ -1,6 +1,6 @@
 // navbar.js (GitHub Pages compatible)
 
-const auth = firebase.auth();
+var auth = firebase.auth();
 
 auth.onAuthStateChanged(user => {
 
