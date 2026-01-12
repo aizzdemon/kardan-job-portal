@@ -1,119 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jobs - BooterSpace</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jobs - BooterSpace</title>
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <style>
-    .latest-badge { animation: flash 1s infinite; }
-    @keyframes flash { 0%{opacity:1}50%{opacity:.4}100%{opacity:1} }
-    @keyframes shimmer { 0%{background-position:-468px 0}100%{background-position:468px 0} }
-    .skeleton{
-      background:#f6f7f8;
-      background-image:linear-gradient(to right,#f6f7f8 0%,#edeef1 20%,#f6f7f8 40%,#f6f7f8 100%);
-      background-size:800px 104px;
-      animation:shimmer 1.2s infinite linear;
-    }
-    .suggestions-list::-webkit-scrollbar{width:6px}
-    .suggestions-list::-webkit-scrollbar-thumb{background:#888;border-radius:3px}
-  </style>
+<style>
+.latest-badge{animation:flash 1s infinite}
+@keyframes flash{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+</style>
 </head>
 
-<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+<body class="bg-gray-50 min-h-screen flex flex-col">
 
-<div id="navbar"></div>
+<!-- ================= NAVBAR ================= -->
+<nav class="bg-white shadow-md px-6 py-4">
+<div class="max-w-7xl mx-auto flex justify-between items-center">
 
-<script>
-fetch("navbar.html")
-.then(r=>r.text())
-.then(html=>{
-  document.getElementById("navbar").innerHTML = html;
-});
-</script>
+<a href="index.html" class="text-xl font-bold text-blue-600">BooterSpace</a>
 
-<main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
+<div class="hidden md:flex items-center gap-6">
+  <a href="jobs.html">Jobs</a>
+  <a href="companies.html">Companies</a>
 
-<h2 id="jobCount" class="text-gray-900 font-bold text-xl mb-8">Loading jobs...</h2>
-<div id="jobsList" class="space-y-6"></div>
+  <span id="userName" class="font-semibold hidden"></span>
+  <img id="userPhoto" class="w-8 h-8 rounded-full hidden"/>
 
-<div class="text-center mt-12">
-  <button id="loadMoreBtn" class="hidden bg-white border px-8 py-3 rounded-xl font-bold">
-    Load More Jobs
-  </button>
+  <a id="loginBtn" href="login.html">Login</a>
+  <a id="signupBtn" href="signup.html">Sign Up</a>
+  <a id="profileBtn" href="profile.html" class="hidden">Profile</a>
+  <a id="adminBtn" href="admin.html" class="hidden text-purple-600">Admin</a>
+  <button id="logoutBtn" class="hidden text-red-600">Logout</button>
 </div>
+
+<button id="menuBtn" class="md:hidden text-2xl">☰</button>
+</div>
+
+<div id="mobileMenu" class="hidden md:hidden mt-4 space-y-3">
+  <a href="jobs.html" class="block">Jobs</a>
+  <a href="companies.html" class="block">Companies</a>
+  <a id="mLoginBtn" href="login.html">Login</a>
+  <a id="mSignupBtn" href="signup.html">Signup</a>
+  <a id="mProfileBtn" href="profile.html" class="hidden">Profile</a>
+  <button id="mLogoutBtn" class="hidden text-red-600">Logout</button>
+</div>
+</nav>
+
+<!-- ================= JOBS ================= -->
+<main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
+<h2 id="jobCount" class="font-bold text-xl mb-6">Loading jobs...</h2>
+<div id="jobsList" class="space-y-6"></div>
+<button id="loadMoreBtn" class="hidden mt-10 border px-6 py-3 rounded">Load More</button>
 </main>
 
+<!-- ================= FIREBASE ================= -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+const firebaseConfig={
+ apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+ authDomain:"kar-kardan.firebaseapp.com",
+ projectId:"kar-kardan"
 };
-
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-const jobsList = document.getElementById("jobsList");
-const loadMoreBtn = document.getElementById("loadMoreBtn");
-const jobCountLabel = document.getElementById("jobCount");
-
-let allJobs=[],pageSize=10,currentIndex=0;
-
-async function fetchJobs(){
-  const snap = await db.collection("jobs")
-    .where("status","==","approved")
-    .orderBy("timestamp","desc")
-    .get();
-
-  allJobs = snap.docs.map(d=>({id:d.id,...d.data()}));
-  renderNext();
-}
-
-function renderNext(){
-  const batch = allJobs.slice(currentIndex,currentIndex+pageSize);
-  batch.forEach(job=>{
-    const div = document.createElement("div");
-    div.className="bg-white p-6 rounded-2xl border shadow-sm";
-    div.innerHTML=`
-      <h3 class="font-bold text-xl">${job.title}</h3>
-      <p class="text-gray-500">${job.company} — ${job.location||'Remote'}</p>
-      <div class="mt-4 flex gap-2">
-        <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
-        <button onclick="viewJob('${job.id}')" class="border px-4 py-2 rounded">Details</button>
-      </div>
-    `;
-    jobsList.appendChild(div);
-  });
-
-  currentIndex+=pageSize;
-  jobCountLabel.innerText = `${allJobs.length} jobs found`;
-  loadMoreBtn.classList.toggle("hidden",currentIndex>=allJobs.length);
-}
-
-window.applyJob=id=>location.href=`job-detail.html?id=${id}`;
-window.viewJob=id=>location.href=`job-detail.html?id=${id}`;
-loadMoreBtn.onclick=renderNext;
-fetchJobs();
+/* ===== NAVBAR ===== */
+menuBtn.onclick=()=>mobileMenu.classList.toggle("hidden");
 
 auth.onAuthStateChanged(user=>{
-  document.querySelectorAll(".login-required").forEach(el=>{
-    if(!user){
-      el.style.opacity="0.6";
-      el.onclick=()=>location.href="login.html";
-    }
-  });
+ if(user){
+  loginBtn.classList.add("hidden");
+  signupBtn.classList.add("hidden");
+  profileBtn.classList.remove("hidden");
+  logoutBtn.classList.remove("hidden");
+  mLoginBtn.classList.add("hidden");
+  mSignupBtn.classList.add("hidden");
+  mProfileBtn.classList.remove("hidden");
+  mLogoutBtn.classList.remove("hidden");
+
+  userName.innerText=user.displayName||"User";
+  userName.classList.remove("hidden");
+  userPhoto.src=user.photoURL||"https://ui-avatars.com/api/?name=User";
+  userPhoto.classList.remove("hidden");
+
+  if(user.email==="admin@gmail.com") adminBtn.classList.remove("hidden");
+
+  logoutBtn.onclick=mLogoutBtn.onclick=()=>auth.signOut();
+ }else{
+  loginBtn.classList.remove("hidden");
+  signupBtn.classList.remove("hidden");
+  profileBtn.classList.add("hidden");
+  logoutBtn.classList.add("hidden");
+  adminBtn.classList.add("hidden");
+
+  mLoginBtn.classList.remove("hidden");
+  mSignupBtn.classList.remove("hidden");
+  mProfileBtn.classList.add("hidden");
+  mLogoutBtn.classList.add("hidden");
+
+  userName.classList.add("hidden");
+  userPhoto.classList.add("hidden");
+ }
 });
+
+/* ===== JOBS ===== */
+const jobsList=document.getElementById("jobsList");
+const jobCount=document.getElementById("jobCount");
+let allJobs=[],index=0,pageSize=6;
+
+async function loadJobs(){
+ const snap=await db.collection("jobs").where("status","==","approved").orderBy("timestamp","desc").get();
+ allJobs=snap.docs.map(d=>({id:d.id,...d.data()}));
+ render();
+}
+
+function render(){
+ const batch=allJobs.slice(index,index+pageSize);
+ batch.forEach(j=>{
+  const div=document.createElement("div");
+  div.className="bg-white p-5 rounded-xl shadow";
+  div.innerHTML=`
+   <h3 class="font-bold">${j.title}</h3>
+   <p>${j.company} — ${j.location||"Remote"}</p>
+   <div class="mt-3">
+    <a href="job-detail.html?id=${j.id}" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</a>
+   </div>`;
+  jobsList.appendChild(div);
+ });
+ index+=pageSize;
+ jobCount.innerText=`${allJobs.length} jobs found`;
+ loadMoreBtn.classList.toggle("hidden",index>=allJobs.length);
+}
+
+loadMoreBtn.onclick=render;
+loadJobs();
 </script>
 
 </body>
