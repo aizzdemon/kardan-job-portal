@@ -18,6 +18,10 @@
       limit, 
       getDocs 
     } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    import { 
+      getAuth, 
+      signInAnonymously
+    } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -31,121 +35,133 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const initAuth = async () => {
+      try {
+        await signInAnonymously(auth);
+      } catch (e) {
+        console.warn("Auth disabled or failed", e);
+      }
+    };
 
     window.addEventListener("DOMContentLoaded", async () => {
       const featuredContainer = document.getElementById("featured-jobs");
       const govtContainer = document.getElementById("govt-jobs");
       const latestContainer = document.getElementById("latest-updates");
 
-      // --- FEATURED JOBS (APPROVED) ---
+      await initAuth();
+
+      // --- FEATURED JOBS (LIMIT 3) ---
       try {
         const featuredQuery = query(
           collection(db, "jobs"),
           where("status", "==", "approved"),
           orderBy("timestamp", "desc"),
-          limit(10)
+          limit(3)
         );
 
         const featuredSnapshot = await getDocs(featuredQuery);
         if (featuredSnapshot.empty) {
-          featuredContainer.innerHTML = `<p class="text-gray-500 text-sm">No featured jobs available</p>`;
+          featuredContainer.innerHTML = `<div class="p-4 text-center text-gray-400 text-xs">No jobs found</div>`;
         } else {
+          featuredContainer.innerHTML = '';
           featuredSnapshot.forEach(doc => {
             const job = doc.data();
             const jobId = doc.id;
             const logo = job.companyImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
 
             featuredContainer.innerHTML += `
-              <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow">
-                <div class="flex items-start space-x-4">
-                  <img src="${logo}" class="w-12 h-12 object-cover rounded-xl border border-gray-50" />
-                  <div class="flex-grow">
-                    <h3 class="text-md font-bold text-gray-900 leading-tight">${job.title}</h3>
-                    <p class="text-blue-600 text-sm font-medium">${job.company || ""}</p>
-                    <p class="text-gray-400 text-xs mt-1 flex items-center">
-                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                      ${job.location || "Remote"}
-                    </p>
-                  </div>
+              <a href="job-detail.html?id=${jobId}" class="group block p-4 hover:bg-blue-50/50 transition-all border-b border-gray-50 last:border-0 relative">
+                <div class="flex items-center gap-3">
+                    <img src="${logo}" class="w-10 h-10 rounded-lg object-cover border border-gray-100 bg-white flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-gray-900 truncate">${job.title}</h3>
+                            <span class="blink-new text-[9px] font-black text-blue-600 bg-blue-100 px-1 rounded">NEW</span>
+                        </div>
+                        <p class="text-xs text-gray-500 truncate">${job.company}</p>
+                    </div>
+                    <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
-                <div class="flex space-x-2 mt-4">
-                  <a href="job-detail.html?id=${jobId}" class="flex-1 bg-gray-50 text-gray-700 text-center py-2 rounded-lg text-xs font-bold hover:bg-gray-100 transition-colors">Details</a>
-                  <a href="job-detail.html?id=${jobId}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">Apply</a>
-                </div>
-              </div>
-            `;
+              </a>`;
           });
         }
-      } catch (err) {
-        console.error(err);
-        featuredContainer.innerHTML = `<p class="text-red-500 text-sm">Unable to load jobs</p>`;
-      }
+      } catch (err) { console.error(err); }
 
-      // --- GOVT JOBS ---
+      // --- GOVT JOBS (LIMIT 3) ---
       try {
-        const govtQuery = query(collection(db, "govtJobs"), orderBy("timestamp", "desc"), limit(10));
+        const govtQuery = query(collection(db, "govtJobs"), orderBy("timestamp", "desc"), limit(3));
         const govtSnapshot = await getDocs(govtQuery);
-        
         if (govtSnapshot.empty) {
-            govtContainer.innerHTML = `<p class="text-gray-500 text-sm">No government jobs available</p>`;
+          govtContainer.innerHTML = `<div class="p-4 text-center text-gray-400 text-xs">No notifications</div>`;
         } else {
-            govtSnapshot.forEach(doc => {
-                const job = doc.data();
-                const jobId = doc.id;
-                const logo = job.companyImageUrl || "https://img.icons8.com/color/96/government-buildings.png";
+          govtContainer.innerHTML = '';
+          govtSnapshot.forEach(doc => {
+            const job = doc.data();
+            const jobId = doc.id;
+            const logo = job.companyImageUrl || "https://img.icons8.com/color/96/government-buildings.png";
 
-                govtContainer.innerHTML += `
-                <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-start space-x-4">
-                    <img src="${logo}" class="w-12 h-12 object-contain" />
-                    <div class="flex-grow">
-                        <h3 class="text-md font-bold text-gray-900 leading-tight">${job.title}</h3>
-                        <p class="text-orange-600 text-sm font-medium">${job.companyName || "Govt Sector"}</p>
+            govtContainer.innerHTML += `
+              <a href="job-detail.html?id=${jobId}" class="group block p-4 hover:bg-orange-50/50 transition-all border-b border-gray-50 last:border-0 relative">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+                        <img src="${logo}" class="w-6 h-6 object-contain">
                     </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-gray-900 truncate">${job.title}</h3>
+                            <span class="blink-new text-[9px] font-black text-orange-600 bg-orange-100 px-1 rounded">NEW</span>
+                        </div>
+                        <p class="text-xs text-orange-600 font-medium truncate">${job.companyName || "Govt Sector"}</p>
                     </div>
-                    <div class="flex space-x-2 mt-4">
-                        <a href="job-detail.html?id=${jobId}" class="w-full bg-orange-50 text-orange-700 text-center py-2 rounded-lg text-xs font-bold hover:bg-orange-100 transition-colors">View Notification</a>
-                    </div>
+                    <svg class="w-4 h-4 text-gray-300 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </div>
-                `;
-            });
+              </a>`;
+          });
         }
       } catch (e) { console.error(e); }
 
-      // --- LATEST UPDATES (Flash Links) ---
+      // --- LATEST UPDATES (LIMIT 3) ---
       try {
-        const latestQuery = query(collection(db, "flashLinks"), orderBy("timestamp", "desc"), limit(15));
+        const latestQuery = query(collection(db, "flashLinks"), orderBy("timestamp", "desc"), limit(3));
         const latestSnapshot = await getDocs(latestQuery);
-
+        latestContainer.innerHTML = '';
         latestSnapshot.forEach(doc => {
           const item = doc.data();
           latestContainer.innerHTML += `
-            <div class="group p-3 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors rounded-lg">
-              <a href="${item.url}" target="_blank" class="text-sm text-gray-800 font-semibold group-hover:text-blue-700 flex items-start">
-                <span class="mr-2">🔥</span>
-                <span>${item.title}</span>
-              </a>
-              <p class="text-[10px] text-gray-400 mt-1 ml-6 uppercase tracking-wider">
-                ${item.timestamp ? new Date(item.timestamp.toDate()).toLocaleDateString() : ""}
-              </p>
-            </div>
-          `;
+            <a href="${item.url}" target="_blank" class="group block p-4 hover:bg-yellow-50/50 transition-all border-b border-gray-50 last:border-0">
+              <div class="flex items-start gap-3">
+                <span class="text-yellow-500 mt-0.5">⚡</span>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold text-gray-800 group-hover:text-blue-700 leading-tight line-clamp-1">${item.title}</span>
+                        <span class="blink-new text-[9px] font-black text-yellow-700 bg-yellow-100 px-1 rounded">NEW</span>
+                    </div>
+                    <p class="text-[10px] text-gray-400">Update received just now</p>
+                </div>
+              </div>
+            </a>`;
         });
       } catch (e) { console.error(e); }
     });
   </script>
 
   <style>
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.95); }
+    }
+    .blink-new {
+      animation: blink 1s infinite ease-in-out;
+    }
     body { background-color: #f8fafc; }
-    .latest-card { max-height: 80vh; overflow-y: auto; }
-    .latest-card::-webkit-scrollbar { width: 4px; }
-    .latest-card::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
   </style>
 </head>
 
-<body class="font-sans antialiased text-gray-900">
+<body class="font-sans antialiased text-gray-900 bg-gray-50">
 
-  <!-- Navbar Placeholder -->
+  // NAVBAR CODE //
   <<!-- 🔥 SaaS Navbar -->
 <div id="navbar"></div>
 
@@ -159,84 +175,67 @@ fetch("navbar.html")
   document.body.appendChild(s);
 });
 </script>
-  <!-- Hero Section -->
-  <header class="bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 py-12 text-center">
-        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl">
-            Find your next <span class="text-blue-600">career move</span>
+
+  <header class="bg-white border-b border-gray-200 py-10">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+        <h1 class="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
+            Booter<span class="text-blue-600">Space</span>
         </h1>
-        <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            Browse through private sector openings, government notifications, and the latest career updates in one place.
+        <p class="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+            The most compact way to track your career opportunities.
         </p>
     </div>
   </header>
 
-  <!-- Main Content Grid -->
-  <main class="max-w-7xl mx-auto py-8 px-4">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
-      <!-- Left Column: Featured Jobs -->
-      <div class="lg:col-span-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-black text-gray-900 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                Featured Jobs
-            </h2>
-            <a href="jobs.html" class="text-sm font-bold text-blue-600 hover:underline">See all</a>
-        </div>
-        <div id="featured-jobs" class="space-y-4">
-            <!-- Loader -->
-            <div class="animate-pulse flex space-x-4 p-4 bg-white rounded-xl">
-                <div class="rounded-xl bg-gray-200 h-12 w-12"></div>
-                <div class="flex-1 space-y-3 py-1">
-                    <div class="h-2 bg-gray-200 rounded w-3/4"></div>
-                    <div class="h-2 bg-gray-200 rounded w-1/2"></div>
-                </div>
+      <!-- Panel 1 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-blue-600 rounded-full"></span>
+                <h2 class="font-bold text-gray-900 text-xs uppercase tracking-widest">Featured</h2>
             </div>
+            <a href="jobs.html" class="text-[10px] font-black text-blue-600 hover:underline">BROWSE ALL</a>
+        </div>
+        <div id="featured-jobs" class="flex-grow">
+            <!-- Dynamic Content -->
         </div>
       </div>
 
-      <!-- Center Column: Govt. Jobs Notification -->
-      <div class="lg:col-span-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-black text-gray-900 flex items-center">
-                <span class="w-2 h-8 bg-orange-500 rounded-full mr-3"></span>
-                Govt. Jobs Notification
-            </h2>
-            <a href="#" class="text-sm font-bold text-orange-600 hover:underline">See all</a>
-        </div>
-        <div id="govt-jobs" class="space-y-4">
-            <!-- Loader -->
-            <div class="animate-pulse flex space-x-4 p-4 bg-white rounded-xl">
-                <div class="rounded-xl bg-gray-200 h-12 w-12"></div>
-                <div class="flex-1 space-y-3 py-1">
-                    <div class="h-2 bg-gray-200 rounded w-3/4"></div>
-                    <div class="h-2 bg-gray-200 rounded w-1/2"></div>
-                </div>
+      <!-- Panel 2 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-orange-500 rounded-full"></span>
+                <h2 class="font-bold text-gray-900 text-xs uppercase tracking-widest">Govt. Jobs</h2>
             </div>
+            <a href="#" class="text-[10px] font-black text-orange-600 hover:underline">BROWSE ALL</a>
+        </div>
+        <div id="govt-jobs" class="flex-grow">
+            <!-- Dynamic Content -->
         </div>
       </div>
 
-      <!-- Right Column: Latest Updates -->
-      <div class="lg:col-span-4">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-black text-gray-900 flex items-center">
-                <span class="w-2 h-8 bg-yellow-400 rounded-full mr-3"></span>
-                Latest Updates
-            </h2>
+      <!-- Panel 3 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-yellow-400 rounded-full"></span>
+                <h2 class="font-bold text-gray-900 text-xs uppercase tracking-widest">Updates</h2>
+            </div>
         </div>
-        <div id="latest-updates" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 latest-card">
-            <!-- Links loaded here -->
+        <div id="latest-updates" class="flex-grow">
+            <!-- Dynamic Content -->
         </div>
       </div>
 
     </div>
   </main>
 
-  <footer class="mt-20 border-t border-gray-200 bg-white py-12">
-      <div class="max-w-7xl mx-auto px-4 text-center">
-          <p class="text-gray-400 text-sm font-medium">© 2026 BooterSpace. Connecting talent with opportunity.</p>
-      </div>
+  <footer class="mt-12 py-8 text-center">
+      <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">© 2026 BooterSpace</p>
   </footer>
 
 </body>
