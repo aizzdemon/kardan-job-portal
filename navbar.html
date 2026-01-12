@@ -1,60 +1,38 @@
-<nav class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
+<nav class="bg-white shadow-md px-6 py-4">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
 
-  <!-- Logo -->
-  <a href="index.html" class="text-xl font-bold text-blue-600">
-    BooterSpace
-  </a>
+    <a href="index.html" class="text-xl font-bold text-blue-600">
+      BooterSpace
+    </a>
 
-  <!-- Desktop -->
-  <div class="hidden md:flex items-center space-x-6">
+    <!-- Desktop -->
+    <div class="hidden md:flex items-center gap-6">
+      <a href="jobs.html" class="nav-link">Jobs</a>
+      <a href="companies.html" class="nav-link">Companies</a>
 
-    <!-- Guest -->
-    <div id="guestLinks" class="space-x-6">
-      <a href="login.html">Login</a>
-      <a href="signup.html">Join</a>
+      <span id="userName" class="font-semibold hidden"></span>
+      <img id="userPhoto" class="w-8 h-8 rounded-full hidden"/>
+
+      <a id="loginBtn" href="login.html" class="nav-link">Login</a>
+      <a id="signupBtn" href="signup.html" class="nav-link">Sign Up</a>
+      <a id="profileBtn" href="profile.html" class="nav-link hidden">Profile</a>
+      <button id="logoutBtn" class="hidden text-red-600">Logout</button>
+      <a id="adminBtn" href="admin.html" class="hidden text-purple-600">Admin</a>
     </div>
 
-    <!-- User -->
-    <div id="userLinks" class="hidden items-center space-x-4">
-      <img id="navPhoto" class="w-8 h-8 rounded-full object-cover">
-      <span id="navName" class="font-semibold text-gray-700"></span>
-
-      <a href="home.html">Home</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="jobs.html">Jobs</a>
-
-      <a id="adminLink" href="admin.html" class="hidden text-red-600 font-semibold">
-        Admin
-      </a>
-
-      <button id="logoutBtn" class="text-red-500">Logout</button>
-    </div>
-
+    <!-- Hamburger -->
+    <button id="menuBtn" class="md:hidden text-2xl">☰</button>
   </div>
 
-  <!-- Mobile Button -->
-  <button id="mobileBtn" class="md:hidden text-xl">☰</button>
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-3">
+    <a href="jobs.html" class="block">Jobs</a>
+    <a href="companies.html" class="block">Companies</a>
+    <a id="mLoginBtn" href="login.html">Login</a>
+    <a id="mSignupBtn" href="signup.html">Signup</a>
+    <a id="mProfileBtn" href="profile.html" class="hidden">Profile</a>
+    <button id="mLogoutBtn" class="hidden text-red-600">Logout</button>
+  </div>
 </nav>
 
-<!-- Mobile Menu -->
-<div id="mobileMenu" class="hidden bg-white shadow-md px-6 py-4 space-y-4">
-
-  <div id="mobileGuest">
-    <a href="login.html" class="block">Login</a>
-    <a href="signup.html" class="block">Join</a>
-  </div>
-
-  <div id="mobileUser" class="hidden space-y-3">
-    <div class="flex items-center space-x-3">
-      <img id="mobilePhoto" class="w-10 h-10 rounded-full">
-      <span id="mobileName"></span>
-    </div>
-
-    <a href="home.html">Home</a>
-    <a href="dashboard.html">Dashboard</a>
-    <a href="jobs.html">Jobs</a>
-    <a id="mobileAdmin" href="admin.html" class="hidden text-red-600">Admin</a>
-    <button id="mobileLogout" class="text-red-500">Logout</button>
-  </div>
-
-</div>
+<script src="navbar.js"></script>
