@@ -10,7 +10,6 @@
   <style>
     .latest-badge { animation: flash 1s infinite; }
     @keyframes flash { 0%{opacity:1}50%{opacity:.4}100%{opacity:1} }
-
     @keyframes shimmer { 0%{background-position:-468px 0}100%{background-position:468px 0} }
     .skeleton{
       background:#f6f7f8;
@@ -18,7 +17,6 @@
       background-size:800px 104px;
       animation:shimmer 1.2s infinite linear;
     }
-
     .suggestions-list::-webkit-scrollbar{width:6px}
     .suggestions-list::-webkit-scrollbar-thumb{background:#888;border-radius:3px}
   </style>
@@ -32,10 +30,7 @@
 fetch("navbar.html")
 .then(r=>r.text())
 .then(html=>{
-  document.getElementById("navbar").innerHTML=html;
-  const s=document.createElement("script");
-  s.src="navbar.js";
-  document.body.appendChild(s);
+  document.getElementById("navbar").innerHTML = html;
 });
 </script>
 
@@ -50,8 +45,6 @@ fetch("navbar.html")
   </button>
 </div>
 </main>
-
-<!-- ================= Firebase ================= -->
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -71,12 +64,11 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// DOM
 const jobsList = document.getElementById("jobsList");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
 const jobCountLabel = document.getElementById("jobCount");
 
-let allJobs=[],visibleJobs=[],pageSize=10,currentIndex=0;
+let allJobs=[],pageSize=10,currentIndex=0;
 
 async function fetchJobs(){
   const snap = await db.collection("jobs")
@@ -90,7 +82,6 @@ async function fetchJobs(){
 
 function renderNext(){
   const batch = allJobs.slice(currentIndex,currentIndex+pageSize);
-
   batch.forEach(job=>{
     const div = document.createElement("div");
     div.className="bg-white p-6 rounded-2xl border shadow-sm";
@@ -112,11 +103,9 @@ function renderNext(){
 
 window.applyJob=id=>location.href=`job-detail.html?id=${id}`;
 window.viewJob=id=>location.href=`job-detail.html?id=${id}`;
-
 loadMoreBtn.onclick=renderNext;
 fetchJobs();
 
-// ====== LOGIN REQUIRED BUTTONS ======
 auth.onAuthStateChanged(user=>{
   document.querySelectorAll(".login-required").forEach(el=>{
     if(!user){
