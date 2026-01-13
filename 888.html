@@ -2,94 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>BooterSpace</title>
+<title>Jobs – BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase Init (GLOBAL for navbar.js + all pages) -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-
-const app = initializeApp(firebaseConfig);
-window.auth = getAuth(app);
-window.db = getFirestore(app);
-</script>
-
-<!-- Page Data Loader -->
-<script type="module">
-import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-
-const db = window.db;
-
-window.addEventListener("DOMContentLoaded", async () => {
-
-  const featured = document.getElementById("featured-jobs");
-  const govt = document.getElementById("govt-jobs");
-  const updates = document.getElementById("latest-updates");
-  const community = document.getElementById("community-posts");
-
-  // Featured Jobs
-  const q1 = query(collection(db,"jobs"), where("status","==","approved"), orderBy("timestamp","desc"), limit(4));
-  const s1 = await getDocs(q1);
-  featured.innerHTML="";
-  s1.forEach(d=>{
-    const j=d.data();
-    featured.innerHTML+=`<a href="job-detail.html?id=${d.id}" class="block p-4 border-b hover:bg-blue-50">
-      <b>${j.title}</b><p class="text-xs">${j.company}</p></a>`;
-  });
-
-  // Govt Jobs
-  const q2 = query(collection(db,"govtJobs"), orderBy("timestamp","desc"), limit(4));
-  const s2 = await getDocs(q2);
-  govt.innerHTML="";
-  s2.forEach(d=>{
-    const j=d.data();
-    govt.innerHTML+=`<div class="p-4 border-b"><b>${j.title}</b></div>`;
-  });
-
-  // Updates
-  const q3 = query(collection(db,"flashLinks"), orderBy("timestamp","desc"), limit(4));
-  const s3 = await getDocs(q3);
-  updates.innerHTML="";
-  s3.forEach(d=>{
-    const j=d.data();
-    updates.innerHTML+=`<a href="${j.url}" target="_blank" class="block p-4 border-b">${j.title}</a>`;
-  });
-
-  // Community
-  const q4 = query(collection(db,"communityPosts"), orderBy("timestamp","desc"), limit(4));
-  const s4 = await getDocs(q4);
-  community.innerHTML="";
-  s4.forEach(d=>{
-    const j=d.data();
-    community.innerHTML+=`<div class="p-4 border-b">
-      <b>${j.userName}</b><p>${j.content}</p>
-      👍${j.likes||0} 👎${j.dislikes||0}
-    </div>`;
-  });
-
-});
-</script>
-
 <style>
-.tab-button{padding:.5rem 1rem;border-radius:.5rem;font-weight:bold}
-.tab-active{background:#3B82F6;color:white}
-.tab-inactive{background:#E5E7EB;color:#555;cursor:pointer}
+.latest-badge{animation:pulse 1s infinite;}
+@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
 </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-50 min-h-screen flex flex-col">
 
 <!-- Navbar -->
 <div id="navbar"></div>
@@ -97,33 +20,132 @@ window.addEventListener("DOMContentLoaded", async () => {
 fetch("navbar.html").then(r=>r.text()).then(html=>{
   document.getElementById("navbar").innerHTML=html;
   const s=document.createElement("script");
-  s.type="module"; s.src="navbar.js"; document.body.appendChild(s);
+  s.type="module";
+  s.src="navbar.js";
+  document.body.appendChild(s);
 });
 </script>
 
-<div class="max-w-6xl mx-auto mt-6 px-4">
-  <div class="flex gap-2 justify-center mb-4">
-    <div id="btn-featured" class="tab-button tab-active" onclick="switchTab('featured')">Featured</div>
-    <div id="btn-govt" class="tab-button tab-inactive" onclick="switchTab('govt')">Govt</div>
-    <div id="btn-updates" class="tab-button tab-inactive" onclick="switchTab('updates')">Updates</div>
-    <div id="btn-community" class="tab-button tab-inactive" onclick="switchTab('community')">Community</div>
-  </div>
+<!-- Header -->
+<header class="bg-white border-b">
+<div class="max-w-6xl mx-auto px-4 py-10 text-center">
+<h1 class="text-4xl font-extrabold">Explore <span class="text-blue-600">Careers</span></h1>
+<p class="text-gray-500 mt-2">Find the best jobs for you</p>
 
-  <div id="featured" class="tab-content"><div id="featured-jobs" class="bg-white rounded shadow"></div></div>
-  <div id="govt" class="tab-content hidden"><div id="govt-jobs" class="bg-white rounded shadow"></div></div>
-  <div id="updates" class="tab-content hidden"><div id="latest-updates" class="bg-white rounded shadow"></div></div>
-  <div id="community" class="tab-content hidden"><div id="community-posts" class="bg-white rounded shadow"></div></div>
+<!-- Search Bar -->
+<div class="bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-2">
+
+<input id="searchInput" placeholder="Job title or company"
+class="md:col-span-4 p-4 rounded-xl bg-gray-50"/>
+
+<input id="locationInput" placeholder="Location"
+class="md:col-span-3 p-4 rounded-xl bg-gray-50"/>
+
+<select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50">
+<option value="all">Any time</option>
+<option value="1">24 Hours</option>
+<option value="7">7 Days</option>
+<option value="30">30 Days</option>
+</select>
+
+<button id="mainSearchBtn"
+class="md:col-span-2 bg-blue-600 text-white font-bold rounded-xl">Search</button>
+
 </div>
+</div>
+</div>
+</header>
 
-<script>
-function switchTab(tab){
-  document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden'));
-  document.querySelectorAll('.tab-button').forEach(e=>e.classList.replace('tab-active','tab-inactive'));
-  document.getElementById(tab).classList.remove('hidden');
-  document.getElementById('btn-'+tab).classList.replace('tab-inactive','tab-active');
+<!-- Jobs -->
+<main class="max-w-5xl mx-auto px-4 py-10 flex-grow">
+<h2 id="jobCount" class="font-bold mb-6">Loading jobs…</h2>
+<div id="jobsList" class="space-y-6"></div>
+<button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl">Load More</button>
+</main>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore,collection,query,where,orderBy,getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+ authDomain:"kar-kardan.firebaseapp.com",
+ projectId:"kar-kardan",
+ storageBucket:"kar-kardan.firebasestorage.app",
+ messagingSenderId:"554147696994",
+ appId:"1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
+
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+
+const jobsList=document.getElementById("jobsList");
+const loadMoreBtn=document.getElementById("loadMoreBtn");
+const jobCount=document.getElementById("jobCount");
+
+const searchInput=document.getElementById("searchInput");
+const locationInput=document.getElementById("locationInput");
+const dateFilter=document.getElementById("dateFilter");
+const mainSearchBtn=document.getElementById("mainSearchBtn");
+
+let allJobs=[],filteredJobs=[],visible=[],index=0,pageSize=6;
+
+async function loadJobs(){
+ const q=query(collection(db,"jobs"),where("status","==","approved"),orderBy("timestamp","desc"));
+ const snap=await getDocs(q);
+ allJobs=snap.docs.map(d=>({id:d.id,...d.data()}));
+ filteredJobs=[...allJobs];
+ render();
 }
+
+function render(){
+ const next=filteredJobs.slice(index,index+pageSize);
+ visible=visible.concat(next);
+ jobsList.innerHTML="";
+ visible.forEach(job=>{
+  const logo=job.companyImageUrl||`https://ui-avatars.com/api/?name=${job.company}`;
+  const div=document.createElement("div");
+  div.className="bg-white p-6 rounded-xl border shadow flex gap-4";
+  div.innerHTML=`
+  <img src="${logo}" class="w-16 h-16 rounded-xl">
+  <div class="flex-1">
+    <h3 class="font-bold text-lg">${job.title}</h3>
+    <p class="text-sm text-gray-600">${job.company} • ${job.location||"Remote"}</p>
+    <p class="text-blue-600 font-bold">${job.salary||""}</p>
+  </div>
+  <div class="flex flex-col gap-2">
+    <button onclick="viewJob('${job.id}')" class="bg-white border px-4 py-2 rounded">View</button>
+    <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
+  </div>`;
+  jobsList.appendChild(div);
+ });
+ index+=pageSize;
+ loadMoreBtn.classList.toggle("hidden",index>=filteredJobs.length);
+ jobCount.innerText=`${filteredJobs.length} jobs found`;
+}
+
+function filterJobs(){
+ const q=searchInput.value.toLowerCase();
+ const l=locationInput.value.toLowerCase();
+ filteredJobs=allJobs.filter(j=>{
+  const t=(j.title||"").toLowerCase();
+  const c=(j.company||"").toLowerCase();
+  const loc=(j.location||"").toLowerCase();
+  return (t.includes(q)||c.includes(q)) && loc.includes(l);
+ });
+ visible=[];index=0;
+ render();
+}
+
+mainSearchBtn.onclick=filterJobs;
+
+window.viewJob=id=>location.href=`job-detail.html?id=${id}`;
+window.applyJob=id=>location.href=`job-detail.html?id=${id}`;
+
+loadJobs();
 </script>
 
 </body>
 </html>
-
