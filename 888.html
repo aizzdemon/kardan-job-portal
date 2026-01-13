@@ -1,162 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>BooterSpace | Search & Profile</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<meta charset="UTF-8">
+<title>BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Firebase Init (GLOBAL for navbar.js + all pages) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-<style>
-  .transition-layout { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-  .avatar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; }
-  .modal-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
-</style>
-</head>
-
-<body class="bg-gray-100 min-h-screen flex flex-col">
-
-<!-- ================= NAVBAR ================= -->
-<nav id="navbar" class="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-  <a href="#" class="text-xl font-bold text-blue-600">BooterSpace</a>
-  <div class="hidden md:flex gap-4 items-center">
-    <a href="#" id="navHome" class="hidden text-gray-700 hover:text-blue-600 transition">Home</a>
-    <a href="#" id="navJobs" class="hidden text-gray-700 hover:text-blue-600 transition">Jobs</a>
-    <a href="#" id="navProfile" class="hidden text-gray-700 hover:text-blue-600 transition">Profile</a>
-    <a href="#" id="navAdmin" class="hidden text-gray-700 hover:text-blue-600 transition">Admin</a>
-    <button id="navLogin" class="text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition">Login</button>
-    <button id="navSignup" class="text-blue-600 border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition">Signup</button>
-    <button id="navLogout" class="hidden text-white bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition">Logout</button>
-  </div>
-  <!-- Mobile Hamburger -->
-  <div class="md:hidden">
-    <button id="hamburgerBtn" class="text-gray-700">☰</button>
-  </div>
-</nav>
-
-<!-- ================= SEARCH BAR ================= -->
-<div class="bg-white border-b sticky top-0 z-20 shadow-sm">
-  <div class="max-w-6xl mx-auto p-4 flex gap-2">
-    <input
-      id="searchInput"
-      type="text"
-      placeholder="Search people, education, university..."
-      class="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition shadow-inner"
-    />
-    <button
-      id="searchBtn"
-      class="bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition shadow-md">
-      Search
-    </button>
-  </div>
-</div>
-
-<!-- ================= MAIN LAYOUT ================= -->
-<div id="mainContainer" class="flex-1 max-w-6xl mx-auto p-4 w-full relative">
-  <div id="gridWrapper" class="grid grid-cols-1 gap-6 transition-layout">
-    
-    <!-- LEFT PANEL (Search Results) -->
-    <div id="leftPanel" class="hidden transition-all duration-500 opacity-0 transform -translate-x-4">
-      <div id="resultsListContainer">
-        <div id="resultsHeader" class="mb-4 flex justify-between items-center hidden">
-          <h3 class="font-bold text-gray-700 text-lg">Search Results</h3>
-          <span id="resultsCount" class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">0 found</span>
-        </div>
-        <div id="resultsView" class="space-y-4"></div>
-      </div>
-      <div id="detailViewContainer" class="hidden bg-white rounded-xl shadow-lg overflow-hidden border"></div>
-    </div>
-
-    <!-- RIGHT PANEL (Profile) -->
-    <div id="rightPanel" class="w-full max-w-2xl mx-auto transition-layout">
-      <div id="myProfileCard" class="bg-white rounded-xl shadow-lg border overflow-hidden relative opacity-0 transition-opacity duration-500">
-        <div class="h-32 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
-        <div class="px-6 pb-6 relative">
-          <!-- Profile Image -->
-          <div class="relative -mt-12 mb-4 flex justify-center lg:justify-start group cursor-pointer" onclick="openAvatarModal()">
-             <img id="myPhoto" src="https://i.imgur.com/6VBx3io.png" class="w-24 h-24 rounded-full border-4 border-white shadow-md bg-gray-200 object-cover group-hover:brightness-75 transition">
-             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-             </div>
-          </div>
-          
-          <div class="text-center lg:text-left">
-            <h1 id="myName" class="text-2xl font-bold text-gray-800">Guest User</h1>
-            <p id="myRole" class="text-blue-600 font-medium"></p>
-            <p id="myLoc" class="text-gray-500 text-sm mb-4"></p>
-            
-            <div class="border-t pt-4 mt-4 space-y-4 text-left">
-              <div class="flex items-start gap-3">
-                <div class="mt-1 text-blue-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0z"></path></svg></div>
-                <div>
-                    <span class="text-xs font-bold text-gray-400 uppercase">Education</span>
-                    <p id="myEdu" class="text-gray-700 text-sm">--</p>
-                </div>
-              </div>
-              <div class="flex items-start gap-3">
-                <div class="mt-1 text-blue-500"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd"></path><path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z"></path></svg></div>
-                <div>
-                    <span class="text-xs font-bold text-gray-400 uppercase">Current Position</span>
-                    <p id="myExp" class="text-gray-700 text-sm">--</p>
-                    <p id="myYears" class="text-xs text-blue-500 font-bold mt-1 uppercase"></p>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-6 flex gap-2 justify-center lg:justify-start">
-              <button onclick="openEditModal()" class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 text-sm text-center">Edit Profile</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="searchHint" class="text-center mt-8 text-gray-400 animate-pulse">Type above to search for people...</div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= AVATAR & EDIT MODALS ================= -->
-<!-- Avatar Modal -->
-<div id="avatarModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
-    <div class="p-4 border-b flex justify-between items-center">
-      <h3 class="font-bold text-gray-800">Choose Avatar</h3>
-      <button onclick="closeAvatarModal()" class="text-gray-400 hover:text-gray-600">&times;</button>
-    </div>
-    <div class="p-4 max-h-[60vh] overflow-y-auto avatar-grid" id="avatarGrid"></div>
-    <div class="p-4 border-t bg-gray-50 flex justify-end">
-      <button onclick="closeAvatarModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Modal -->
-<div id="editModal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-    <div class="p-4 border-b">
-      <h3 class="font-bold text-gray-800">Edit Profile</h3>
-    </div>
-    <div class="p-6 space-y-4">
-      <input id="editName" type="text" placeholder="Full Name" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-      <input id="editEdu" type="text" placeholder="Education" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-      <input id="editUni" type="text" placeholder="University" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-      <input id="editPos" type="text" placeholder="Position" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-      <input id="editYears" type="number" placeholder="Exp Years" class="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500">
-    </div>
-    <div class="p-4 bg-gray-50 flex gap-2">
-      <button onclick="closeEditModal()" class="flex-1 py-2 border rounded-lg font-bold text-gray-600 hover:bg-white">Cancel</button>
-      <button id="saveProfileBtn" onclick="saveProfile()" class="flex-1 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- ================= SCRIPT ================= -->
-<script>
-/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -165,155 +20,110 @@ const firebaseConfig = {
   messagingSenderId: "554147696994",
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
-const state = { currentUser:null, profileData:{}, searchResults:[], isSearching:false };
-
-/* ================= NAVBAR ================= */
-const navLogin=document.getElementById('navLogin');
-const navSignup=document.getElementById('navSignup');
-const navLogout=document.getElementById('navLogout');
-const navHome=document.getElementById('navHome');
-const navJobs=document.getElementById('navJobs');
-const navProfile=document.getElementById('navProfile');
-const navAdmin=document.getElementById('navAdmin');
-
-function updateNavbar(user){
-  if(user){
-    navLogin.style.display='none';
-    navSignup.style.display='none';
-    navLogout.style.display='inline-block';
-    navHome.style.display='inline-block';
-    navJobs.style.display='inline-block';
-    navProfile.style.display='inline-block';
-    navAdmin.style.display=(user.email==='admin@example.com')?'inline-block':'none';
-  }else{
-    navLogin.style.display='inline-block';
-    navSignup.style.display='inline-block';
-    navLogout.style.display='none';
-    navHome.style.display='none';
-    navJobs.style.display='none';
-    navProfile.style.display='none';
-    navAdmin.style.display='none';
-  }
-}
-
-navLogin.onclick=async ()=>{
-  try{
-    const email=prompt("Email");
-    const pass=prompt("Password");
-    await auth.signInWithEmailAndPassword(email,pass);
-  }catch(e){ alert("Login failed: "+e.message);}
-}
-navSignup.onclick=async ()=>{
-  try{
-    const email=prompt("Email");
-    const pass=prompt("Password");
-    await auth.createUserWithEmailAndPassword(email,pass);
-    alert("User created. Please login now.");
-  }catch(e){ alert("Signup failed: "+e.message);}
-}
-navLogout.onclick=()=>auth.signOut();
-
-/* ================= AUTH ================= */
-auth.onAuthStateChanged(async user=>{
-  state.currentUser=user;
-  updateNavbar(user);
-  if(user){
-    // Auto create Firestore doc if missing
-    const docRef=db.collection("users").doc(user.uid);
-    const doc=await docRef.get();
-    if(!doc.exists){
-      await docRef.set({
-        fullName: user.email.split("@")[0],
-        photoURL:"https://i.imgur.com/6VBx3io.png",
-        education:"",
-        university:"",
-        position:"",
-        expYears:0,
-        role:"Professional"
-      });
-    }
-    fetchAndRenderMyProfile(user.uid);
-  }
-});
-
-/* ================= PROFILE ================= */
-async function fetchAndRenderMyProfile(uid){
-  try{
-    const doc = await db.collection("users").doc(uid).get();
-    if(doc.exists){
-      const data = doc.data();
-      state.profileData=data;
-      document.getElementById('myName').innerText=data.fullName||"User";
-      document.getElementById('myRole').innerText=data.role||data.position||"Professional";
-      document.getElementById('myEdu').innerText=`${data.education||"--"} @ ${data.university||"--"}`;
-      document.getElementById('myExp').innerText=data.position||"--";
-      document.getElementById('myYears').innerText=data.expYears?`${data.expYears} Years Experience`:"";
-      document.getElementById('myPhoto').src=data.photoURL||"https://i.imgur.com/6VBx3io.png";
-    }
-  }catch(e){console.error(e);}
-  finally{ document.getElementById('myProfileCard').classList.remove('opacity-0'); }
-}
-
-/* ================= MODALS ================= */
-function openEditModal(){
-  const d = state.profileData;
-  document.getElementById('editName').value=d.fullName||"";
-  document.getElementById('editEdu').value=d.education||"";
-  document.getElementById('editUni').value=d.university||"";
-  document.getElementById('editPos').value=d.position||"";
-  document.getElementById('editYears').value=d.expYears||"";
-  document.getElementById('editModal').classList.remove('hidden');
-}
-function closeEditModal(){document.getElementById('editModal').classList.add('hidden');}
-async function saveProfile(){
-  const d={
-    fullName:document.getElementById('editName').value,
-    education:document.getElementById('editEdu').value,
-    university:document.getElementById('editUni').value,
-    position:document.getElementById('editPos').value,
-    expYears:Number(document.getElementById('editYears').value||0)
-  };
-  if(!state.currentUser) return alert("Not logged in");
-  await db.collection("users").doc(state.currentUser.uid).update(d);
-  state.profileData={...state.profileData,...d};
-  fetchAndRenderMyProfile(state.currentUser.uid);
-  closeEditModal();
-}
-
-/* ================= AVATAR ================= */
-const avatars=[
-"https://i.pravatar.cc/100?img=1",
-"https://i.pravatar.cc/100?img=2",
-"https://i.pravatar.cc/100?img=3",
-"https://i.pravatar.cc/100?img=4",
-"https://i.pravatar.cc/100?img=5",
-"https://i.pravatar.cc/100?img=6",
-"https://i.pravatar.cc/100?img=7",
-"https://i.pravatar.cc/100?img=8"
-];
-function openAvatarModal(){
-  const grid=document.getElementById('avatarGrid');
-  grid.innerHTML="";
-  avatars.forEach(url=>{
-    const img=document.createElement('img');
-    img.src=url;
-    img.className="w-16 h-16 rounded-full cursor-pointer border hover:ring-2 hover:ring-blue-500";
-    img.onclick=async ()=>{
-      if(!state.currentUser) return alert("Login first");
-      await db.collection("users").doc(state.currentUser.uid).update({photoURL:url});
-      fetchAndRenderMyProfile(state.currentUser.uid);
-      closeAvatarModal();
-    }
-    grid.appendChild(img);
-  });
-  document.getElementById('avatarModal').classList.remove('hidden');
-}
-function closeAvatarModal(){document.getElementById('avatarModal').classList.add('hidden');}
-
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
 </script>
+
+<!-- Page Data Loader -->
+<script type="module">
+import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const db = window.db;
+
+window.addEventListener("DOMContentLoaded", async () => {
+
+  const featured = document.getElementById("featured-jobs");
+  const govt = document.getElementById("govt-jobs");
+  const updates = document.getElementById("latest-updates");
+  const community = document.getElementById("community-posts");
+
+  // Featured Jobs
+  const q1 = query(collection(db,"jobs"), where("status","==","approved"), orderBy("timestamp","desc"), limit(4));
+  const s1 = await getDocs(q1);
+  featured.innerHTML="";
+  s1.forEach(d=>{
+    const j=d.data();
+    featured.innerHTML+=`<a href="job-detail.html?id=${d.id}" class="block p-4 border-b hover:bg-blue-50">
+      <b>${j.title}</b><p class="text-xs">${j.company}</p></a>`;
+  });
+
+  // Govt Jobs
+  const q2 = query(collection(db,"govtJobs"), orderBy("timestamp","desc"), limit(4));
+  const s2 = await getDocs(q2);
+  govt.innerHTML="";
+  s2.forEach(d=>{
+    const j=d.data();
+    govt.innerHTML+=`<div class="p-4 border-b"><b>${j.title}</b></div>`;
+  });
+
+  // Updates
+  const q3 = query(collection(db,"flashLinks"), orderBy("timestamp","desc"), limit(4));
+  const s3 = await getDocs(q3);
+  updates.innerHTML="";
+  s3.forEach(d=>{
+    const j=d.data();
+    updates.innerHTML+=`<a href="${j.url}" target="_blank" class="block p-4 border-b">${j.title}</a>`;
+  });
+
+  // Community
+  const q4 = query(collection(db,"communityPosts"), orderBy("timestamp","desc"), limit(4));
+  const s4 = await getDocs(q4);
+  community.innerHTML="";
+  s4.forEach(d=>{
+    const j=d.data();
+    community.innerHTML+=`<div class="p-4 border-b">
+      <b>${j.userName}</b><p>${j.content}</p>
+      👍${j.likes||0} 👎${j.dislikes||0}
+    </div>`;
+  });
+
+});
+</script>
+
+<style>
+.tab-button{padding:.5rem 1rem;border-radius:.5rem;font-weight:bold}
+.tab-active{background:#3B82F6;color:white}
+.tab-inactive{background:#E5E7EB;color:#555;cursor:pointer}
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- Navbar -->
+<div id="navbar"></div>
+<script>
+fetch("navbar.html").then(r=>r.text()).then(html=>{
+  document.getElementById("navbar").innerHTML=html;
+  const s=document.createElement("script");
+  s.type="module"; s.src="navbar.js"; document.body.appendChild(s);
+});
+</script>
+
+<div class="max-w-6xl mx-auto mt-6 px-4">
+  <div class="flex gap-2 justify-center mb-4">
+    <div id="btn-featured" class="tab-button tab-active" onclick="switchTab('featured')">Featured</div>
+    <div id="btn-govt" class="tab-button tab-inactive" onclick="switchTab('govt')">Govt</div>
+    <div id="btn-updates" class="tab-button tab-inactive" onclick="switchTab('updates')">Updates</div>
+    <div id="btn-community" class="tab-button tab-inactive" onclick="switchTab('community')">Community</div>
+  </div>
+
+  <div id="featured" class="tab-content"><div id="featured-jobs" class="bg-white rounded shadow"></div></div>
+  <div id="govt" class="tab-content hidden"><div id="govt-jobs" class="bg-white rounded shadow"></div></div>
+  <div id="updates" class="tab-content hidden"><div id="latest-updates" class="bg-white rounded shadow"></div></div>
+  <div id="community" class="tab-content hidden"><div id="community-posts" class="bg-white rounded shadow"></div></div>
+</div>
+
+<script>
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden'));
+  document.querySelectorAll('.tab-button').forEach(e=>e.classList.replace('tab-active','tab-inactive'));
+  document.getElementById(tab).classList.remove('hidden');
+  document.getElementById('btn-'+tab).classList.replace('tab-inactive','tab-active');
+}
+</script>
+
 </body>
 </html>
+
