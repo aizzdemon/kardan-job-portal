@@ -1,327 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Jobs - BooterSpace</title>
+<meta charset="UTF-8">
+<title>BooterSpace Home</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
-    .latest-badge {
-      animation: flash 1s infinite;
-    }
-    @keyframes flash {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-    @keyframes shimmer {
-      0% { background-position: -468px 0; }
-      100% { background-position: 468px 0; }
-    }
-    .skeleton {
-      background: #f6f7f8;
-      background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-      background-repeat: no-repeat;
-      background-size: 800px 104px;
-      display: inline-block;
-      position: relative;
-      animation: shimmer 1.2s infinite linear;
-    }
-  </style>
 </head>
+<body class="bg-gray-100">
 
-<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+<!-- ================= NAVBAR ================= -->
+<div class="bg-white shadow p-4 text-xl font-bold text-blue-600">
+BooterSpace
+</div>
 
-<!-- NAVBAR -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html")
-.then(r=>r.text())
-.then(html=>{
-  document.getElementById("navbar").innerHTML=html;
-  const s=document.createElement("script");
-  s.src="navbar.js";
-  document.body.appendChild(s);
-});
-</script>
+<!-- ================= TABS ================= -->
+<div class="flex justify-center gap-4 p-4 bg-white shadow">
+<button onclick="openTab('featured')" class="tab-btn">Featured Jobs</button>
+<button onclick="openTab('govt')" class="tab-btn">Govt Jobs</button>
+<button onclick="openTab('updates')" class="tab-btn">Updates</button>
+<button onclick="openTab('community')" class="tab-btn">Community</button>
+</div>
 
-<header class="bg-white border-b border-gray-200">
-  <div class="max-w-6xl mx-auto pt-10 pb-12 px-4 text-center">
-    <h1 class="text-4xl font-extrabold text-gray-900">
-      Explore the <span class="text-blue-600">Perfect Career</span>
-    </h1>
-    <p class="text-lg text-gray-500 mt-2">
-      Discover thousands of job opportunities across the globe
-    </p>
-  </div>
-</header>
+<!-- ================= CONTENT ================= -->
+<div id="content" class="p-4 max-w-4xl mx-auto"></div>
 
-<main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
-
-  <!-- TABS -->
-     <main class="max-w-4xl mx-auto px-4 py-10 flex-grow w-full">
-
-        <!-- TABS CONTAINER -->
-        <div class="bg-white p-6 rounded-xl shadow-md w-full mb-8">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-gray-800">Select Category</h2>
-                <span id="status-indicator" class="text-xs text-gray-400">Loading...</span>
-            </div>
-            
-            <div id="tabs-container" class="flex flex-wrap gap-4 min-h-[50px]">
-                <div class="animate-pulse bg-gray-200 h-10 w-24 rounded-lg"></div>
-                <div class="animate-pulse bg-gray-200 h-10 w-24 rounded-lg"></div>
-                <div class="animate-pulse bg-gray-200 h-10 w-24 rounded-lg"></div>
-                <div class="animate-pulse bg-gray-200 h-10 w-24 rounded-lg"></div>
-            </div>
-        </div>
-
-        <!-- CONTENT AREA -->
-        <div id="content-header" class="flex justify-between items-end mb-4">
-            <span id="jobCount" class="text-sm font-medium text-gray-500"></span>
-        </div>
-
-        <div id="main-display-area" class="space-y-4">
-            <!-- JOBS LIST -->
-            <div id="jobsList" class="space-y-4"></div>
-
-            <!-- COMMUNITY HUB -->
-            <div id="community-hub" class="hidden space-y-6">
-                <!-- Post Input -->
-                <div class="bg-white p-6 rounded-xl shadow border border-gray-100">
-                    <h3 class="font-bold text-lg text-gray-800 mb-4">Share with the Community</h3>
-                    <textarea id="post-input" rows="3" class="w-full p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none" placeholder="What's on your mind?"></textarea>
-                    <div class="flex justify-end mt-4">
-                        <button id="btn-post" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold transition-colors">
-                            Post
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Community Feed -->
-                <div id="community-feed" class="space-y-4">
-                    <!-- Posts will be injected here -->
-                </div>
-            </div>
-        </div>
-
-    </main>
-    
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // 1. Configuration
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // State
-        let activeTabId = null;
-        let categories = [];
-
-        // DOM Elements
-        const container = document.getElementById('tabs-container');
-        const display = document.getElementById('content-display');
-        const statusSpan = document.getElementById('status-indicator');
-
-        // 2. Authentication
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Auth failed:", error);
-                statusSpan.textContent = "Auth Error";
-            }
-        };
-
-        // 3. Render Function
-        const renderTabs = () => {
-            container.innerHTML = '';
-            
-            // Sort categories by 'order' property if it exists, otherwise alpha
-            const sortedCategories = [...categories].sort((a, b) => (a.order || 0) - (b.order || 0));
-
-            if (sortedCategories.length === 0) {
-                container.innerHTML = '<span class="text-sm text-gray-400">No categories found.</span>';
-                return;
-            }
-
-            // If no active tab is selected, select the first one
-            if (!activeTabId && sortedCategories.length > 0) {
-                activeTabId = sortedCategories[0].id;
-                updateDisplay(sortedCategories[0].label);
-            }
-
-            sortedCategories.forEach(cat => {
-                const isActive = cat.id === activeTabId;
-                
-                const btn = document.createElement('button');
-                // Base classes
-                let classes = "px-4 py-2 rounded-lg text-sm font-bold transition-colors duration-200 ";
-                // Conditional classes
-                if (isActive) {
-                    classes += "bg-blue-600 text-white";
-                } else {
-                    classes += "bg-blue-100 text-black hover:bg-blue-200";
-                }
-                
-                btn.className = classes;
-                btn.textContent = cat.label;
-                
-                btn.onclick = () => {
-                    activeTabId = cat.id;
-                    updateDisplay(cat.label);
-                    renderTabs(); // Re-render to update styles
-                };
-
-                container.appendChild(btn);
-            });
-        };
-
-        const updateDisplay = (label) => {
-            display.textContent = `Viewing: ${label}`;
-        };
-
-        // 4. Initial Seeding (Run once if empty)
-        const seedDefaults = async (userId) => {
-            const defaults = [
-                { id: 'featured', label: 'Featured Jobs', order: 1 },
-                { id: 'govt', label: 'Govt. Jobs', order: 2 },
-                { id: 'updates', label: 'Updates', order: 3 },
-                { id: 'community', label: 'Community', order: 4 }
-            ];
-
-            const batchPromises = defaults.map(item => 
-                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'job_categories', item.id), item)
-            );
-            
-            await Promise.all(batchPromises);
-            console.log("Seeded default data");
-        };
-
-        // 5. Main Logic
-        initAuth();
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                statusSpan.textContent = "Connected";
-                
-                // Listen to Firestore
-                const categoriesRef = collection(db, 'artifacts', appId, 'public', 'data', 'job_categories');
-                
-                onSnapshot(categoriesRef, async (snapshot) => {
-                    if (snapshot.empty) {
-                        // Auto-seed if empty for better UX
-                        statusSpan.textContent = "Initializing Data...";
-                        await seedDefaults(user.uid);
-                    } else {
-                        categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        renderTabs();
-                    }
-                }, (error) => {
-                    console.error("Firestore error:", error);
-                    statusSpan.textContent = "Error loading data";
-                });
-            }
-        });
-
-    </script>
-</body>
-
-</main>
-
-<footer class="bg-white border-t border-gray-200 py-10 mt-12">
-  <div class="max-w-6xl mx-auto px-4 text-center text-gray-400 text-sm">
-    © 2024 BooterSpace. All rights reserved.
-  </div>
-</footer>
-
+<!-- ================= FIREBASE ================= -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-firebase.initializeApp(firebaseConfig);
+firebase.initializeApp({
+ apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+ authDomain:"kar-kardan.firebaseapp.com",
+ projectId:"kar-kardan",
+ storageBucket:"kar-kardan.firebasestorage.app",
+ messagingSenderId:"554147696994",
+ appId:"1:554147696994:web:221dcb883e3b65dcea5c3b"
+});
+
 const db = firebase.firestore();
+const content = document.getElementById("content");
 
-const jobsList = document.getElementById("jobsList");
-const jobCountLabel = document.getElementById("jobCount");
-
-const govtTab = document.getElementById("govtTab");
-const featuredTab = document.getElementById("featuredTab");
-
-let allJobs = [];
-let filteredJobs = [];
-let pageSize = 10;
-let currentIndex = 0;
-
-async function fetchJobs(){
-  const snapshot = await db.collection("jobs")
-    .where("status","==","approved")
-    .orderBy("timestamp","desc")
-    .get();
-
-  allJobs = snapshot.docs.map(doc => ({id:doc.id, ...doc.data()}));
-  filteredJobs = [...allJobs];
-  renderJobs();
+function openTab(tab){
+ if(tab==="featured") loadFeatured();
+ if(tab==="govt") loadGovt();
+ if(tab==="updates") loadUpdates();
+ if(tab==="community") loadCommunity();
 }
 
-function renderJobs(){
-  jobsList.innerHTML="";
-  jobCountLabel.innerText = `${filteredJobs.length} jobs found`;
+/* ============ FEATURED JOBS (4 only) ============ */
+async function loadFeatured(){
+ const snap = await db.collection("jobs")
+ .where("status","==","approved")
+ .where("category","==","Featured")
+ .orderBy("timestamp","desc")
+ .limit(4).get();
 
-  filteredJobs.slice(0,pageSize).forEach(job=>{
-    const div = document.createElement("div");
-    div.className="bg-white p-6 rounded-xl shadow border";
-
-    div.innerHTML=`
-      <h3 class="font-bold text-lg">${job.title}</h3>
-      <p class="text-gray-500">${job.company} • ${job.location || 'Remote'}</p>
-      <button onclick="viewJob('${job.id}')" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded">View</button>
-    `;
-    jobsList.appendChild(div);
-  });
+ renderJobs(snap.docs.map(d=>d.data()));
 }
 
-govtTab.onclick = ()=>{
-  govtTab.className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold";
-  featuredTab.className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200";
+/* ============ GOVT JOBS ============ */
+async function loadGovt(){
+ const snap = await db.collection("jobs")
+ .where("status","==","approved")
+ .where("category","==","Government")
+ .orderBy("timestamp","desc")
+ .limit(6).get();
 
-  filteredJobs = allJobs.filter(job => job.category==="Government" || (job.type && job.type.toLowerCase().includes("gov")));
-  renderJobs();
-};
+ let html = renderJobs(snap.docs.map(d=>d.data()),false);
+ html += `<div class="text-center mt-4">
+ <button onclick="location.href='govt.html'" class="bg-blue-600 text-white px-4 py-2 rounded">
+ Load More Govt Jobs
+ </button></div>`;
+ content.innerHTML = html;
+}
 
-featuredTab.onclick = ()=>{
-  featuredTab.className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-bold";
-  govtTab.className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200";
+/* ============ UPDATES ============ */
+async function loadUpdates(){
+ const snap = await db.collection("updates")
+ .orderBy("timestamp","desc")
+ .limit(10).get();
 
-  filteredJobs = [...allJobs];
-  renderJobs();
-};
+ let html="";
+ snap.forEach(d=>{
+  const u=d.data();
+  html+=`<div class="bg-white p-4 rounded shadow mb-3">
+  <h3 class="font-bold">${u.title}</h3>
+  <p class="text-gray-600">${u.description}</p>
+  </div>`;
+ });
+ content.innerHTML=html;
+}
 
-window.viewJob = id => window.location.href=`job-detail.html?id=${id}`;
+/* ============ COMMUNITY ============ */
+async function loadCommunity(){
+ const snap = await db.collection("community_posts")
+ .orderBy("timestamp","desc")
+ .limit(20).get();
 
-fetchJobs();
+ let html=`<div class="text-right mb-4">
+ <button onclick="location.href='community.html'" class="bg-blue-600 text-white px-4 py-2 rounded">
+ Post Now
+ </button></div>`;
+
+ snap.forEach(doc=>{
+  const p=doc.data();
+  html+=`
+  <div class="bg-white p-4 rounded shadow mb-3">
+  <div class="font-bold">${p.userName}</div>
+  <p class="my-2">${p.text}</p>
+  <div class="flex gap-4">
+   <button onclick="likePost('${doc.id}')">❤️ ${p.likes||0}</button>
+   <button onclick="dislikePost('${doc.id}')">👎 ${p.dislikes||0}</button>
+  </div>
+  </div>`;
+ });
+
+ content.innerHTML=html;
+}
+
+/* ============ LIKE / DISLIKE ============ */
+function likePost(id){
+ db.collection("community_posts").doc(id).update({
+  likes: firebase.firestore.FieldValue.increment(1)
+ });
+ loadCommunity();
+}
+function dislikePost(id){
+ db.collection("community_posts").doc(id).update({
+  dislikes: firebase.firestore.FieldValue.increment(1)
+ });
+ loadCommunity();
+}
+
+/* ============ JOB RENDER ============ */
+function renderJobs(jobs,auto=true){
+ let html="";
+ jobs.forEach(j=>{
+  html+=`
+  <div class="bg-white p-4 rounded shadow mb-3">
+   <h3 class="font-bold">${j.title}</h3>
+   <p>${j.company} • ${j.location||"Remote"}</p>
+  </div>`;
+ });
+ if(auto) content.innerHTML=html;
+ return html;
+}
+
+/* Load default */
+openTab("featured");
 </script>
+
+<style>
+.tab-btn{
+ padding:8px 16px;
+ background:#e5e7eb;
+ border-radius:6px;
+ font-weight:bold;
+}
+</style>
 
 </body>
 </html>
