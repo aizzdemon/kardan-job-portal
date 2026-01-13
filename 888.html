@@ -4,7 +4,29 @@
 <meta charset="UTF-8">
 <title>Jobs – BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <script src="https://cdn.tailwindcss.com"></script>
+
+<!-- ================= FIREBASE INIT (ONLY ONCE) ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
+
+const app = initializeApp(firebaseConfig);
+
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+</script>
 
 <style>
 .latest-badge{animation:pulse 1s infinite;}
@@ -14,72 +36,52 @@
 
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
-<!-- Navbar -->
+<!-- ================= NAVBAR ================= -->
 <div id="navbar"></div>
 <script>
 fetch("navbar.html").then(r=>r.text()).then(html=>{
-  document.getElementById("navbar").innerHTML=html;
-  const s=document.createElement("script");
-  s.type="module";
-  s.src="navbar.js";
+  document.getElementById("navbar").innerHTML = html;
+  const s = document.createElement("script");
+  s.type = "module";
+  s.src = "navbar.js";
   document.body.appendChild(s);
 });
 </script>
 
-<!-- Header -->
+<!-- ================= HEADER ================= -->
 <header class="bg-white border-b">
-<div class="max-w-6xl mx-auto px-4 py-10 text-center">
-<h1 class="text-4xl font-extrabold">Explore <span class="text-blue-600">Careers</span></h1>
-<p class="text-gray-500 mt-2">Find the best jobs for you</p>
+  <div class="max-w-6xl mx-auto px-4 py-10 text-center">
+    <h1 class="text-4xl font-extrabold">Explore <span class="text-blue-600">Careers</span></h1>
+    <p class="text-gray-500 mt-2">Find the best jobs for you</p>
 
-<!-- Search Bar -->
-<div class="bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
-<div class="grid grid-cols-1 md:grid-cols-12 gap-2">
-
-<input id="searchInput" placeholder="Job title or company"
-class="md:col-span-4 p-4 rounded-xl bg-gray-50"/>
-
-<input id="locationInput" placeholder="Location"
-class="md:col-span-3 p-4 rounded-xl bg-gray-50"/>
-
-<select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50">
-<option value="all">Any time</option>
-<option value="1">24 Hours</option>
-<option value="7">7 Days</option>
-<option value="30">30 Days</option>
-</select>
-
-<button id="mainSearchBtn"
-class="md:col-span-2 bg-blue-600 text-white font-bold rounded-xl">Search</button>
-
-</div>
-</div>
-</div>
+    <div class="bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
+        <input id="searchInput" placeholder="Job title or company" class="md:col-span-4 p-4 rounded-xl bg-gray-50">
+        <input id="locationInput" placeholder="Location" class="md:col-span-3 p-4 rounded-xl bg-gray-50">
+        <select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50">
+          <option value="all">Any time</option>
+          <option value="1">24 Hours</option>
+          <option value="7">7 Days</option>
+          <option value="30">30 Days</option>
+        </select>
+        <button id="mainSearchBtn" class="md:col-span-2 bg-blue-600 text-white font-bold rounded-xl">Search</button>
+      </div>
+    </div>
+  </div>
 </header>
 
-<!-- Jobs -->
+<!-- ================= JOBS LIST ================= -->
 <main class="max-w-5xl mx-auto px-4 py-10 flex-grow">
-<h2 id="jobCount" class="font-bold mb-6">Loading jobs…</h2>
-<div id="jobsList" class="space-y-6"></div>
-<button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl">Load More</button>
+  <h2 id="jobCount" class="font-bold mb-6">Loading jobs…</h2>
+  <div id="jobsList" class="space-y-6"></div>
+  <button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl">Load More</button>
 </main>
 
-<!-- Firebase -->
+<!-- ================= JOBS FIRESTORE ================= -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore,collection,query,where,orderBy,getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-const firebaseConfig={
- apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
- authDomain:"kar-kardan.firebaseapp.com",
- projectId:"kar-kardan",
- storageBucket:"kar-kardan.firebasestorage.app",
- messagingSenderId:"554147696994",
- appId:"1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-
-const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
+const db = window.db;
 
 const jobsList=document.getElementById("jobsList");
 const loadMoreBtn=document.getElementById("loadMoreBtn");
@@ -87,7 +89,6 @@ const jobCount=document.getElementById("jobCount");
 
 const searchInput=document.getElementById("searchInput");
 const locationInput=document.getElementById("locationInput");
-const dateFilter=document.getElementById("dateFilter");
 const mainSearchBtn=document.getElementById("mainSearchBtn");
 
 let allJobs=[],filteredJobs=[],visible=[],index=0,pageSize=6;
