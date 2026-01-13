@@ -1,70 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>BooterSpace | Home</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jobs - BooterSpace</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    .latest-badge { animation: flash 1s infinite; }
+    @keyframes flash { 0%{opacity:1;}50%{opacity:.4;}100%{opacity:1;} }
+    @keyframes shimmer { 0%{background-position:-468px 0;}100%{background-position:468px 0;} }
+    .skeleton {
+      background:#f6f7f8;
+      background-image:linear-gradient(to right,#f6f7f8 0%,#edeef1 20%,#f6f7f8 40%,#f6f7f8 100%);
+      background-repeat:no-repeat;
+      background-size:800px 104px;
+      animation:shimmer 1.2s infinite linear;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
 
-<!-- ================= NAVBAR CONTAINER ================= -->
-<div id="navbarContainer"></div>
+<body class="bg-gray-50 min-h-screen flex flex-col">
 
-<!-- ================= MAIN CONTENT ================= -->
-<div class="max-w-6xl mx-auto p-4 w-full flex flex-col gap-6">
-  <h1 class="text-3xl font-bold text-gray-800">Welcome to BooterSpace</h1>
-  <p class="text-gray-600">Find jobs, explore profiles, and connect with professionals.</p>
+<div id="navbar"></div>
+<script>
+fetch("navbar.html").then(r=>r.text()).then(html=>{
+  document.getElementById("navbar").innerHTML=html;
+  const s=document.createElement("script");
+  s.src="navbar.js";
+  document.body.appendChild(s);
+});
+</script>
 
-  <div id="jobsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6"></div>
+<header class="bg-white border-b">
+  <div class="max-w-6xl mx-auto pt-10 pb-12 text-center">
+    <h1 class="text-4xl font-extrabold">Explore the <span class="text-blue-600">Perfect Career</span></h1>
+    <p class="text-gray-500 mt-2">Discover thousands of job opportunities</p>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
+
+<!-- GOVT JOBS & UPDATES -->
+<div class="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+
+<div class="bg-white p-6 rounded-xl shadow border">
+<h2 class="text-xl font-bold mb-4">🏛 Government Jobs</h2>
+<div id="govtJobs">Loading...</div>
 </div>
 
+<div class="bg-white p-6 rounded-xl shadow border">
+<h2 class="text-xl font-bold mb-4">📢 Latest Updates</h2>
+<div id="jobUpdates">Loading...</div>
+</div>
+
+</div>
+
+<h2 id="jobCount" class="text-xl font-bold mb-6">Loading...</h2>
+<div id="jobsList" class="space-y-6"></div>
+<button id="loadMoreBtn" class="hidden mt-6 bg-blue-600 text-white px-6 py-2 rounded">Load More</button>
+
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
-// Firebase init
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+firebase.initializeApp({
+  apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain:"kar-kardan.firebaseapp.com",
+  projectId:"kar-kardan"
+});
+const db=firebase.firestore();
 
-// ================= LOAD NAVBAR =================
-fetch('navbar.html')
-  .then(resp => resp.text())
-  .then(html => {
-    document.getElementById('navbarContainer').innerHTML = html;
-    // Load navbar.js after HTML is inserted
-    const script = document.createElement('script');
-    script.src = 'navbar.js';
-    document.body.appendChild(script);
-  });
+let allJobs=[],filteredJobs=[],visibleJobs=[],currentIndex=0,pageSize=10;
 
-// ================= OPTIONAL: Load Jobs from Firestore =================
-async function loadJobs(){
-  const container = document.getElementById('jobsContainer');
-  try{
-    const snapshot = await db.collection('jobs').orderBy('timestamp','desc').get();
-    snapshot.forEach(doc=>{
-      const job = doc.data();
-      const div = document.createElement('div');
-      div.className = 'p-4 bg-white rounded-xl shadow-sm border job-card transition';
-      div.innerHTML = `<h2 class="font-bold text-lg">${job.title}</h2>
-                       <p class="text-gray-500 text-sm">${job.company}</p>
-                       <a href="${job.applyLink}" class="text-blue-600 text-sm mt-2 inline-block">Apply Now</a>`;
-      container.appendChild(div);
-    });
-  }catch(e){ console.error("Error loading jobs:", e); }
+async function fetchJobs(){
+ const snap=await db.collection("jobs").where("status","==","approved").orderBy("timestamp","desc").get();
+ allJobs=snap.docs.map(d=>({id:d.id,...d.data()}));
+ filteredJobs=[...allJobs];
+ render();
 }
-loadJobs();
+
+function render(){
+ const next=filteredJobs.slice(currentIndex,currentIndex+pageSize);
+ visibleJobs=visibleJobs.concat(next);
+ jobsList.innerHTML="";
+ visibleJobs.forEach(j=>{
+ jobsList.innerHTML+=`
+ <div class="bg-white p-5 rounded shadow">
+ <h3 class="font-bold">${j.title}</h3>
+ <p>${j.company} • ${j.location}</p>
+ <a class="text-blue-600" href="job-detail.html?id=${j.id}">View</a>
+ </div>`;
+});
+ currentIndex+=pageSize;
+ loadMoreBtn.classList.toggle("hidden",currentIndex>=filteredJobs.length);
+ jobCount.innerText=`${filteredJobs.length} jobs found`;
+}
+
+loadMoreBtn.onclick=render;
+
+// GOVT JOBS
+async function loadGovt(){
+ const snap=await db.collection("jobs").where("category","==","government").where("status","==","approved").orderBy("timestamp","desc").limit(5).get();
+ govtJobs.innerHTML="";
+ snap.forEach(d=>{
+ const j=d.data();
+ govtJobs.innerHTML+=`<div>${j.title} - <a class="text-blue-600" href="job-detail.html?id=${d.id}">View</a></div>`;
+});
+}
+
+// UPDATES
+async function loadUpdates(){
+ const snap=await db.collection("jobs").where("status","==","approved").orderBy("timestamp","desc").limit(5).get();
+ jobUpdates.innerHTML="";
+ snap.forEach(d=>{
+ const j=d.data();
+ jobUpdates.innerHTML+=`<div>🆕 ${j.title}</div>`;
+});
+}
+
+fetchJobs();
+loadGovt();
+loadUpdates();
 </script>
+
 </body>
 </html>
