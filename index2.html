@@ -1,166 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>BooterSpace Home</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jobs - BooterSpace</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
+  <style>
+    .latest-badge {
+      animation: flash 1s infinite;
+    }
+    @keyframes flash {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+    /* Skeleton Loading */
+    @keyframes shimmer {
+      0% { background-position: -468px 0; }
+      100% { background-position: 468px 0; }
+    }
+    .skeleton {
+      background: #f6f7f8;
+      background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+      background-repeat: no-repeat;
+      background-size: 800px 104px;
+      display: inline-block;
+      position: relative;
+      animation: shimmer 1.2s infinite linear;
+    }
+    .suggestions-list::-webkit-scrollbar { width: 6px; }
+    .suggestions-list::-webkit-scrollbar-track { background: #f1f1f1; }
+    .suggestions-list::-webkit-scrollbar-thumb { background: #888; border-radius: 3px; }
+    .suggestions-list::-webkit-scrollbar-thumb:hover { background: #555; }
+  </style>
 </head>
-<body class="bg-gray-100">
 
-<!-- ================= NAVBAR ================= -->
-<div class="bg-white shadow p-4 text-xl font-bold text-blue-600">
-BooterSpace
-</div>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
 
-<!-- ================= TABS ================= -->
-<div class="flex justify-center gap-4 p-4 bg-white shadow">
-<button onclick="openTab('featured')" class="tab-btn">Featured Jobs</button>
-<button onclick="openTab('govt')" class="tab-btn">Govt Jobs</button>
-<button onclick="openTab('updates')" class="tab-btn">Updates</button>
-<button onclick="openTab('community')" class="tab-btn">Community</button>
-</div>
+  <!-- ===== NAVBAR ===== -->
+  <!-- 🔥 SaaS Navbar -->
 
-<!-- ================= CONTENT ================= -->
-<div id="content" class="p-4 max-w-4xl mx-auto"></div>
-
-<!-- ================= FIREBASE ================= -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <div id="navbar"></div>
 
 <script>
-firebase.initializeApp({
- apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
- authDomain:"kar-kardan.firebaseapp.com",
- projectId:"kar-kardan",
- storageBucket:"kar-kardan.firebasestorage.app",
- messagingSenderId:"554147696994",
- appId:"1:554147696994:web:221dcb883e3b65dcea5c3b"
+fetch("navbar.html")
+.then(r=>r.text())
+.then(html=>{
+  document.getElementById("navbar").innerHTML=html;
+  const s=document.createElement("script");
+  s.src="navbar.js";
+  document.body.appendChild(s);
 });
-
-const db = firebase.firestore();
-const content = document.getElementById("content");
-
-function openTab(tab){
- if(tab==="featured") loadFeatured();
- if(tab==="govt") loadGovt();
- if(tab==="updates") loadUpdates();
- if(tab==="community") loadCommunity();
-}
-
-/* ============ FEATURED JOBS (4 only) ============ */
-async function loadFeatured(){
- const snap = await db.collection("jobs")
- .where("status","==","approved")
- .where("category","==","Featured")
- .orderBy("timestamp","desc")
- .limit(4).get();
-
- renderJobs(snap.docs.map(d=>d.data()));
-}
-
-/* ============ GOVT JOBS ============ */
-async function loadGovt(){
- const snap = await db.collection("jobs")
- .where("status","==","approved")
- .where("category","==","Government")
- .orderBy("timestamp","desc")
- .limit(6).get();
-
- let html = renderJobs(snap.docs.map(d=>d.data()),false);
- html += `<div class="text-center mt-4">
- <button onclick="location.href='govt.html'" class="bg-blue-600 text-white px-4 py-2 rounded">
- Load More Govt Jobs
- </button></div>`;
- content.innerHTML = html;
-}
-
-/* ============ UPDATES ============ */
-async function loadUpdates(){
- const snap = await db.collection("updates")
- .orderBy("timestamp","desc")
- .limit(10).get();
-
- let html="";
- snap.forEach(d=>{
-  const u=d.data();
-  html+=`<div class="bg-white p-4 rounded shadow mb-3">
-  <h3 class="font-bold">${u.title}</h3>
-  <p class="text-gray-600">${u.description}</p>
-  </div>`;
- });
- content.innerHTML=html;
-}
-
-/* ============ COMMUNITY ============ */
-async function loadCommunity(){
- const snap = await db.collection("community_posts")
- .orderBy("timestamp","desc")
- .limit(20).get();
-
- let html=`<div class="text-right mb-4">
- <button onclick="location.href='community.html'" class="bg-blue-600 text-white px-4 py-2 rounded">
- Post Now
- </button></div>`;
-
- snap.forEach(doc=>{
-  const p=doc.data();
-  html+=`
-  <div class="bg-white p-4 rounded shadow mb-3">
-  <div class="font-bold">${p.userName}</div>
-  <p class="my-2">${p.text}</p>
-  <div class="flex gap-4">
-   <button onclick="likePost('${doc.id}')">❤️ ${p.likes||0}</button>
-   <button onclick="dislikePost('${doc.id}')">👎 ${p.dislikes||0}</button>
-  </div>
-  </div>`;
- });
-
- content.innerHTML=html;
-}
-
-/* ============ LIKE / DISLIKE ============ */
-function likePost(id){
- db.collection("community_posts").doc(id).update({
-  likes: firebase.firestore.FieldValue.increment(1)
- });
- loadCommunity();
-}
-function dislikePost(id){
- db.collection("community_posts").doc(id).update({
-  dislikes: firebase.firestore.FieldValue.increment(1)
- });
- loadCommunity();
-}
-
-/* ============ JOB RENDER ============ */
-function renderJobs(jobs,auto=true){
- let html="";
- jobs.forEach(j=>{
-  html+=`
-  <div class="bg-white p-4 rounded shadow mb-3">
-   <h3 class="font-bold">${j.title}</h3>
-   <p>${j.company} • ${j.location||"Remote"}</p>
-  </div>`;
- });
- if(auto) content.innerHTML=html;
- return html;
-}
-
-/* Load default */
-openTab("featured");
 </script>
 
-<style>
-.tab-btn{
- padding:8px 16px;
- background:#e5e7eb;
- border-radius:6px;
- font-weight:bold;
-}
-</style>
+  <!-- ===== HEADER & SEARCH ===== -->
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-6xl mx-auto pt-10 pb-12 px-4 text-center">
+      <h1 class="text-4xl font-extrabold text-gray-900">
+        Explore the <span class="text-blue-600">Perfect Career</span>
+      </h1>
+      <p class="text-lg text-gray-500 mt-2">
+        Discover thousands of job opportunities across the globe
+      </p>
 
+    
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== JOB LIST ===== -->
+  <main class="max-w-4xl mx-auto px-4 py-10 flex-grow">
+    <div class="flex justify-between items-center mb-8 gap-4 flex-wrap">
+      <h2 id="jobCount" class="text-gray-900 font-bold text-xl">Loading jobs...</h2>
+      <div class="flex items-center gap-2 text-sm">
+        <span class="text-gray-500">Sort by:</span>
+        <select class="bg-transparent border-none font-semibold text-blue-600 focus:ring-0 cursor-pointer p-0">
+          <option>Newest first</option>
+          <option>Oldest first</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="jobsList" class="space-y-6">
+      <!-- Skeleton jobs -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex gap-4">
+          <div class="w-16 h-16 rounded-xl skeleton"></div>
+          <div class="flex-grow space-y-3">
+            <div class="h-6 w-1/3 skeleton rounded"></div>
+            <div class="h-4 w-1/2 skeleton rounded"></div>
+            <div class="h-4 w-1/4 skeleton rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-12">
+      <button id="loadMoreBtn" class="hidden bg-white border border-gray-200 text-gray-700 px-8 py-3 rounded-xl shadow-sm hover:shadow-md hover:border-gray-300 font-bold">
+        Load More Jobs
+      </button>
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-white border-t border-gray-200 py-10 mt-12">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex flex-col items-center md:items-start">
+        <div class="font-bold text-xl text-blue-700 mb-2">BooterSpace</div>
+        <p class="text-gray-400 text-sm">Connecting talent with destiny.</p>
+      </div>
+      <div class="flex gap-8 text-sm text-gray-500">
+        <a href="#" class="hover:text-blue-600">Privacy Policy</a>
+        <a href="#" class="hover:text-blue-600">Terms of Service</a>
+        <a href="#" class="hover:text-blue-600">Contact Us</a>
+      </div>
+      <p class="text-gray-400 text-sm">&copy; 2024 BooterSpace. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- ===== FIREBASE LOGIC ===== -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+      authDomain: "kar-kardan.firebaseapp.com",
+      projectId: "kar-kardan",
+      storageBucket: "kar-kardan.firebasestorage.app",
+      messagingSenderId: "554147696994",
+      appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // DOM
+    const jobsList = document.getElementById("jobsList");
+    const loadMoreBtn = document.getElementById("loadMoreBtn");
+    const searchInput = document.getElementById("searchInput");
+    const locationInput = document.getElementById("locationInput"); 
+    const dateFilter = document.getElementById("dateFilter");
+    const mainSearchBtn = document.getElementById("mainSearchBtn");
+    const suggestionsBox = document.getElementById("suggestionsBox");
+    const clearSearchBtn = document.getElementById("clearSearchBtn");
+    const clearLocationBtn = document.getElementById("clearLocationBtn"); 
+    const jobCountLabel = document.getElementById("jobCount");
+
+    let allJobs = [];
+    let filteredJobs = [];
+    let visibleJobs = [];
+    let pageSize = 10;
+    let currentIndex = 0;
+
+    async function fetchJobs() {
+      const snapshot = await db.collection("jobs").where("status", "==", "approved").orderBy("timestamp", "desc").get();
+      allJobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      filteredJobs = [...allJobs];
+      resetPagination();
+    }
+
+    function resetPagination() { currentIndex = 0; visibleJobs = []; renderPagination(); }
+
+    function renderPagination() {
+      const nextBatch = filteredJobs.slice(currentIndex, currentIndex + pageSize);
+      visibleJobs = visibleJobs.concat(nextBatch);
+      renderJobs(visibleJobs);
+      currentIndex += pageSize;
+      loadMoreBtn.classList.toggle("hidden", currentIndex >= filteredJobs.length);
+      jobCountLabel.innerHTML = filteredJobs.length === 0 ? "No jobs match your search" : `${filteredJobs.length} results found`;
+    }
+
+    loadMoreBtn.addEventListener("click", renderPagination);
+
+    function renderJobs(jobs) {
+      if(currentIndex===0) jobsList.innerHTML="";
+      jobs.forEach(job=>{
+        const date = job.timestamp?.toDate();
+        const isLatest = date && (new Date() - date)/(1000*60*60*24)<=7;
+        const imgUrl = job.companyImageUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=random`;
+        const salaryHtml = job.salary?`<span class="text-blue-600 font-semibold">${job.salary}</span>`:'';
+        const typeColors = { 'Full-time':'bg-blue-50 text-blue-700','Part-time':'bg-purple-50 text-purple-700','Contract':'bg-orange-50 text-orange-700','Remote':'bg-green-50 text-green-700'};
+        const badgeClass = typeColors[job.type||'Full-time']||'bg-gray-100 text-gray-700';
+        const typeLabel = job.type||'Full-time';
+        const div = document.createElement("div");
+        div.className="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col md:flex-row gap-6 relative";
+        div.innerHTML=`
+          <div class="flex-shrink-0">
+            <img src="${imgUrl}" class="w-16 h-16 rounded-xl border border-gray-100 object-cover bg-gray-50 shadow-sm">
+          </div>
+          <div class="flex-grow">
+            <div class="flex flex-wrap items-center gap-2 mb-2">
+              <h3 class="font-bold text-xl text-gray-900 group-hover:text-blue-600 transition-colors">${job.title}</h3>
+              ${isLatest?`<span class="latest-badge bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Latest</span>`:""}
+            </div>
+            <div class="flex flex-wrap items-center gap-y-1 gap-x-4 mb-4 text-sm text-gray-500">
+              <span class="font-semibold text-gray-700">${job.company}</span>
+              <span>${job.location||'Remote'}</span>
+              ${salaryHtml}
+            </div>
+            <div class="flex gap-2">
+              <span class="px-3 py-1 rounded-full text-xs font-bold ${badgeClass}">${typeLabel}</span>
+            </div>
+          </div>
+          <div class="flex md:flex-col justify-end items-end gap-3 mt-4 md:mt-0">
+            <button onclick="applyJob('${job.id}')" class="w-full md:w-32 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm">Apply Now</button>
+            <button onclick="viewJob('${job.id}')" class="w-full md:w-32 bg-white border border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-2.5 rounded-lg text-sm">Details</button>
+          </div>
+        `;
+        jobsList.appendChild(div);
+      });
+    }
+
+    function filterJobs() {
+      const textQuery = searchInput.value.toLowerCase().trim();
+      const locQuery = locationInput.value.toLowerCase().trim();
+      const dateValue = dateFilter.value;
+      filteredJobs = allJobs.filter(job=>{
+        const title = (job.title||'').toLowerCase();
+        const company = (job.company||'').toLowerCase();
+        const location = (job.location||'').toLowerCase();
+        const matchesText = !textQuery||title.includes(textQuery)||company.includes(textQuery);
+        const matchesLocation = !locQuery||location.includes(locQuery);
+        let matchesDate = true;
+        if(dateValue!=='all'&&job.timestamp){
+          const diffDays = (new Date()-job.timestamp.toDate())/(1000*60*60*24);
+          matchesDate = diffDays<=parseInt(dateValue);
+        }
+        return matchesText&&matchesLocation&&matchesDate;
+      });
+      resetPagination();
+    }
+
+    searchInput.addEventListener('input',()=>{ filterJobs(); });
+    locationInput.addEventListener('input',()=>{ filterJobs(); });
+    dateFilter.addEventListener('change',filterJobs);
+    mainSearchBtn.addEventListener('click',filterJobs);
+
+    window.applyJob=id=>window.location.href=`job-detail.html?id=${id}`;
+    window.viewJob=id=>window.location.href=`job-detail.html?id=${id}`;
+
+    fetchJobs();
+  </script>
 </body>
 </html>
