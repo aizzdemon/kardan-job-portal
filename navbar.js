@@ -1,18 +1,6 @@
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-const auth = window.auth;
-
-const menuBtn = document.getElementById("menuBtn");
-const mobileMenu = document.getElementById("mobileMenu");
-
-if(menuBtn){
-  menuBtn.onclick = () => {
-    mobileMenu.classList.toggle("hidden");
-  };
-}
-
-onAuthStateChanged(auth, (user) => {
-
+// navbar.js
+document.addEventListener("DOMContentLoaded", () => {
+  // DOM Elements
   const loginBtn = document.getElementById("loginBtn");
   const signupBtn = document.getElementById("signupBtn");
   const profileBtn = document.getElementById("profileBtn");
@@ -26,48 +14,73 @@ onAuthStateChanged(auth, (user) => {
   const mProfileBtn = document.getElementById("mProfileBtn");
   const mLogoutBtn = document.getElementById("mLogoutBtn");
 
-  if(user){
-    loginBtn?.classList.add("hidden");
-    signupBtn?.classList.add("hidden");
-    profileBtn?.classList.remove("hidden");
-    logoutBtn?.classList.remove("hidden");
+  const menuBtn = document.getElementById("menuBtn");
+  const mobileMenu = document.getElementById("mobileMenu");
 
-    mLoginBtn?.classList.add("hidden");
-    mSignupBtn?.classList.add("hidden");
-    mProfileBtn?.classList.remove("hidden");
-    mLogoutBtn?.classList.remove("hidden");
+  // Toggle mobile menu
+  menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden");
+  });
 
-    if(userName){
-      userName.innerText = user.displayName || "User";
-      userName.classList.remove("hidden");
-    }
-
-    if(userPhoto){
-      userPhoto.src = user.photoURL || "https://ui-avatars.com/api/?name=User";
-      userPhoto.classList.remove("hidden");
-    }
-
-    logoutBtn && (logoutBtn.onclick = ()=>signOut(auth));
-    mLogoutBtn && (mLogoutBtn.onclick = ()=>signOut(auth));
-
-    if(user.email==="admin@gmail.com"){
-      adminBtn?.classList.remove("hidden");
-    }
-
-  } else {
-    loginBtn?.classList.remove("hidden");
-    signupBtn?.classList.remove("hidden");
-    profileBtn?.classList.add("hidden");
-    logoutBtn?.classList.add("hidden");
-    adminBtn?.classList.add("hidden");
-
-    mLoginBtn?.classList.remove("hidden");
-    mSignupBtn?.classList.remove("hidden");
-    mProfileBtn?.classList.add("hidden");
-    mLogoutBtn?.classList.add("hidden");
-
-    userName?.classList.add("hidden");
-    userPhoto?.classList.add("hidden");
+  // Check user login state
+  if (!window.auth) {
+    console.error("Firebase auth not initialized! Make sure you set window.auth in index.html");
+    return;
   }
 
+  window.auth.onAuthStateChanged(user => {
+    if (user) {
+      // Logged-in
+      loginBtn.classList.add("hidden");
+      signupBtn.classList.add("hidden");
+      profileBtn.classList.remove("hidden");
+      logoutBtn.classList.remove("hidden");
+      userName.textContent = user.displayName || "User";
+      userName.classList.remove("hidden");
+      userPhoto.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || "User"}`;
+      userPhoto.classList.remove("hidden");
+
+      // Mobile menu
+      mLoginBtn.classList.add("hidden");
+      mSignupBtn.classList.add("hidden");
+      mProfileBtn.classList.remove("hidden");
+      mLogoutBtn.classList.remove("hidden");
+
+      // Admin check (replace with your UID)
+      const adminUID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
+      if (user.uid === adminUID) {
+        adminBtn.classList.remove("hidden");
+      } else {
+        adminBtn.classList.add("hidden");
+      }
+    } else {
+      // Logged-out
+      loginBtn.classList.remove("hidden");
+      signupBtn.classList.remove("hidden");
+      profileBtn.classList.add("hidden");
+      logoutBtn.classList.add("hidden");
+      userName.classList.add("hidden");
+      userPhoto.classList.add("hidden");
+      adminBtn.classList.add("hidden");
+
+      // Mobile menu
+      mLoginBtn.classList.remove("hidden");
+      mSignupBtn.classList.remove("hidden");
+      mProfileBtn.classList.add("hidden");
+      mLogoutBtn.classList.add("hidden");
+    }
+  });
+
+  // Logout action
+  logoutBtn.addEventListener("click", () => {
+    window.auth.signOut().then(() => {
+      location.reload();
+    });
+  });
+
+  mLogoutBtn.addEventListener("click", () => {
+    window.auth.signOut().then(() => {
+      location.reload();
+    });
+  });
 });
