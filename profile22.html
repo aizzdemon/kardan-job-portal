@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Profile - BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth,onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig = {
+ apiKey:"AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+ authDomain:"kar-kardan.firebaseapp.com",
+ projectId:"kar-kardan",
+ storageBucket:"kar-kardan.firebasestorage.app",
+ messagingSenderId:"554147696994",
+ appId:"1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
+
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+
+onAuthStateChanged(auth,(u)=>{
+ if(!u) location="login.html";
+});
+</script>
+</head>
+
+<body class="bg-gray-100">
+
+<!-- NAVBAR -->
+<div id="navbar"></div>
+<script>
+fetch("navbar.html").then(r=>r.text()).then(h=>{
+ document.getElementById("navbar").innerHTML=h;
+ const s=document.createElement("script");
+ s.type="module";
+ s.src="navbar.js";
+ document.body.appendChild(s);
+});
+</script>
+
+<!-- SEARCH -->
+<div class="max-w-4xl mx-auto mt-6 flex gap-2 px-4">
+ <input id="searchInput" class="flex-1 border p-3 rounded" placeholder="Search name, college, company...">
+ <button onclick="searchUsers()" class="bg-blue-600 text-white px-5 rounded">Search</button>
+</div>
+
+<!-- MAIN -->
+<div class="max-w-7xl mx-auto mt-8 grid md:grid-cols-3 gap-6 px-4">
+
+ <div id="searchResults" class="md:col-span-2 space-y-4"></div>
+
+ <div id="myProfile"></div>
+
+</div>
+
+<script type="module" src="profile.js"></script>
+
+</body>
+</html>
