@@ -1,38 +1,77 @@
-<nav class="bg-white shadow-md px-6 py-4">
+<nav class="bg-white shadow-sm border-b px-6 py-3">
   <div class="max-w-7xl mx-auto flex justify-between items-center">
 
-    <a href="index.html" class="text-xl font-bold text-blue-600">
+    <!-- Logo -->
+    <a href="index.html" class="text-xl font-black text-blue-600">
       BooterSpace
     </a>
 
-    <!-- Desktop -->
-    <div class="hidden md:flex items-center gap-6">
-      <a href="jobs.html" class="nav-link">Jobs</a>
-      <a href="companies.html" class="nav-link">Companies</a>
+    <!-- Desktop Links -->
+    <div class="hidden md:flex gap-6 text-sm font-semibold text-gray-600">
+      <a href="jobs.html" class="hover:text-blue-600">Jobs</a>
+      <a href="companies.html" class="hover:text-blue-600">Companies</a>
+      <a href="places-to-hangout.html" class="hover:text-blue-600">Hangouts</a>
+      <a href="community.html" class="hover:text-blue-600">Community</a>
+    </div>
 
-      <span id="userName" class="font-semibold hidden"></span>
-      <img id="userPhoto" class="w-8 h-8 rounded-full hidden"/>
+    <!-- User Area (Desktop) -->
+    <div class="hidden md:flex items-center gap-3">
 
-      <a id="loginBtn" href="login.html" class="nav-link">Login</a>
-      <a id="signupBtn" href="signup.html" class="nav-link">Sign Up</a>
-      <a id="profileBtn" href="profile.html" class="nav-link hidden">Profile</a>
-      <button id="logoutBtn" class="hidden text-red-600">Logout</button>
-      <a id="adminBtn" href="admin.html" class="hidden text-purple-600">Admin</a>
+      <a id="profileBtn"
+         href="profile.html"
+         class="hidden flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100">
+        <img id="profilePic"
+          src="https://ui-avatars.com/api/?name=User"
+          class="w-8 h-8 rounded-full object-cover"
+        />
+        <span id="profileName" class="text-sm font-semibold text-gray-700">User</span>
+      </a>
+
+      <a id="loginBtn"
+         href="login.html"
+         class="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-bold hover:bg-blue-700">
+        Login
+      </a>
+
+      <button id="logoutBtn"
+        class="hidden px-4 py-1.5 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600">
+        Logout
+      </button>
+
     </div>
 
     <!-- Hamburger -->
-    <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+    <button id="menuBtn" class="md:hidden text-gray-700 text-2xl">
+      ☰
+    </button>
   </div>
 
   <!-- Mobile Menu -->
-  <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-3">
-    <a href="jobs.html" class="block">Jobs</a>
-    <a href="companies.html" class="block">Companies</a>
-    <a id="mLoginBtn" href="login.html">Login</a>
-    <a id="mSignupBtn" href="signup.html">Signup</a>
-    <a id="mProfileBtn" href="profile.html" class="hidden">Profile</a>
-    <button id="mLogoutBtn" class="hidden text-red-600">Logout</button>
+  <div id="mobileMenu" class="hidden md:hidden bg-white border-t p-4 space-y-4">
+
+    <a href="jobs.html" class="block font-semibold">Jobs</a>
+    <a href="companies.html" class="block font-semibold">Companies</a>
+    <a href="places-to-hangout.html" class="block font-semibold">Hangouts</a>
+    <a href="community.html" class="block font-semibold">Community</a>
+
+    <div class="border-t pt-4 space-y-3">
+
+      <a id="mProfileBtn" href="profile.html"
+        class="hidden flex items-center gap-2">
+        <img id="mProfilePic" class="w-8 h-8 rounded-full">
+        <span id="mProfileName" class="font-semibold"></span>
+      </a>
+
+      <a id="mLoginBtn" href="login.html"
+         class="block px-4 py-2 bg-blue-600 text-white rounded-lg text-center font-bold">
+        Login
+      </a>
+
+      <button id="mLogoutBtn"
+         class="hidden w-full px-4 py-2 bg-red-500 text-white rounded-lg font-bold">
+        Logout
+      </button>
+
+    </div>
   </div>
 </nav>
-
-<script src="navbar.js"></script>
