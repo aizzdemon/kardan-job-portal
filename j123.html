@@ -2,91 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Jobs – BooterSpace</title>
+<title>BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-.latest-badge{animation:pulse 1s infinite;}
-@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-</style>
-
-<!-- Firebase Auth -->
+<!-- 🔥 Firebase (Single Init for whole site) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-window.auth = auth; // expose auth for navbar.js
-</script>
-</head>
-
-<body class="bg-gray-50 min-h-screen flex flex-col">
-
-<!-- Navbar -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html").then(r=>r.text()).then(html=>{
-  document.getElementById("navbar").innerHTML=html;
-  const s=document.createElement("script");
-  s.src="navbar.js";
-  document.body.appendChild(s);
-});
-</script>
-
-<!-- Header -->
-<header class="bg-white border-b">
-<div class="max-w-6xl mx-auto px-4 py-10 text-center">
-<h1 class="text-4xl font-extrabold">Explore <span class="text-blue-600">Careers</span></h1>
-<p class="text-gray-500 mt-2">Find the best jobs for you</p>
-
-<!-- Search Bar -->
-<div class="bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
-<div class="grid grid-cols-1 md:grid-cols-12 gap-2">
-
-<!-- Keyword -->
-<input id="searchInput" placeholder="Job title or company" class="md:col-span-4 p-4 rounded-xl bg-gray-50"/>
-
-<!-- Location -->
-<input id="locationInput" placeholder="Location" class="md:col-span-3 p-4 rounded-xl bg-gray-50"/>
-
-<!-- Date Filter -->
-<select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50">
-<option value="all">Any time</option>
-<option value="1">24 Hours</option>
-<option value="7">7 Days</option>
-<option value="30">30 Days</option>
-</select>
-
-<!-- Search Button -->
-<button id="mainSearchBtn" class="md:col-span-2 bg-blue-600 text-white font-bold rounded-xl">Search</button>
-
-</div>
-</div>
-</div>
-</header>
-
-<!-- Jobs List -->
-<main class="max-w-5xl mx-auto px-4 py-10 flex-grow">
-<h2 id="jobCount" class="font-bold mb-6">Loading jobs…</h2>
-<div id="jobsList" class="space-y-6"></div>
-<button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl">Load More</button>
-</main>
-
-<!-- Firebase Firestore -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { 
+  getFirestore, collection, query, where, orderBy, limit, getDocs 
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -99,91 +25,145 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-const jobsList = document.getElementById("jobsList");
-const loadMoreBtn = document.getElementById("loadMoreBtn");
-const jobCount = document.getElementById("jobCount");
+await signInAnonymously(auth);
 
-const searchInput = document.getElementById("searchInput");
-const locationInput = document.getElementById("locationInput");
-const dateFilter = document.getElementById("dateFilter");
-const mainSearchBtn = document.getElementById("mainSearchBtn");
+window.db = db;
+window.auth = auth;
 
-let allJobs = [], filteredJobs = [], visibleJobs = [], currentIndex = 0, pageSize = 6;
+/* ============ DATA LOADER ============ */
+window.addEventListener("DOMContentLoaded", async () => {
 
-// Fetch jobs
-async function loadJobs() {
-  const q = query(collection(db, "jobs"), where("status", "==", "approved"), orderBy("timestamp","desc"));
-  const snap = await getDocs(q);
-  allJobs = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  filteredJobs = [...allJobs];
-  renderPagination();
-}
+  const featured = document.getElementById("featured-jobs");
+  const govt = document.getElementById("govt-jobs");
+  const updates = document.getElementById("latest-updates");
+  const community = document.getElementById("community-posts");
 
-// Render jobs
-function renderPagination() {
-  const nextBatch = filteredJobs.slice(currentIndex, currentIndex+pageSize);
-  visibleJobs = visibleJobs.concat(nextBatch);
-  renderJobs(visibleJobs);
-  currentIndex += pageSize;
-  loadMoreBtn.classList.toggle("hidden", currentIndex>=filteredJobs.length);
-  jobCount.innerText = filteredJobs.length===0?"No jobs found":`${filteredJobs.length} jobs found`;
-}
-
-// Render jobs HTML
-function renderJobs(jobs){
-  jobsList.innerHTML = "";
-  jobs.forEach(job=>{
-    const logo = job.companyImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company||"Company")}`;
-    const div = document.createElement("div");
-    div.className = "bg-white p-6 rounded-xl border shadow flex gap-4";
-    div.innerHTML = `
-      <img src="${logo}" class="w-16 h-16 rounded-xl object-cover">
-      <div class="flex-1">
-        <h3 class="font-bold text-lg">${job.title}</h3>
-        <p class="text-sm text-gray-600">${job.company} • ${job.location||"Remote"}</p>
-        <p class="text-blue-600 font-bold">${job.salary||""}</p>
-      </div>
-      <div class="flex flex-col gap-2">
-        <button onclick="viewJob('${job.id}')" class="bg-white border px-4 py-2 rounded">View</button>
-        <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
-      </div>
-    `;
-    jobsList.appendChild(div);
-  });
-}
-
-// Filter jobs
-function filterJobs(){
-  const q = searchInput.value.toLowerCase();
-  const l = locationInput.value.toLowerCase();
-  const d = dateFilter.value;
-
-  filteredJobs = allJobs.filter(job => {
-    const t = (job.title||"").toLowerCase();
-    const c = (job.company||"").toLowerCase();
-    const loc = (job.location||"").toLowerCase();
-    let dateMatch = true;
-    if(d!=="all" && job.timestamp){
-      const diffDays = (new Date() - job.timestamp.toDate()) / (1000*60*60*24);
-      dateMatch = diffDays <= parseInt(d);
-    }
-    return (t.includes(q) || c.includes(q)) && loc.includes(l) && dateMatch;
+  /* ---------- FEATURED JOBS ---------- */
+  const q1 = query(
+    collection(db,"jobs"),
+    where("status","==","approved"),
+    orderBy("timestamp","desc"),
+    limit(4)
+  );
+  const snap1 = await getDocs(q1);
+  featured.innerHTML="";
+  snap1.forEach(doc=>{
+    const j=doc.data();
+    const logo=j.companyImageUrl || `https://ui-avatars.com/api/?name=${j.company}`;
+    featured.innerHTML+=`
+      <a href="job-detail.html?id=${doc.id}" class="block p-4 border-b hover:bg-blue-50">
+        <div class="flex gap-3">
+          <img src="${logo}" class="w-10 h-10 rounded">
+          <div>
+            <p class="font-bold text-sm">${j.title}</p>
+            <p class="text-xs text-gray-500">${j.company}</p>
+          </div>
+        </div>
+      </a>`;
   });
 
-  visibleJobs = [];
-  currentIndex = 0;
-  renderPagination();
-}
+  /* ---------- GOVT JOBS ---------- */
+  const q2 = query(collection(db,"govtJobs"),orderBy("timestamp","desc"),limit(4));
+  const snap2 = await getDocs(q2);
+  govt.innerHTML="";
+  snap2.forEach(doc=>{
+    const j=doc.data();
+    govt.innerHTML+=`
+      <div class="p-4 border-b">
+        <p class="font-bold text-sm">${j.title}</p>
+        <p class="text-xs text-orange-600">${j.companyName||'Govt'}</p>
+      </div>`;
+  });
 
-// Button events
-mainSearchBtn.onclick = filterJobs;
-loadMoreBtn.onclick = renderPagination;
+  /* ---------- UPDATES ---------- */
+  const q3=query(collection(db,"flashLinks"),orderBy("timestamp","desc"),limit(4));
+  const snap3=await getDocs(q3);
+  updates.innerHTML="";
+  snap3.forEach(doc=>{
+    const u=doc.data();
+    updates.innerHTML+=`
+      <a href="${u.url}" target="_blank" class="block p-4 border-b hover:bg-yellow-50">
+        ⚡ ${u.title}
+      </a>`;
+  });
 
-window.viewJob = id => location.href = `job-detail.html?id=${id}`;
-window.applyJob = id => location.href = `job-detail.html?id=${id}`;
+  /* ---------- COMMUNITY ---------- */
+  const q4=query(collection(db,"communityPosts"),orderBy("timestamp","desc"),limit(4));
+  const snap4=await getDocs(q4);
+  community.innerHTML="";
+  snap4.forEach(doc=>{
+    const p=doc.data();
+    community.innerHTML+=`
+      <div class="p-4 border-b">
+        <p class="text-xs text-gray-500">${p.userName||"Anonymous"}</p>
+        <p class="text-sm">${p.content}</p>
+        <p class="text-[10px]">👍 ${p.likes||0} 👎 ${p.dislikes||0}</p>
+      </div>`;
+  });
 
-loadJobs();
+});
 </script>
+
+<style>
+.blink-new{ animation: blink 1s infinite; }
+.tab-button{ padding:.5rem 1rem;border-radius:.5rem;font-weight:600 }
+.tab-active{background:#3b82f6;color:white}
+.tab-inactive{background:#e5e7eb;color:#6b7280}
+</style>
+</head>
+
+<body class="bg-gray-50">
+
+<div id="navbar"></div>
+<script>
+fetch("navbar.html").then(r=>r.text()).then(h=>{
+ document.getElementById("navbar").innerHTML=h;
+ const s=document.createElement("script");s.type="module";s.src="navbar.js";document.body.appendChild(s);
+});
+</script>
+
+<header class="bg-white p-6 text-center border-b">
+<h1 class="text-3xl font-black">Booter<span class="text-blue-600">Space</span></h1>
+</header>
+
+<div class="flex justify-center gap-3 mt-4">
+  <div id="btn-featured" class="tab-button tab-active" onclick="switchTab('featured')">Featured Jobs</div>
+  <div id="btn-govt" class="tab-button tab-inactive" onclick="switchTab('govt')">Govt. Jobs</div>
+  <div id="btn-updates" class="tab-button tab-inactive" onclick="switchTab('updates')">Updates</div>
+  <div id="btn-community" class="tab-button tab-inactive" onclick="switchTab('community')">Community</div>
+</div>
+
+<main class="max-w-4xl mx-auto p-4">
+
+<div id="featured" class="tab-content bg-white rounded shadow">
+  <div id="featured-jobs"></div>
+</div>
+
+<div id="govt" class="tab-content hidden bg-white rounded shadow">
+  <div id="govt-jobs"></div>
+</div>
+
+<div id="updates" class="tab-content hidden bg-white rounded shadow">
+  <div id="latest-updates"></div>
+</div>
+
+<div id="community" class="tab-content hidden bg-white rounded shadow">
+  <div id="community-posts"></div>
+</div>
+
+</main>
+
+<script>
+function switchTab(t){
+  document.querySelectorAll(".tab-content").forEach(d=>d.classList.add("hidden"));
+  document.getElementById(t).classList.remove("hidden");
+  document.querySelectorAll(".tab-button").forEach(b=>b.className="tab-button tab-inactive");
+  document.getElementById("btn-"+t).className="tab-button tab-active";
+}
+</script>
+
 </body>
 </html>
+
