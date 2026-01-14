@@ -2,20 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BooterSpace – Home</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
 
-<style>
-.latest-badge{animation:pulse 1s infinite;}
-@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-.tab-active{background-color:#2563eb;color:white;}
-</style>
-
-<!-- Firebase Auth -->
+<!-- Firebase Init (UNCHANGED) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -27,12 +23,43 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-window.auth = auth; // expose auth for navbar.js
+window.auth = getAuth(app);
+window.db = getFirestore(app);
 </script>
+
+<style>
+body{
+  background: radial-gradient(circle at top, #dbeafe, #f8fafc);
+}
+
+.tab-btn{
+  padding:12px 20px;
+  border-radius:999px;
+  font-weight:600;
+  transition:.3s;
+}
+.tab-active{
+  background:linear-gradient(135deg,#2563eb,#3b82f6);
+  color:white;
+  box-shadow:0 10px 25px rgba(59,130,246,.35);
+}
+.tab-inactive{
+  background:white;
+  color:#1e40af;
+  border:1px solid #dbeafe;
+}
+.card{
+  background:rgba(255,255,255,.9);
+  backdrop-filter: blur(10px);
+  border-radius:16px;
+  box-shadow:0 15px 40px rgba(0,0,0,.05);
+}
+.blink-new{ animation: blink 1s infinite; }
+@keyframes blink{ 50%{opacity:.4} }
+</style>
 </head>
 
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body>
 
 <!-- Navbar -->
 <div id="navbar"></div>
@@ -40,237 +67,55 @@ window.auth = auth; // expose auth for navbar.js
 fetch("navbar.html").then(r=>r.text()).then(html=>{
   document.getElementById("navbar").innerHTML=html;
   const s=document.createElement("script");
-  s.src="navbar.js";
-  document.body.appendChild(s);
+  s.type="module"; s.src="navbar.js"; document.body.appendChild(s);
 });
 </script>
 
-<!-- Header -->
-<header class="bg-white border-b py-10">
-  <div class="max-w-6xl mx-auto text-center px-4">
-    <h1 class="text-4xl font-extrabold">Welcome to <span class="text-blue-600">BooterSpace</span></h1>
-    <p class="text-gray-500 mt-2">Find jobs, updates, and community posts</p>
-  </div>
-</header>
+<!-- HERO -->
+<section class="text-center py-12">
+  <h1 class="text-4xl font-extrabold text-blue-700">Find Your Dream Job 🚀</h1>
+  <p class="text-gray-600 mt-2">Government • Private • Community • Updates</p>
+</section>
 
-<!-- Tabs -->
-<div class="max-w-6xl mx-auto px-4 mt-8">
-  <div class="flex gap-4 flex-wrap">
-    <button class="tab px-4 py-2 rounded-xl border border-gray-300" data-tab="featured">Featured Jobs</button>
-    <button class="tab px-4 py-2 rounded-xl border border-gray-300" data-tab="govt">Govt Jobs</button>
-    <button class="tab px-4 py-2 rounded-xl border border-gray-300" data-tab="updates">Updates</button>
-    <button class="tab px-4 py-2 rounded-xl border border-gray-300" data-tab="community">Community</button>
-  </div>
+<!-- TABS -->
+<div class="flex justify-center gap-3 mb-8">
+  <button id="btn-featured" class="tab-btn tab-active" onclick="switchTab('featured')">🔥 Featured</button>
+  <button id="btn-govt" class="tab-btn tab-inactive" onclick="switchTab('govt')">🏛 Govt Jobs</button>
+  <button id="btn-updates" class="tab-btn tab-inactive" onclick="switchTab('updates')">⚡ Updates</button>
+  <button id="btn-community" class="tab-btn tab-inactive" onclick="switchTab('community')">💬 Community</button>
 </div>
 
-<!-- Tab Contents -->
-<div class="max-w-6xl mx-auto px-4 mt-6">
+<!-- CONTENT -->
+<div class="max-w-5xl mx-auto px-4">
 
-  <!-- Featured Jobs -->
   <div id="featured" class="tab-content">
-    <div id="featuredJobs" class="space-y-6"></div>
+    <div id="featured-jobs" class="card divide-y"></div>
   </div>
 
-  <!-- Govt Jobs -->
   <div id="govt" class="tab-content hidden">
-    <div id="govtJobs" class="space-y-6"></div>
-    <div class="text-center mt-6">
-      <a href="govt.html" class="bg-blue-600 text-white px-6 py-2 rounded-xl">View More Govt Jobs</a>
-    </div>
+    <div id="govt-jobs" class="card divide-y"></div>
   </div>
 
-  <!-- Updates -->
   <div id="updates" class="tab-content hidden">
-    <div id="updatesList" class="space-y-4"></div>
+    <div id="latest-updates" class="card divide-y"></div>
   </div>
 
-  <!-- Community -->
   <div id="community" class="tab-content hidden">
-    <div class="mb-6">
-      <button id="newPostBtn" class="bg-blue-600 text-white px-4 py-2 rounded-xl">Post Now</button>
-    </div>
-    <div id="communityPosts" class="space-y-6"></div>
+    <div id="community-posts" class="card divide-y"></div>
   </div>
 
 </div>
 
-<!-- Firebase Firestore -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, query, where, orderBy, getDocs, addDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-const featuredJobsDiv = document.getElementById("featuredJobs");
-const govtJobsDiv = document.getElementById("govtJobs");
-const updatesListDiv = document.getElementById("updatesList");
-const communityPostsDiv = document.getElementById("communityPosts");
-const newPostBtn = document.getElementById("newPostBtn");
-
-// --- Tabs ---
-const tabs = document.querySelectorAll(".tab");
-const tabContents = document.querySelectorAll(".tab-content");
-tabs.forEach(tab=>{
-  tab.addEventListener("click",()=>{
-    tabs.forEach(t=>t.classList.remove("tab-active"));
-    tab.classList.add("tab-active");
-    const target = tab.dataset.tab;
-    tabContents.forEach(c=>c.classList.add("hidden"));
-    document.getElementById(target).classList.remove("hidden");
+<script>
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(e=>{
+    e.classList.remove('tab-active');
+    e.classList.add('tab-inactive');
   });
-});
-
-// --- Load Featured Jobs (only 4) ---
-async function loadFeaturedJobs(){
-  const q=query(collection(db,"jobs"),where("status","==","approved"),orderBy("timestamp","desc"));
-  const snap = await getDocs(q);
-  const jobs = snap.docs.slice(0,4).map(d=>({id:d.id,...d.data()}));
-  featuredJobsDiv.innerHTML="";
-  jobs.forEach(job=>{
-    const logo = job.companyImageUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(job.company||"Company")}`;
-    const div = document.createElement("div");
-    div.className="bg-white p-6 rounded-xl border shadow flex gap-4";
-    div.innerHTML = `
-      <img src="${logo}" class="w-16 h-16 rounded-xl object-cover">
-      <div class="flex-1">
-        <h3 class="font-bold text-lg">${job.title}</h3>
-        <p class="text-sm text-gray-600">${job.company} • ${job.location||"Remote"}</p>
-        <p class="text-blue-600 font-bold">${job.salary||""}</p>
-      </div>
-      <div class="flex flex-col gap-2">
-        <button onclick="viewJob('${job.id}')" class="bg-white border px-4 py-2 rounded">View</button>
-        <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
-      </div>
-    `;
-    featuredJobsDiv.appendChild(div);
-  });
+  document.getElementById(tab).classList.remove('hidden');
+  document.getElementById('btn-'+tab).classList.add('tab-active');
 }
-
-// --- Load Govt Jobs (only 4 for preview) ---
-async function loadGovtJobs(){
-  const q=query(collection(db,"jobs"),where("status","==","approved"),where("type","==","Govt"),orderBy("timestamp","desc"));
-  const snap = await getDocs(q);
-  const jobs = snap.docs.slice(0,4).map(d=>({id:d.id,...d.data()}));
-  govtJobsDiv.innerHTML="";
-  jobs.forEach(job=>{
-    const logo = job.companyImageUrl||`https://ui-avatars.com/api/?name=${encodeURIComponent(job.company||"Company")}`;
-    const div = document.createElement("div");
-    div.className="bg-white p-6 rounded-xl border shadow flex gap-4";
-    div.innerHTML = `
-      <img src="${logo}" class="w-16 h-16 rounded-xl object-cover">
-      <div class="flex-1">
-        <h3 class="font-bold text-lg">${job.title}</h3>
-        <p class="text-sm text-gray-600">${job.company} • ${job.location||"Remote"}</p>
-        <p class="text-blue-600 font-bold">${job.salary||""}</p>
-      </div>
-      <div class="flex flex-col gap-2">
-        <button onclick="viewJob('${job.id}')" class="bg-white border px-4 py-2 rounded">View</button>
-        <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
-      </div>
-    `;
-    govtJobsDiv.appendChild(div);
-  });
-}
-
-// --- Load Updates ---
-async function loadUpdates(){
-  const q=query(collection(db,"updates"),orderBy("timestamp","desc"));
-  const snap = await getDocs(q);
-  updatesListDiv.innerHTML="";
-  snap.docs.slice(0,10).forEach(d=>{
-    const u = d.data();
-    const div = document.createElement("div");
-    div.className="bg-white p-4 rounded-xl shadow";
-    div.innerHTML=`<p class="text-gray-700">${u.title||u.content||""}</p>`;
-    updatesListDiv.appendChild(div);
-  });
-}
-
-// --- Community ---
-async function loadCommunity(){
-  const q=query(collection(db,"community"),orderBy("timestamp","desc"));
-  const snap = await getDocs(q);
-  communityPostsDiv.innerHTML="";
-  snap.docs.forEach(d=>{
-    const p=d.data();
-    const div = document.createElement("div");
-    div.className="bg-white p-6 rounded-xl border shadow";
-    div.innerHTML = `
-      <div class="flex justify-between items-center mb-2">
-        <span class="font-bold">${p.username||"User"}</span>
-        <span class="text-gray-400 text-sm">${p.date||""}</span>
-      </div>
-      <p class="text-gray-700 mb-2">${p.content||""}</p>
-      <div class="flex gap-2">
-        <button onclick="likePost('${d.id}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded">👍 ${p.likes||0}</button>
-        <button onclick="dislikePost('${d.id}')" class="bg-red-100 text-red-700 px-3 py-1 rounded">👎 ${p.dislikes||0}</button>
-      </div>
-    `;
-    communityPostsDiv.appendChild(div);
-  });
-}
-
-// --- Like / Dislike ---
-window.likePost = async id=>{
-  const docRef = doc(db,"community",id);
-  const snap = await getDocs(docRef);
-  const postData = (await docRef.get()).data();
-  const likes = (postData?.likes||0)+1;
-  await updateDoc(docRef,{likes});
-  loadCommunity();
-}
-window.dislikePost = async id=>{
-  const docRef = doc(db,"community",id);
-  const postData = (await docRef.get()).data();
-  const dislikes = (postData?.dislikes||0)+1;
-  await updateDoc(docRef,{dislikes});
-  loadCommunity();
-}
-
-// --- New Post ---
-newPostBtn.addEventListener("click", async ()=>{
-  if(!auth.currentUser){alert("Login to post!"); return;}
-  const content = prompt("Write your post:");
-  if(!content) return;
-  await addDoc(collection(db,"community"),{
-    content,
-    userId:auth.currentUser.uid,
-    username:auth.currentUser.displayName||auth.currentUser.email,
-    date:new Date().toLocaleString(),
-    likes:0,
-    dislikes:0,
-    timestamp:new Date()
-  });
-  loadCommunity();
-});
-
-// --- Redirect functions ---
-window.viewJob = id=>location.href=`job-detail.html?id=${id}`;
-window.applyJob = id=>location.href=`job-detail.html?id=${id}`;
-
-// --- Init ---
-onAuthStateChanged(auth, user=>{
-  if(user){
-    newPostBtn.disabled=false;
-  }
-});
-
-loadFeaturedJobs();
-loadGovtJobs();
-loadUpdates();
-loadCommunity();
 </script>
 
 </body>
