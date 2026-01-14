@@ -1,6 +1,16 @@
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
-const auth = window.firebaseAuth;
+const waitForAuth = () => {
+  return new Promise((resolve) => {
+    const check = () => {
+      if (window.firebaseAuth) resolve(window.firebaseAuth);
+      else setTimeout(check, 100);
+    };
+    check();
+  });
+};
+
+const auth = await waitForAuth();
 
 // Desktop
 const profileBtn = document.getElementById("profileBtn");
@@ -24,10 +34,8 @@ menuBtn.addEventListener("click", () => {
   mobileMenu.classList.toggle("hidden");
 });
 
-// Auth state
 onAuthStateChanged(auth, (user) => {
   if (user && !user.isAnonymous) {
-
     // Desktop
     loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
@@ -62,7 +70,6 @@ logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "login.html";
 });
-
 mLogoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "login.html";
