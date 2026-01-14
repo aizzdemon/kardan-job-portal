@@ -1,86 +1,69 @@
-// navbar.js
-document.addEventListener("DOMContentLoaded", () => {
-  // DOM Elements
-  const loginBtn = document.getElementById("loginBtn");
-  const signupBtn = document.getElementById("signupBtn");
-  const profileBtn = document.getElementById("profileBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
-  const adminBtn = document.getElementById("adminBtn");
-  const userName = document.getElementById("userName");
-  const userPhoto = document.getElementById("userPhoto");
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
-  const mLoginBtn = document.getElementById("mLoginBtn");
-  const mSignupBtn = document.getElementById("mSignupBtn");
-  const mProfileBtn = document.getElementById("mProfileBtn");
-  const mLogoutBtn = document.getElementById("mLogoutBtn");
+const auth = window.firebaseAuth;
 
-  const menuBtn = document.getElementById("menuBtn");
-  const mobileMenu = document.getElementById("mobileMenu");
+// Desktop
+const profileBtn = document.getElementById("profileBtn");
+const profilePic = document.getElementById("profilePic");
+const profileName = document.getElementById("profileName");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
-  // Toggle mobile menu
-  menuBtn.addEventListener("click", () => {
-    mobileMenu.classList.toggle("hidden");
-  });
+// Mobile
+const mProfileBtn = document.getElementById("mProfileBtn");
+const mProfilePic = document.getElementById("mProfilePic");
+const mProfileName = document.getElementById("mProfileName");
+const mLoginBtn = document.getElementById("mLoginBtn");
+const mLogoutBtn = document.getElementById("mLogoutBtn");
 
-  // Check user login state
-  if (!window.auth) {
-    console.error("Firebase auth not initialized! Make sure you set window.auth in index.html");
-    return;
+// Menu
+const menuBtn = document.getElementById("menuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+
+menuBtn.addEventListener("click", () => {
+  mobileMenu.classList.toggle("hidden");
+});
+
+// Auth state
+onAuthStateChanged(auth, (user) => {
+  if (user && !user.isAnonymous) {
+
+    // Desktop
+    loginBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+    profileBtn.classList.remove("hidden");
+
+    profileName.textContent = user.displayName || "User";
+    profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`;
+
+    // Mobile
+    mLoginBtn.classList.add("hidden");
+    mLogoutBtn.classList.remove("hidden");
+    mProfileBtn.classList.remove("hidden");
+
+    mProfileName.textContent = user.displayName || "User";
+    mProfilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}`;
+
+  } else {
+    // Desktop
+    loginBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+    profileBtn.classList.add("hidden");
+
+    // Mobile
+    mLoginBtn.classList.remove("hidden");
+    mLogoutBtn.classList.add("hidden");
+    mProfileBtn.classList.add("hidden");
   }
+});
 
-  window.auth.onAuthStateChanged(user => {
-    if (user) {
-      // Logged-in
-      loginBtn.classList.add("hidden");
-      signupBtn.classList.add("hidden");
-      profileBtn.classList.remove("hidden");
-      logoutBtn.classList.remove("hidden");
-      userName.textContent = user.displayName || "User";
-      userName.classList.remove("hidden");
-      userPhoto.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || "User"}`;
-      userPhoto.classList.remove("hidden");
+// Logout
+logoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "login.html";
+});
 
-      // Mobile menu
-      mLoginBtn.classList.add("hidden");
-      mSignupBtn.classList.add("hidden");
-      mProfileBtn.classList.remove("hidden");
-      mLogoutBtn.classList.remove("hidden");
-
-      // Admin check (replace with your UID)
-      const adminUID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
-      if (user.uid === adminUID) {
-        adminBtn.classList.remove("hidden");
-      } else {
-        adminBtn.classList.add("hidden");
-      }
-    } else {
-      // Logged-out
-      loginBtn.classList.remove("hidden");
-      signupBtn.classList.remove("hidden");
-      profileBtn.classList.add("hidden");
-      logoutBtn.classList.add("hidden");
-      userName.classList.add("hidden");
-      userPhoto.classList.add("hidden");
-      adminBtn.classList.add("hidden");
-
-      // Mobile menu
-      mLoginBtn.classList.remove("hidden");
-      mSignupBtn.classList.remove("hidden");
-      mProfileBtn.classList.add("hidden");
-      mLogoutBtn.classList.add("hidden");
-    }
-  });
-
-  // Logout action
-  logoutBtn.addEventListener("click", () => {
-    window.auth.signOut().then(() => {
-      location.reload();
-    });
-  });
-
-  mLogoutBtn.addEventListener("click", () => {
-    window.auth.signOut().then(() => {
-      location.reload();
-    });
-  });
+mLogoutBtn.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "login.html";
 });
