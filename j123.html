@@ -61,7 +61,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     </a>`;
   });
 
-  // GOVT
+  // GOVT JOBS
   const g = await getDocs(query(collection(db,"govtJobs"), orderBy("timestamp","desc"), limit(4)));
   govt.innerHTML="";
   g.forEach(d=>{
@@ -73,10 +73,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   updates.innerHTML="";
   u.forEach(d=>{
     const x=d.data();
-    updates.innerHTML+=`<a href="${x.url}" target="_blank" class="block p-4 border-b">${x.title}</a>`;
+    updates.innerHTML+=`<a href="${x.url}" target="_blank" class="block p-4 border-b hover:bg-gray-50">${x.title}</a>`;
   });
 
-  // COMMUNITY
+  // COMMUNITY POSTS
   const c = await getDocs(query(collection(db,"communityPosts"), orderBy("timestamp","desc"), limit(4)));
   community.innerHTML="";
   c.forEach(d=>{
@@ -92,7 +92,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 </script>
 
 <style>
-.tab-button{padding:.5rem 1rem;border-radius:.5rem;font-weight:bold}
+.tab-button{padding:.5rem 1rem;border-radius:.5rem;font-weight:bold;cursor:pointer}
 .tab-active{background:#3B82F6;color:white}
 .tab-inactive{background:#E5E7EB;color:#555}
 </style>
@@ -102,13 +102,19 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 <!-- Navbar -->
 <div id="navbar"></div>
-<script>
-fetch("navbar.html").then(r=>r.text()).then(html=>{
-  document.getElementById("navbar").innerHTML=html;
-  const s=document.createElement("script");
-  s.type="module"; s.src="navbar.js"; document.body.appendChild(s);
-});
+<script type="module">
+(async () => {
+  const html = await fetch("navbar.html").then(r => r.text());
+  document.getElementById("navbar").innerHTML = html;
+  import("./navbar.js");
+})();
 </script>
+
+<!-- Intro Section -->
+<div class="max-w-7xl mx-auto mt-6 p-6 bg-gradient-to-r from-blue-100 to-blue-50 rounded shadow text-center">
+  <h1 class="text-3xl font-bold text-gray-800">BooterSpace</h1>
+  <p class="text-gray-600 mt-2">Explore your career opportunities and community posts</p>
+</div>
 
 <!-- Tabs -->
 <div class="max-w-7xl mx-auto mt-6 flex justify-center gap-3">
@@ -118,7 +124,7 @@ fetch("navbar.html").then(r=>r.text()).then(html=>{
   <div id="btn-community" class="tab-button tab-inactive" onclick="switchTab('community')">Community</div>
 </div>
 
-<main class="max-w-7xl mx-auto p-4">
+<main class="max-w-7xl mx-auto p-4 space-y-4">
   <div id="featured" class="tab-content"><div id="featured-jobs" class="bg-white rounded shadow"></div></div>
   <div id="govt" class="tab-content hidden"><div id="govt-jobs" class="bg-white rounded shadow"></div></div>
   <div id="updates" class="tab-content hidden"><div id="latest-updates" class="bg-white rounded shadow"></div></div>
@@ -128,11 +134,16 @@ fetch("navbar.html").then(r=>r.text()).then(html=>{
 <script>
 function switchTab(tab){
   document.querySelectorAll(".tab-content").forEach(e=>e.classList.add("hidden"));
-  document.querySelectorAll(".tab-button").forEach(e=>e.classList.replace("tab-active","tab-inactive"));
+  document.querySelectorAll(".tab-button").forEach(e=>{
+    e.classList.remove("tab-active");
+    e.classList.add("tab-inactive");
+  });
   document.getElementById(tab).classList.remove("hidden");
-  document.getElementById("btn-"+tab).classList.replace("tab-inactive","tab-active");
+  document.getElementById("btn-"+tab).classList.remove("tab-inactive");
+  document.getElementById("btn-"+tab).classList.add("tab-active");
 }
 </script>
 
 </body>
 </html>
+
