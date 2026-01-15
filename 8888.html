@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase Init (GLOBAL for navbar.js + all pages) -->
+<!-- 🔥 Firebase Init (ONE time, global) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
@@ -21,18 +21,18 @@ const firebaseConfig = {
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
-const app = initializeApp(firebaseConfig);
-window.auth = getAuth(app);
-window.db = getFirestore(app);
+// ✅ Expose globally
+window.app = initializeApp(firebaseConfig);
+window.auth = getAuth(window.app);
+window.db = getFirestore(window.app);
 </script>
 
 <!-- Page Data Loader -->
 <script type="module">
 import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-const db = window.db;
-
 window.addEventListener("DOMContentLoaded", async () => {
+  const db = window.db;
 
   const featured = document.getElementById("featured-jobs");
   const govt = document.getElementById("govt-jobs");
@@ -40,27 +40,27 @@ window.addEventListener("DOMContentLoaded", async () => {
   const community = document.getElementById("community-posts");
 
   // Featured Jobs
-  const q1 = query(collection(db,"jobs"), where("status","==","approved"), orderBy("timestamp","desc"), limit(4));
-  const s1 = await getDocs(q1);
+  const s1 = await getDocs(
+    query(collection(db,"jobs"), where("status","==","approved"), orderBy("timestamp","desc"), limit(4))
+  );
   featured.innerHTML="";
   s1.forEach(d=>{
     const j=d.data();
-    featured.innerHTML+=`<a href="job-detail.html?id=${d.id}" class="block p-4 border-b hover:bg-blue-50">
-      <b>${j.title}</b><p class="text-xs">${j.company}</p></a>`;
+    featured.innerHTML+=`
+    <a href="job-detail.html?id=${d.id}" class="block p-4 border-b hover:bg-blue-50">
+      <b>${j.title}</b><p class="text-xs">${j.company}</p>
+    </a>`;
   });
 
   // Govt Jobs
-  const q2 = query(collection(db,"govtJobs"), orderBy("timestamp","desc"), limit(4));
-  const s2 = await getDocs(q2);
+  const s2 = await getDocs(query(collection(db,"govtJobs"), orderBy("timestamp","desc"), limit(4)));
   govt.innerHTML="";
   s2.forEach(d=>{
-    const j=d.data();
-    govt.innerHTML+=`<div class="p-4 border-b"><b>${j.title}</b></div>`;
+    govt.innerHTML+=`<div class="p-4 border-b"><b>${d.data().title}</b></div>`;
   });
 
   // Updates
-  const q3 = query(collection(db,"flashLinks"), orderBy("timestamp","desc"), limit(4));
-  const s3 = await getDocs(q3);
+  const s3 = await getDocs(query(collection(db,"flashLinks"), orderBy("timestamp","desc"), limit(4)));
   updates.innerHTML="";
   s3.forEach(d=>{
     const j=d.data();
@@ -68,17 +68,17 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Community
-  const q4 = query(collection(db,"communityPosts"), orderBy("timestamp","desc"), limit(4));
-  const s4 = await getDocs(q4);
+  const s4 = await getDocs(query(collection(db,"communityPosts"), orderBy("timestamp","desc"), limit(4)));
   community.innerHTML="";
   s4.forEach(d=>{
     const j=d.data();
-    community.innerHTML+=`<div class="p-4 border-b">
-      <b>${j.userName}</b><p>${j.content}</p>
+    community.innerHTML+=`
+    <div class="p-4 border-b">
+      <b>${j.userName}</b>
+      <p>${j.content}</p>
       👍${j.likes||0} 👎${j.dislikes||0}
     </div>`;
   });
-
 });
 </script>
 
@@ -97,7 +97,9 @@ window.addEventListener("DOMContentLoaded", async () => {
 fetch("navbar.html").then(r=>r.text()).then(html=>{
   document.getElementById("navbar").innerHTML=html;
   const s=document.createElement("script");
-  s.type="module"; s.src="navbar.js"; document.body.appendChild(s);
+  s.type="module"; 
+  s.src="navbar.js"; 
+  document.body.appendChild(s);
 });
 </script>
 
@@ -126,3 +128,4 @@ function switchTab(tab){
 
 </body>
 </html>
+
