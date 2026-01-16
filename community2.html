@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase -->
+<!-- 🔥 Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
@@ -25,18 +25,20 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
 
 let currentUser = null;
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(window.auth, (user) => {
   currentUser = user;
   loadPosts();
 });
 
+/* ---------- POST ---------- */
 window.postContent = async () => {
   if (!currentUser) return alert("Login required");
+
   const text = document.getElementById("postText").value.trim();
   if (!text) return;
 
@@ -54,6 +56,7 @@ window.postContent = async () => {
   loadPosts();
 };
 
+/* ---------- LOAD POSTS ---------- */
 async function loadPosts() {
   const wrap = document.getElementById("posts");
   wrap.innerHTML = "Loading...";
@@ -65,11 +68,14 @@ async function loadPosts() {
   for (const d of snap.docs) {
     const p = d.data();
     const avatar = p.userPhoto || `https://ui-avatars.com/api/?name=${p.userName}`;
-    const reactedDoc = currentUser
-      ? await getDoc(doc(db, "communityPosts", d.id, "reactions", currentUser.uid))
-      : null;
 
-    const reacted = reactedDoc?.exists() ? reactedDoc.data().type : null;
+    let reacted = null;
+    if (currentUser) {
+      const rSnap = await getDoc(
+        doc(db, "communityPosts", d.id, "reactions", currentUser.uid)
+      );
+      if (rSnap.exists()) reacted = rSnap.data().type;
+    }
 
     wrap.innerHTML += `
       <div class="bg-white p-4 rounded-xl shadow border">
@@ -78,30 +84,35 @@ async function loadPosts() {
           <img src="${avatar}" class="w-10 h-10 rounded-full cursor-pointer"
             onclick="openProfile('${p.userId}')" />
           <div>
-            <p onclick="openProfile('${p.userId}')" class="font-semibold text-sm cursor-pointer hover:underline">
-              ${p.userName}
+            <p class="font-semibold text-sm cursor-pointer hover:underline"
+              onclick="openProfile('${p.userId}')">${p.userName}</p>
+            <p class="text-xs text-gray-500">
+              ${p.timestamp?.toDate().toLocaleString() || ""}
             </p>
-            <p class="text-xs text-gray-500">${p.timestamp?.toDate().toLocaleString() || ""}</p>
           </div>
         </div>
 
         <p class="text-sm mb-3">${p.content}</p>
 
         <div class="flex gap-6 text-lg">
-          <button onclick="react('${d.id}','like')" class="${reacted==='like'?'text-red-600':''}">
-            ❤️ <span class="text-sm">${p.likesCount}</span>
+          <button onclick="react('${d.id}','like')"
+            class="${reacted==='like' ? 'text-red-600' : ''}">
+            ❤️ <span class="text-sm">${p.likesCount ?? 0}</span>
           </button>
-          <button onclick="react('${d.id}','dislike')" class="${reacted==='dislike'?'text-gray-600':''}">
-            👎 <span class="text-sm">${p.dislikesCount}</span>
+
+          <button onclick="react('${d.id}','dislike')"
+            class="${reacted==='dislike' ? 'text-gray-600' : ''}">
+            👎 <span class="text-sm">${p.dislikesCount ?? 0}</span>
           </button>
         </div>
 
-        <!-- Comments -->
+        <!-- COMMENTS -->
         <div class="mt-3">
-          <input id="c-${d.id}" class="w-full border rounded p-2 text-sm"
+          <input id="c-${d.id}"
+            class="w-full border rounded p-2 text-sm"
             placeholder="Write a comment..."
             onkeydown="if(event.key==='Enter') addComment('${d.id}')" />
-          <div id="comments-${d.id}" class="mt-2 space-y-2 text-sm text-gray-700"></div>
+          <div id="comments-${d.id}" class="mt-2 space-y-2"></div>
         </div>
 
       </div>
@@ -111,18 +122,16 @@ async function loadPosts() {
   }
 }
 
+/* ---------- REACT ---------- */
 window.react = async (postId, type) => {
   if (!currentUser) return alert("Login required");
 
   const ref = doc(db, "communityPosts", postId, "reactions", currentUser.uid);
-  const snap = await getDoc(ref);
-
-  if (snap.exists()) return; // prevent multiple reactions
+  if ((await getDoc(ref)).exists()) return;
 
   await setDoc(ref, { type });
 
-  const postRef = doc(db, "communityPosts", postId);
-  await updateDoc(postRef, {
+  await updateDoc(doc(db, "communityPosts", postId), {
     likesCount: type === "like" ? increment(1) : increment(0),
     dislikesCount: type === "dislike" ? increment(1) : increment(0)
   });
@@ -130,8 +139,10 @@ window.react = async (postId, type) => {
   loadPosts();
 };
 
+/* ---------- COMMENTS ---------- */
 window.addComment = async (postId) => {
   if (!currentUser) return;
+
   const input = document.getElementById(`c-${postId}`);
   if (!input.value.trim()) return;
 
@@ -152,23 +163,25 @@ async function loadComments(postId) {
   const snap = await getDocs(
     query(collection(db, "communityPosts", postId, "comments"), orderBy("timestamp"))
   );
+
   box.innerHTML = snap.docs.map(d => {
     const c = d.data();
     const av = c.userPhoto || `https://ui-avatars.com/api/?name=${c.userName}`;
     return `
-      <div class="flex items-start gap-2">
+      <div class="flex gap-2 text-sm">
         <img src="${av}" class="w-6 h-6 rounded-full cursor-pointer"
           onclick="openProfile('${c.userId}')" />
         <div>
-          <b class="text-xs cursor-pointer hover:underline"
+          <b class="cursor-pointer hover:underline"
             onclick="openProfile('${c.userId}')">${c.userName}</b>
-          <p class="text-xs">${c.text}</p>
+          <p>${c.text}</p>
         </div>
       </div>
     `;
   }).join("");
 }
 
+/* ---------- PROFILE ---------- */
 window.openProfile = (uid) => {
   window.location.href = `profile.html?uid=${uid}`;
 };
@@ -177,8 +190,24 @@ window.openProfile = (uid) => {
 
 <body class="bg-gray-100">
 
+<!-- 🔥 NAVBAR INJECTION -->
+<div id="navbar"></div>
+<script>
+fetch("navbar.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("navbar").innerHTML = html;
+    const s = document.createElement("script");
+    s.type = "module";
+    s.src = "navbar.js";
+    document.body.appendChild(s);
+  });
+</script>
+
 <header class="bg-white border-b py-10 text-center">
-  <h1 class="text-3xl font-black">Booter<span class="text-blue-600">Space</span></h1>
+  <h1 class="text-3xl font-black">
+    Booter<span class="text-blue-600">Space</span>
+  </h1>
   <p class="text-xl font-semibold text-gray-700 mt-1">Community</p>
   <p class="text-sm text-gray-500">Connect, share ideas, and grow together</p>
 </header>
