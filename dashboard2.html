@@ -45,20 +45,8 @@
 </head>
 <body class="bg-gray-100">
 
-<!-- Navbar -->
-<div id="navbar"></div>
-<script>
-    fetch("navbar.html")
-        .then(r => r.text())
-        .then(html => {
-            document.getElementById("navbar").innerHTML = html;
-            const s = document.createElement("script");
-            s.type = "module";
-            s.src = "navbar.js";
-            document.body.appendChild(s);
-        })
-        .catch(err => console.warn("Navbar loading failed. Ensure navbar.html exists.", err));
-</script>
+<!-- Navbar Container -->
+<div id="navbar-placeholder"></div>
 
 <!-- Header -->
 <section class="text-center my-6">
@@ -193,8 +181,9 @@
 </footer>
 
 <script>
-/* Firebase Configuration */
-const firebaseConfig = {
+/* Global Variables for Firestore Paths */
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'booterspace-job-portal';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
     apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
     authDomain: "kar-kardan.firebaseapp.com",
     projectId: "kar-kardan",
@@ -212,24 +201,85 @@ let allJobs = [];
 const JOB_LIMIT = 10;
 let jobsToShow = JOB_LIMIT;
 
-/* Utility */
 const $id = (id) => document.getElementById(id);
 
+/* Load External Navbar */
+async function loadNavbar() {
+    try {
+        const response = await fetch("navbar.html");
+        const html = await response.text();
+        document.getElementById("navbar-placeholder").innerHTML = html;
+        
+        // After loading HTML, we need to load navbar.js for interactivity
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "navbar.js";
+        document.body.appendChild(script);
+
+        // Re-run the auth UI update once navbar elements exist
+        if (auth.currentUser) {
+            // Give a small delay for DOM to settle
+            setTimeout(() => updateNavbarUI(auth.currentUser), 100);
+        }
+    } catch (err) {
+        console.error("Failed to load navbar:", err);
+    }
+}
+
+// Function to update dynamic auth links inside the loaded navbar
+function updateNavbarUI(user) {
+    const desktopAuth = $id('auth-links-desktop');
+    const mobileAuth = $id('auth-links-mobile');
+    
+    if (!desktopAuth || !mobileAuth) return;
+
+    if (user) {
+        desktopAuth.innerHTML = `
+            <a href="dashboard.html" class="text-blue-600 font-bold">Dashboard</a>
+            <button onclick="logout()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">Logout</button>
+        `;
+        mobileAuth.innerHTML = `
+            <a href="dashboard.html" class="block py-2 text-blue-600 font-bold">Dashboard</a>
+            <button onclick="logout()" class="block w-full text-left py-2 text-red-600 font-medium">Logout</button>
+        `;
+    }
+}
+
+window.logout = () => {
+    auth.signOut().then(() => {
+        window.location.href = 'index.html';
+    });
+};
+
 /* Auth Guard & Initialization */
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async (user) => {
+    updateNavbarUI(user);
     if (!user) {
-        window.location.href = 'login.html';
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            try {
+                await auth.signInWithCustomToken(__initial_auth_token);
+            } catch (e) {
+                console.error("Auth error", e);
+                window.location.href = 'login.html';
+            }
+        } else {
+             window.location.href = 'login.html';
+        }
         return;
     }
     loadProfile(user);
     loadJobs(user.uid);
 });
 
+/* Paths following MANDATORY RULE 1 */
+const getProfileDoc = (uid) => db.collection('artifacts').doc(appId).collection('users').doc(uid).collection('profile').doc('info');
+const getJobsCollection = () => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('jobs');
+
 /* Profile Handling */
 function loadProfile(user) {
-    if ($id('profileEmail')) $id('profileEmail').value = user.email || '';
-    db.collection('users').doc(user.uid).get().then(doc => {
-        let name = (user.email || '').split('@')[0];
+    if ($id('profileEmail')) $id('profileEmail').value = user.email || 'Anonymous';
+    getProfileDoc(user.uid).get().then(doc => {
+        let name = (user.email || 'User').split('@')[0];
         if (doc.exists) {
             const data = doc.data();
             name = data.fullName || name;
@@ -238,22 +288,27 @@ function loadProfile(user) {
             $id('profileEducation').value = data.education || '';
         }
         $id('userName').innerText = name;
-        $id('userEmail').innerText = user.email;
-    });
+        $id('userEmail').innerText = user.email || 'Anonymous Access';
+    }).catch(err => console.error("Error loading profile:", err));
 }
 
 $id('profileBtn').onclick = () => $id('profilePopup').style.display = 'flex';
 $id('profileForm').onsubmit = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
-    await db.collection('users').doc(user.uid).set({
-        fullName: $id('profileName').value,
-        experience: $id('profileExperience').value,
-        education: $id('profileEducation').value,
-        email: user.email
-    }, { merge: true });
-    $id('profilePopup').style.display = 'none';
-    loadProfile(user);
+    if (!user) return;
+    try {
+        await getProfileDoc(user.uid).set({
+            fullName: $id('profileName').value,
+            experience: $id('profileExperience').value,
+            education: $id('profileEducation').value,
+            email: user.email || 'anonymous'
+        }, { merge: true });
+        $id('profilePopup').style.display = 'none';
+        loadProfile(user);
+    } catch (err) {
+        console.error("Error saving profile:", err);
+    }
 };
 
 /* Job Management */
@@ -261,6 +316,8 @@ $id('postJobBtn').onclick = () => $id('postJobPopup').style.display = 'flex';
 $id('postJobForm').onsubmit = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
+    if (!user) return;
+    
     const jobData = {
         title: $id('jobTitle').value,
         companyName: $id('jobCompanyName').value,
@@ -274,56 +331,78 @@ $id('postJobForm').onsubmit = async (e) => {
         postedBy: user.uid,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
-    await db.collection('jobs').add(jobData);
-    $id('postJobPopup').style.display = 'none';
-    $id('postJobForm').reset();
+    
+    try {
+        await getJobsCollection().add(jobData);
+        $id('postJobPopup').style.display = 'none';
+        $id('postJobForm').reset();
+    } catch (err) {
+        console.error("Error posting job:", err);
+    }
 };
 
 window.openEditJobPopup = async (jobId) => {
-    const doc = await db.collection('jobs').doc(jobId).get();
-    const job = doc.data();
-    $id('editJobId').value = jobId;
-    $id('editJobTitle').value = job.title;
-    $id('editJobCompanyName').value = job.companyName;
-    $id('editJobEmploymentType').value = job.employmentType;
-    $id('editJobSalary').value = job.salary;
-    $id('editJobLocation').value = job.location;
-    $id('editJobApplyLink').value = job.applyLink;
-    $id('editJobCompanyImageUrl').value = job.companyImageUrl;
-    $id('editJobJobImageUrl').value = job.jobImageUrl;
-    $id('editJobDetails').value = job.details;
-    $id('editJobPopup').style.display = 'flex';
+    try {
+        const doc = await getJobsCollection().doc(jobId).get();
+        const job = doc.data();
+        $id('editJobId').value = jobId;
+        $id('editJobTitle').value = job.title;
+        $id('editJobCompanyName').value = job.companyName;
+        $id('editJobEmploymentType').value = job.employmentType;
+        $id('editJobSalary').value = job.salary;
+        $id('editJobLocation').value = job.location;
+        $id('editJobApplyLink').value = job.applyLink;
+        $id('editJobCompanyImageUrl').value = job.companyImageUrl;
+        $id('editJobJobImageUrl').value = job.jobImageUrl;
+        $id('editJobDetails').value = job.details;
+        $id('editJobPopup').style.display = 'flex';
+    } catch (err) {
+        console.error("Error opening edit popup:", err);
+    }
 };
 
 $id('editJobForm').onsubmit = async (e) => {
     e.preventDefault();
     const id = $id('editJobId').value;
-    await db.collection('jobs').doc(id).update({
-        title: $id('editJobTitle').value,
-        companyName: $id('editJobCompanyName').value,
-        employmentType: $id('editJobEmploymentType').value,
-        salary: $id('editJobSalary').value,
-        location: $id('editJobLocation').value,
-        applyLink: $id('editJobApplyLink').value,
-        companyImageUrl: $id('editJobCompanyImageUrl').value,
-        jobImageUrl: $id('editJobJobImageUrl').value,
-        details: $id('editJobDetails').value
-    });
-    $id('editJobPopup').style.display = 'none';
+    try {
+        await getJobsCollection().doc(id).update({
+            title: $id('editJobTitle').value,
+            companyName: $id('editJobCompanyName').value,
+            employmentType: $id('editJobEmploymentType').value,
+            salary: $id('editJobSalary').value,
+            location: $id('editJobLocation').value,
+            applyLink: $id('editJobApplyLink').value,
+            companyImageUrl: $id('editJobCompanyImageUrl').value,
+            jobImageUrl: $id('editJobJobImageUrl').value,
+            details: $id('editJobDetails').value
+        });
+        $id('editJobPopup').style.display = 'none';
+    } catch (err) {
+        console.error("Error updating job:", err);
+    }
 };
 
 async function deleteJob(id) {
     if (confirm("Delete this posting?")) {
-        await db.collection('jobs').doc(id).delete();
+        try {
+            await getJobsCollection().doc(id).delete();
+        } catch (err) {
+            console.error("Error deleting job:", err);
+        }
     }
 }
 
 /* Rendering */
 function loadJobs(uid) {
-    db.collection('jobs').where('postedBy', '==', uid).onSnapshot(snap => {
-        allJobs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    getJobsCollection().onSnapshot(snap => {
+        allJobs = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(job => job.postedBy === uid)
             .sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
         renderJobs();
+    }, (error) => {
+        console.error("Snapshot error:", error);
+        $id('jobsList').innerHTML = `<p class='text-red-500 text-center py-8'>Permission Error: ${error.message}</p>`;
     });
 }
 
@@ -340,28 +419,34 @@ function renderJobs() {
 
     slice.forEach(job => {
         const item = document.createElement('div');
-        item.className = "border p-4 rounded-lg bg-gray-50 flex flex-wrap justify-between items-center gap-4";
+        item.className = "border p-4 rounded-lg bg-gray-50 flex flex-wrap justify-between items-center gap-4 shadow-sm";
         item.innerHTML = `
             <div>
                 <h5 class="font-bold text-lg">${job.title}</h5>
                 <p class="text-gray-600 text-sm">${job.companyName} • ${job.location}</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openEditJobPopup('${job.id}')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200">Edit</button>
-                <button onclick="deleteJob('${job.id}')" class="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200">Delete</button>
+                <button onclick="openEditJobPopup('${job.id}')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition">Edit</button>
+                <button onclick="deleteJob('${job.id}')" class="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition">Delete</button>
             </div>
         `;
         list.appendChild(item);
     });
 
     $id('loadMoreContainer').style.display = allJobs.length > jobsToShow ? 'block' : 'none';
-    $id('loadMoreBtn').innerText = `Load More (${allJobs.length - jobsToShow} left)`;
+    if ($id('loadMoreBtn')) {
+        $id('loadMoreBtn').innerText = `Load More (${allJobs.length - jobsToShow} left)`;
+    }
 }
 
 window.loadMoreJobs = () => {
     jobsToShow += JOB_LIMIT;
     renderJobs();
 };
+
+// Initialize navbar load
+window.addEventListener('DOMContentLoaded', loadNavbar);
+
 </script>
 </body>
 </html>
