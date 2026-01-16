@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Community - BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Firebase Init -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
+
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+</script>
+
+<!-- Community Logic -->
+<script type="module">
+import {
+  collection, addDoc, query, orderBy, getDocs, doc, updateDoc, increment
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+const auth = window.auth;
+const db = window.db;
+
+let currentUser = null;
+
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  loadPosts();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("postBtn").addEventListener("click", async () => {
+    if (!currentUser) {
+      alert("Please login to post");
+      return;
+    }
+
+    const content = document.getElementById("postContent").value.trim();
+    if (!content) return alert("Write something!");
+
+    await addDoc(collection(db, "communityPosts"), {
+      content,
+      userName: currentUser.displayName || "User",
+      userId: currentUser.uid,
+      timestamp: new Date(),
+      likes: 0,
+      dislikes: 0
+    });
+
+    document.getElementById("postContent").value = "";
+    loadPosts();
+  });
+});
+
+async function loadPosts() {
+  const container = document.getElementById("community-posts");
+  container.innerHTML = "Loading...";
+
+  const q = query(collection(db, "communityPosts"), orderBy("timestamp", "desc"));
+  const snap = await getDocs(q);
+  container.innerHTML = "";
+
+  snap.forEach(d => {
+    const p = d.data();
+    const date = p.timestamp?.toDate().toLocaleString() || "";
+
+    container.innerHTML += `
+      <div class="bg-white p-4 rounded-xl shadow border">
+        <div class="flex justify-between text-xs mb-1">
+          <b>${p.userName}</b>
+          <span>${date}</span>
+        </div>
+        <p class="text-sm mb-3">${p.content}</p>
+
+        <!-- 🔥 ICON SIZE INCREASED HERE -->
+        <div class="flex gap-6 text-lg">
+          <button onclick="likePost('${d.id}')" class="flex items-center gap-1 hover:text-blue-600 transition">
+            👍 <span class="text-sm">${p.likes || 0}</span>
+          </button>
+          <button onclick="dislikePost('${d.id}')" class="flex items-center gap-1 hover:text-red-600 transition">
+            👎 <span class="text-sm">${p.dislikes || 0}</span>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+window.likePost = async (id) => {
+  if (!currentUser) return alert("Login required");
+  await updateDoc(doc(db, "communityPosts", id), { likes: increment(1) });
+  loadPosts();
+};
+
+window.dislikePost = async (id) => {
+  if (!currentUser) return alert("Login required");
+  await updateDoc(doc(db, "communityPosts", id), { dislikes: increment(1) });
+  loadPosts();
+};
+</script>
+
+</head>
+<body class="bg-gray-100">
+
+<!-- Navbar -->
+<div id="navbar"></div>
+<script>
+fetch("navbar.html")
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById("navbar").innerHTML = html;
+    const s = document.createElement("script");
+    s.type = "module";
+    s.src = "navbar.js";
+    document.body.appendChild(s);
+  });
+</script>
+
+<div class="max-w-4xl mx-auto mt-10 px-4">
+
+<h1 class="text-3xl font-bold mb-4 text-center">Community</h1>
+
+<div class="bg-white p-4 rounded-xl shadow mb-4">
+  <textarea id="postContent" class="w-full p-3 border rounded" placeholder="Share something..."></textarea>
+  <button id="postBtn" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded">Post</button>
+</div>
+
+<div id="community-posts" class="space-y-3"></div>
+
+</div>
+
+</body>
+</html>
