@@ -1,132 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard - BooterSpace Job Portal</title>
-
+<meta charset="UTF-8">
+<title>Dashboard - BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Firebase Compat SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 body { font-family: 'Inter', sans-serif; }
 
-.popup-overlay {
-	position: fixed;
-	inset: 0;
-	background: rgba(0,0,0,0.7);
-	display: none;
-	align-items: center;
-	justify-content: center;
-	z-index: 50;
-	backdrop-filter: blur(3px);
-	overflow-y: auto;
-	padding: 20px 0;
+.popup-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:flex-start;
+  justify-content:center;
+  overflow-y:auto;
+  padding:40px 10px;
+  z-index:50;
 }
-.popup {
-	background: white;
-	border-radius: 1rem;
-	box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-	padding: 2rem;
-	width: 95%;
-	max-width: 600px;
-	margin: auto;
+.popup{
+  background:#fff;
+  width:100%;
+  max-width:600px;
+  border-radius:16px;
+  padding:24px;
 }
 </style>
 </head>
 
 <body class="bg-gray-100">
 
-<!-- Navbar -->
 <div id="navbar"></div>
 <script>
-fetch("navbar.html")
-  .then(res => res.text())
-  .then(html => document.getElementById("navbar").innerHTML = html);
+fetch("navbar.html").then(r=>r.text()).then(d=>navbar.innerHTML=d)
 </script>
 
 <section class="text-center my-6">
-	<h2 class="text-3xl font-bold">Dashboard</h2>
-	<p>👋 Welcome, <span id="userName">Loading...</span></p>
-	<p id="userEmail"></p>
+  <h2 class="text-3xl font-bold">Dashboard</h2>
+  <p>👋 Welcome, <span id="userName"></span></p>
+  <p id="userEmail" class="text-sm text-gray-500"></p>
 </section>
 
-<!-- ================= FIREBASE ================= -->
-<script>
+<div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-6 px-4 mb-20">
+
+<!-- LEFT -->
+<div class="md:w-1/3 space-y-4">
+
+<div class="bg-white p-5 rounded-xl shadow text-center">
+<button id="profileBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg">Edit Profile</button>
+</div>
+
+<div class="bg-white p-5 rounded-xl shadow text-center">
+<button id="postJobBtn" class="bg-yellow-500 text-white px-4 py-2 rounded-lg">Post Job</button>
+</div>
+
+</div>
+
+<!-- RIGHT -->
+<div class="md:w-2/3 bg-white p-6 rounded-xl shadow">
+<h3 class="text-xl font-bold mb-4">Your Posted Jobs</h3>
+<div id="jobsList"></div>
+</div>
+
+</div>
+
+<!-- PROFILE POPUP -->
+<div id="profilePopup" class="popup-overlay">
+<div class="popup">
+<h3 class="font-bold text-xl mb-4">Edit Profile</h3>
+<form id="profileForm" class="space-y-3">
+<input id="profileName" class="w-full border p-2 rounded" placeholder="Name" required>
+<input id="profileEmail" disabled class="w-full border p-2 rounded bg-gray-100">
+<input id="profileExperience" class="w-full border p-2 rounded" placeholder="Experience">
+<input id="profileEducation" class="w-full border p-2 rounded" placeholder="Education">
+<div class="flex justify-between">
+<button class="bg-green-600 text-white px-4 py-2 rounded">Save</button>
+<button type="button" onclick="closePopup('profilePopup')" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- POST JOB POPUP -->
+<div id="postJobPopup" class="popup-overlay">
+<div class="popup">
+<h3 class="font-bold text-xl mb-4">Post Job</h3>
+<form id="postJobForm" class="space-y-3">
+<input id="jobTitle" class="w-full border p-2 rounded" placeholder="Job Title" required>
+<input id="jobCompanyName" class="w-full border p-2 rounded" placeholder="Company" required>
+<input id="jobLocation" class="w-full border p-2 rounded" placeholder="Location" required>
+<input id="jobApplyLink" class="w-full border p-2 rounded" placeholder="Apply Link" required>
+<textarea id="jobDetails" class="w-full border p-2 rounded" rows="4" placeholder="Job Description"></textarea>
+<div class="flex justify-between">
+<button class="bg-yellow-500 text-white px-4 py-2 rounded">Publish</button>
+<button type="button" onclick="closePopup('postJobPopup')" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+</div>
+</form>
+</div>
+</div>
+
+<!-- SUCCESS POPUP -->
+<div id="jobSuccessPopup" class="popup-overlay">
+<div class="popup text-center">
+<h3 class="text-xl font-bold">Job Published 🎉</h3>
+<p class="mt-2 text-gray-600">Your job has been published</p>
+<button onclick="closePopup('jobSuccessPopup')" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">OK</button>
+</div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
 const firebaseConfig = {
-	apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-	authDomain: "kar-kardan.firebaseapp.com",
-	projectId: "kar-kardan",
-	storageBucket: "kar-kardan.firebasestorage.app",
-	messagingSenderId: "554147696994",
-	appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-	measurementId: "G-RRC3X485KQ"
+apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+authDomain: "kar-kardan.firebaseapp.com",
+projectId: "kar-kardan",
+storageBucket: "kar-kardan.appspot.com",
+messagingSenderId: "554147696994",
+appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
-/* ✅ FIX #1: prevent double Firebase init */
-if (!firebase.apps.length) {
-	firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser;
+
+onAuthStateChanged(auth, user=>{
+ if(!user){ location.href="login.html"; return; }
+ currentUser = user;
+ userName.innerText = user.displayName || "User";
+ userEmail.innerText = user.email;
+ loadJobs();
+});
+
+postJobBtn.onclick=()=>openPopup('postJobPopup');
+profileBtn.onclick=()=>openPopup('profilePopup');
+
+postJobForm.onsubmit=async e=>{
+e.preventDefault();
+await addDoc(collection(db,"jobs"),{
+title:jobTitle.value,
+company:jobCompanyName.value,
+location:jobLocation.value,
+applyLink:jobApplyLink.value,
+details:jobDetails.value,
+uid:currentUser.uid,
+createdAt:serverTimestamp()
+});
+postJobForm.reset();
+closePopup('postJobPopup');
+openPopup('jobSuccessPopup');
+loadJobs();
 }
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-</script>
-
-<!-- ================= AUTH ================= -->
-<script>
-auth.onAuthStateChanged(user => {
-	if (!user) {
-		window.location.href = "login.html";
-		return;
-	}
-	document.getElementById("userName").innerText =
-		user.displayName || user.email.split("@")[0];
-	document.getElementById("userEmail").innerText = user.email;
+async function loadJobs(){
+jobsList.innerHTML="";
+const q=query(collection(db,"jobs"),where("uid","==",currentUser.uid));
+const snap=await getDocs(q);
+snap.forEach(d=>{
+const j=d.data();
+jobsList.innerHTML+=`
+<div class="border p-3 rounded">
+<h4 class="font-bold">${j.title}</h4>
+<p>${j.company} • ${j.location}</p>
+</div>`;
 });
-</script>
+}
 
-<!-- ================= JOB POSTING ================= -->
-<script>
-document.getElementById("postJobForm")?.addEventListener("submit", async e => {
-	e.preventDefault();
-
-	const user = auth.currentUser;
-	if (!user) {
-		alert("Login required");
-		return;
-	}
-
-	try {
-		await db.collection("jobs").add({
-			title: jobTitle.value,
-			companyName: jobCompanyName.value,
-			employmentType: jobEmploymentType.value,
-			salary: jobSalary.value,
-			location: jobLocation.value,
-			applyLink: jobApplyLink.value,
-			companyImageUrl: jobCompanyImageUrl.value,
-			jobImageUrl: jobJobImageUrl.value,
-			details: jobDetails.value,
-			postedBy: user.uid,
-			timestamp: firebase.firestore.FieldValue.serverTimestamp()
-		});
-
-		postJobForm.reset();
-		postJobPopup.style.display = "none";
-
-		document.getElementById("successJobTitle").innerText = jobTitle.value;
-		document.getElementById("jobSuccessPopup").style.display = "flex";
-
-	} catch (err) {
-		console.error("Job publish failed:", err);
-		alert("Error publishing job");
-	}
-});
+window.openPopup=id=>document.getElementById(id).style.display="flex";
+window.closePopup=id=>document.getElementById(id).style.display="none";
 </script>
 
 </body>
