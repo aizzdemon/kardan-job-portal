@@ -1,131 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>BooterSpace</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - BooterSpace Job Portal</title>
 
-<!-- 🔥 Firebase Init (ONE time, global) -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs (Compat Version for consistency) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
 
-// ✅ Expose globally
-window.app = initializeApp(firebaseConfig);
-window.auth = getAuth(window.app);
-window.db = getFirestore(window.app);
-</script>
-
-<!-- Page Data Loader -->
-<script type="module">
-import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-
-window.addEventListener("DOMContentLoaded", async () => {
-  const db = window.db;
-
-  const featured = document.getElementById("featured-jobs");
-  const govt = document.getElementById("govt-jobs");
-  const updates = document.getElementById("latest-updates");
-  const community = document.getElementById("community-posts");
-
-  // Featured Jobs
-  const s1 = await getDocs(
-    query(collection(db,"jobs"), where("status","==","approved"), orderBy("timestamp","desc"), limit(4))
-  );
-  featured.innerHTML="";
-  s1.forEach(d=>{
-    const j=d.data();
-    featured.innerHTML+=`
-    <a href="job-detail.html?id=${d.id}" class="block p-4 border-b hover:bg-blue-50">
-      <b>${j.title}</b><p class="text-xs">${j.company}</p>
-    </a>`;
-  });
-
-  // Govt Jobs
-  const s2 = await getDocs(query(collection(db,"govtJobs"), orderBy("timestamp","desc"), limit(4)));
-  govt.innerHTML="";
-  s2.forEach(d=>{
-    govt.innerHTML+=`<div class="p-4 border-b"><b>${d.data().title}</b></div>`;
-  });
-
-  // Updates
-  const s3 = await getDocs(query(collection(db,"flashLinks"), orderBy("timestamp","desc"), limit(4)));
-  updates.innerHTML="";
-  s3.forEach(d=>{
-    const j=d.data();
-    updates.innerHTML+=`<a href="${j.url}" target="_blank" class="block p-4 border-b">${j.title}</a>`;
-  });
-
-  // Community
-  const s4 = await getDocs(query(collection(db,"communityPosts"), orderBy("timestamp","desc"), limit(4)));
-  community.innerHTML="";
-  s4.forEach(d=>{
-    const j=d.data();
-    community.innerHTML+=`
-    <div class="p-4 border-b">
-      <b>${j.userName}</b>
-      <p>${j.content}</p>
-      👍${j.likes||0} 👎${j.dislikes||0}
-    </div>`;
-  });
-});
-</script>
-
-<style>
-.tab-button{padding:.5rem 1rem;border-radius:.5rem;font-weight:bold}
-.tab-active{background:#3B82F6;color:white}
-.tab-inactive{background:#E5E7EB;color:#555;cursor:pointer}
-</style>
+        .popup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(3px);
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+        .popup {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            padding: 2rem;
+            width: 95%;
+            max-width: 600px;
+            margin: auto;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
 </head>
-
 <body class="bg-gray-100">
 
-<!-- Navbar -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html").then(r=>r.text()).then(html=>{
-  document.getElementById("navbar").innerHTML=html;
-  const s=document.createElement("script");
-  s.type="module"; 
-  s.src="navbar.js"; 
-  document.body.appendChild(s);
-});
-</script>
+<!-- Navbar Container -->
+<div id="navbar-placeholder"></div>
 
-<div class="max-w-6xl mx-auto mt-6 px-4">
-  <div class="flex gap-2 justify-center mb-4">
-    <div id="btn-featured" class="tab-button tab-active" onclick="switchTab('featured')">Featured</div>
-    <div id="btn-govt" class="tab-button tab-inactive" onclick="switchTab('govt')">Govt</div>
-    <div id="btn-updates" class="tab-button tab-inactive" onclick="switchTab('updates')">Updates</div>
-    <div id="btn-community" class="tab-button tab-inactive" onclick="switchTab('community')">Community</div>
-  </div>
+<!-- Header -->
+<section class="text-center my-6">
+    <h2 class="text-3xl font-bold text-gray-800">Dashboard</h2>
+    <p class="text-gray-500 mt-1">👋 Welcome, <span id="userName" class="font-semibold text-gray-800">Loading...</span></p>
+    <p id="userEmail" class="text-gray-500 text-sm"></p>
+</section>
 
-  <div id="featured" class="tab-content"><div id="featured-jobs" class="bg-white rounded shadow"></div></div>
-  <div id="govt" class="tab-content hidden"><div id="govt-jobs" class="bg-white rounded shadow"></div></div>
-  <div id="updates" class="tab-content hidden"><div id="latest-updates" class="bg-white rounded shadow"></div></div>
-  <div id="community" class="tab-content hidden"><div id="community-posts" class="bg-white rounded shadow"></div></div>
+<!-- Main Layout -->
+<div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-6 px-4 mb-16">
+    <!-- Sidebar / Quick Actions -->
+    <div class="md:w-1/3 space-y-4">
+        <div class="bg-white shadow rounded-xl p-5 text-center">
+            <h4 class="text-lg font-semibold text-blue-600 mb-2">Your Applications</h4>
+            <p class="text-gray-500">You haven’t applied for any jobs yet.</p>
+            <a href="jobs.html" class="mt-2 inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-150">+ Find Jobs</a>
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-5 text-center">
+            <h4 class="text-lg font-semibold text-green-600 mb-2">Profile Management</h4>
+            <p class="text-gray-500">Keep your profile up-to-date.</p>
+            <button id="profileBtn" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-150">✏️ Edit Profile</button>
+        </div>
+
+        <div class="bg-white shadow rounded-xl p-5 text-center">
+            <h4 class="text-lg font-semibold text-yellow-600 mb-2">Post a New Job</h4>
+            <p class="text-gray-500">Share opportunities with others.</p>
+            <button id="postJobBtn" class="mt-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition duration-150">📝 Post Job</button>
+        </div>
+    </div>
+
+    <!-- Posted Jobs List -->
+    <div id="postedJobsSection" class="md:w-2/3 bg-white p-6 rounded-xl shadow">
+        <h4 class="font-bold text-2xl text-gray-800 mb-4">📋 Your Posted Jobs</h4>
+        <div id="jobsList" class="space-y-4 text-sm text-gray-700">
+            <p class='text-gray-500 text-center py-8'>Loading jobs...</p>
+        </div>
+        <div id="loadMoreContainer" class="text-center pt-4" style="display:none;">
+            <button id="loadMoreBtn" onclick="loadMoreJobs()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg transition duration-150 font-semibold shadow-md">
+                Load More Jobs
+            </button>
+        </div>
+    </div>
 </div>
 
-<script>
-function switchTab(tab){
-  document.querySelectorAll('.tab-content').forEach(e=>e.classList.add('hidden'));
-  document.querySelectorAll('.tab-button').forEach(e=>e.classList.replace('tab-active','tab-inactive'));
-  document.getElementById(tab).classList.remove('hidden');
-  document.getElementById('btn-'+tab).classList.replace('tab-inactive','tab-active');
-}
-</script>
+<!-- Modals -->
+<div id="profilePopup" class="popup-overlay">
+    <div class="popup">
+        <h3 class="text-xl font-bold mb-4 text-center text-gray-800">👤 Edit Profile</h3>
+        <form id="profileForm" class="space-y-3">
+            <div><label class="block mb-1 font-medium">Full Name</label><input type="text" id="profileName" class="w-full border rounded-lg p-2" required /></div>
+            <div><label class="block mb-1 font-medium">Experience</label><input type="text" id="profileExperience" class="w-full border rounded-lg p-2" placeholder="e.g., 2 years in Sales" /></div>
+            <div><label class="block mb-1 font-medium">Education</label><input type="text" id="profileEducation" class="w-full border rounded-lg p-2" placeholder="e.g., B.Tech, XYZ University" /></div>
+            <div class="flex justify-between pt-3">
+                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">💾 Save Changes</button>
+                <button type="button" onclick="document.getElementById('profilePopup').style.display='none'" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 
+<div id="postJobPopup" class="popup-overlay">
+    <div class="popup">
+        <h3 class="text-xl font-bold mb-4 text-center text-gray-800">📝 Post a New Job</h3>
+        <form id="postJobForm" class="space-y-3">
+            <div><label class="block mb-1 font-medium">Job Title</label><input type="text" id="jobTitle" class="w-full border rounded-lg p-2" required /></div>
+            <div><label class="block mb-1 font-medium">Company Name</label><input type="text" id="jobCompanyName" class="w-full border rounded-lg p-2" required /></div>
+            <div>
+                <label class="block mb-1 font-medium">Employment Type</label>
+                <select id="jobEmploymentType" class="w-full border rounded-lg p-2" required>
+                    <option value="">Select Type *</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Internship">Internship</option>
+                </select>
+            </div>
+            <div><label class="block mb-1 font-medium">Location</label><input type="text" id="jobLocation" class="w-full border rounded-lg p-2" required /></div>
+            <div><label class="block mb-1 font-medium">Application Link</label><input type="url" id="jobApplyLink" class="w-full border rounded-lg p-2" required /></div>
+            <div><label class="block mb-1 font-medium">Job Details</label><textarea id="jobDetails" rows="4" class="w-full border rounded-lg p-2" required></textarea></div>
+            <div class="flex justify-between pt-3">
+                <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg">🚀 Publish Job</button>
+                <button type="button" onclick="document.getElementById('postJobPopup').style.display='none'" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer class="text-center text-gray-500 py-8 text-sm">
+    © 2025 BooterSpace Job Portal
+</footer>
+
+<script>
+/* 1. INITIALIZE FIREBASE IMMEDIATELY (Prevents navbar.js 'No App' error) */
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'booterspace-job-portal';
+const firebaseConfig = {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan",
+    storageBucket: "kar-kardan.firebasestorage.app",
+    messagingSenderId: "554147696994",
+    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+};
+
+// Check if app already exists to avoid duplicate init errors
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* 2. NAVBAR LOADING LOGIC */
+async function loadNavbar() {
+    try {
+        const response = await fetch("navbar.html");
+        if (!response.ok) throw new Error('Navbar file not found');
+        const html = await response.text();
+        document.getElementById("navbar-placeholder").innerHTML = html;
+        
+        // Inject navbar.js only after the HTML structure is ready
+        const script = document.createElement("script");
+        script.src = "navbar.js"; 
+        document.body.appendChild(script);
+
+        // Update UI if the auth state changed before navbar loaded
+        if (auth.currentUser) updateNavbarUI(auth.currentUser);
+    } catch (err) {
+        console.error("Navbar failed to load:", err);
+    }
+}
+
+function updateNavbarUI(user) {
+    const desktopAuth = document.getElementById('auth-links-desktop');
+    const mobileAuth = document.getElementById('auth-links-mobile');
+    
+    // Ensure navbar elements exist before trying to modify them
+    if (user && desktopAuth && mobileAuth) {
+        desktopAuth.innerHTML = `
+            <a href="dashboard.html" class="text-blue-600 font-bold">Dashboard</a>
+            <button onclick="handleLogout()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition">Logout</button>
+        `;
+        mobileAuth.innerHTML = `
+            <a href="dashboard.html" class="block py-2 text-blue-600 font-bold">Dashboard</a>
+            <button onclick="handleLogout()" class="block w-full text-left py-2 text-red-600 font-medium">Logout</button>
+        `;
+    }
+}
+
+window.handleLogout = () => {
+    auth.signOut().then(() => window.location.href = 'index.html');
+};
+
+/* 3. DASHBOARD FUNCTIONALITY */
+let allJobs = [];
+let jobsToShow = 10;
+const $id = (id) => document.getElementById(id);
+
+// Auth state listener
+auth.onAuthStateChanged(async (user) => {
+    updateNavbarUI(user);
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+    loadProfile(user);
+    loadUserJobs(user.uid);
+});
+
+// Helper for Firestore Paths (Strict Rule 1 compliance)
+const getProfileDoc = (uid) => db.collection('artifacts').doc(appId).collection('users').doc(uid).collection('profile').doc('info');
+const getJobsCollection = () => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('jobs');
+
+// Profile logic
+function loadProfile(user) {
+    getProfileDoc(user.uid).get().then(doc => {
+        let name = (user.displayName || user.email || 'User').split('@')[0];
+        if (doc.exists) {
+            const data = doc.data();
+            name = data.fullName || name;
+            $id('profileName').value = data.fullName || '';
+            $id('profileExperience').value = data.experience || '';
+            $id('profileEducation').value = data.education || '';
+        }
+        $id('userName').innerText = name;
+        $id('userEmail').innerText = user.email;
+    }).catch(e => console.error("Profile load error:", e));
+}
+
+$id('profileBtn').onclick = () => $id('profilePopup').style.display = 'flex';
+$id('profileForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        await getProfileDoc(user.uid).set({
+            fullName: $id('profileName').value,
+            experience: $id('profileExperience').value,
+            education: $id('profileEducation').value
+        }, { merge: true });
+        $id('profilePopup').style.display = 'none';
+        loadProfile(user);
+    } catch (err) {
+        console.error("Profile save error:", err);
+    }
+};
+
+// Jobs logic
+$id('postJobBtn').onclick = () => $id('postJobPopup').style.display = 'flex';
+$id('postJobForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        await getJobsCollection().add({
+            title: $id('jobTitle').value,
+            companyName: $id('jobCompanyName').value,
+            employmentType: $id('jobEmploymentType').value,
+            location: $id('jobLocation').value,
+            applyLink: $id('jobApplyLink').value,
+            details: $id('jobDetails').value,
+            postedBy: user.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        $id('postJobPopup').style.display = 'none';
+        $id('postJobForm').reset();
+    } catch (err) {
+        console.error("Job post error:", err);
+    }
+};
+
+function loadUserJobs(uid) {
+    getJobsCollection().onSnapshot(snap => {
+        allJobs = snap.docs
+            .map(doc => ({ id: doc.id, ...doc.data() }))
+            .filter(j => j.postedBy === uid)
+            .sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+        renderJobs();
+    }, (error) => {
+        console.error("Job snapshot error:", error);
+    });
+}
+
+function renderJobs() {
+    const list = $id('jobsList');
+    list.innerHTML = '';
+    const slice = allJobs.slice(0, jobsToShow);
+    
+    if (!slice.length) {
+        list.innerHTML = `<p class="text-center py-8 text-gray-500">No jobs posted yet.</p>`;
+        return;
+    }
+
+    slice.forEach(job => {
+        const div = document.createElement('div');
+        div.className = "border p-4 rounded-lg bg-gray-50 flex justify-between items-center shadow-sm";
+        div.innerHTML = `
+            <div>
+                <h5 class="font-bold text-lg">${job.title}</h5>
+                <p class="text-gray-600 text-sm">${job.companyName} • ${job.location}</p>
+            </div>
+            <button onclick="deleteJob('${job.id}')" class="text-red-500 hover:text-red-700 font-medium hover:underline">Delete</button>
+        `;
+        list.appendChild(div);
+    });
+
+    $id('loadMoreContainer').style.display = allJobs.length > jobsToShow ? 'block' : 'none';
+}
+
+window.deleteJob = async (id) => {
+    if(confirm("Are you sure you want to delete this job posting?")) {
+        try {
+            await getJobsCollection().doc(id).delete();
+        } catch (err) {
+            console.error("Delete error:", err);
+        }
+    }
+};
+
+window.loadMoreJobs = () => { 
+    jobsToShow += 10; 
+    renderJobs(); 
+};
+
+// Start UI loading
+loadNavbar();
+
+</script>
 </body>
 </html>
-
