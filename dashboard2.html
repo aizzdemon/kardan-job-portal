@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard - BooterSpace Job Portal</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Firebase Compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body { font-family: 'Inter', sans-serif; }
+.popup-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0,0,0,0.7);
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 50;
+	backdrop-filter: blur(3px);
+}
+.popup {
+	background: white;
+	border-radius: 1rem;
+	box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+	padding: 2rem;
+	width: 95%;
+	max-width: 600px;
+}
+</style>
+</head>
+
+<body class="bg-gray-100">
+
+<div id="navbar"></div>
+<script>
+fetch("navbar.html")
+  .then(res => res.text())
+  .then(html => document.getElementById("navbar").innerHTML = html);
+</script>
+
+<section class="text-center my-6">
+	<h2 class="text-3xl font-bold">Dashboard</h2>
+	<p>👋 Welcome, <span id="userName">Loading...</span></p>
+	<p id="userEmail"></p>
+</section>
+
+<!-- Firebase -->
+<script>
+const firebaseConfig = {
+	apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+	authDomain: "kar-kardan.firebaseapp.com",
+	projectId: "kar-kardan",
+	storageBucket: "kar-kardan.firebasestorage.app",
+	messagingSenderId: "554147696994",
+	appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+	measurementId: "G-RRC3X485KQ"
+};
+
+/* ✅ FIX: prevent double init */
+if (!firebase.apps.length) {
+	firebase.initializeApp(firebaseConfig);
+}
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+</script>
+
+<script>
+auth.onAuthStateChanged(user => {
+	if (!user) {
+		window.location.href = "login.html";
+		return;
+	}
+	document.getElementById("userName").innerText =
+		user.displayName || user.email.split("@")[0];
+	document.getElementById("userEmail").innerText = user.email;
+});
+</script>
+
+<script>
+document.getElementById("postJobForm")?.addEventListener("submit", async e => {
+	e.preventDefault();
+	const user = auth.currentUser;
+	if (!user) return alert("Not logged in");
+
+	await db.collection("jobs").add({
+		title: jobTitle.value,
+		companyName: jobCompanyName.value,
+		employmentType: jobEmploymentType.value,
+		salary: jobSalary.value,
+		location: jobLocation.value,
+		applyLink: jobApplyLink.value,
+		companyImageUrl: jobCompanyImageUrl.value,
+		jobImageUrl: jobJobImageUrl.value,
+		details: jobDetails.value,
+		postedBy: user.uid,
+		timestamp: firebase.firestore.FieldValue.serverTimestamp()
+	});
+
+	alert("✅ Job published successfully");
+	postJobForm.reset();
+});
+</script>
+
+</body>
+</html>
