@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Dashboard - BooterSpace Job Portal</title>
+<title>Dashboard - BooterSpace</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase Compat SDKs -->
+<!-- Firebase Compat -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
@@ -31,6 +31,7 @@ body { font-family: Inter, sans-serif; }
 
 <body class="bg-gray-100">
 
+<!-- Navbar -->
 <div id="navbar"></div>
 <script>
 fetch("navbar.html")
@@ -38,35 +39,80 @@ fetch("navbar.html")
   .then(h=>navbar.innerHTML=h);
 </script>
 
+<!-- Header -->
 <section class="text-center my-6">
   <h2 class="text-3xl font-bold">Dashboard</h2>
   <p>👋 Welcome, <span id="userName">Loading...</span></p>
   <p id="userEmail" class="text-sm text-gray-500"></p>
 </section>
 
-<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 px-4">
+<!-- Layout -->
+<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 px-4 mb-16">
 
+  <!-- Left -->
   <div class="space-y-4">
     <div class="bg-white p-4 rounded shadow text-center">
       <h4 class="font-semibold text-green-600">Profile</h4>
-      <button id="profileBtn" class="bg-green-600 text-white px-4 py-2 rounded mt-2">Edit</button>
+      <button id="profileBtn" class="bg-green-600 text-white px-4 py-2 rounded mt-2">✏️ Edit Profile</button>
     </div>
 
     <div class="bg-white p-4 rounded shadow text-center">
       <h4 class="font-semibold text-yellow-600">Post Job</h4>
-      <button id="postJobBtn" class="bg-yellow-500 text-white px-4 py-2 rounded mt-2">Post</button>
+      <button id="postJobBtn" class="bg-yellow-500 text-white px-4 py-2 rounded mt-2">📝 Post Job</button>
     </div>
   </div>
 
+  <!-- Right -->
   <div class="md:col-span-2 bg-white p-6 rounded shadow">
     <h3 class="text-xl font-bold mb-4">📋 Your Posted Jobs</h3>
-    <div id="jobsList"></div>
+    <div id="jobsList" class="space-y-2 text-sm"></div>
+  </div>
+</div>
 
-    <div id="loadMoreContainer" class="text-center pt-4 hidden">
-      <button id="loadMoreBtn" onclick="loadMoreJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded">
-        Load More
-      </button>
-    </div>
+<!-- ================= PROFILE POPUP ================= -->
+<div id="profilePopup" class="popup-overlay">
+  <div class="popup">
+    <h3 class="text-xl font-bold mb-4 text-center">👤 Edit Profile</h3>
+    <form id="profileForm" class="space-y-3">
+      <input id="profileName" class="w-full border p-2 rounded" placeholder="Full Name" required />
+      <input id="profileEmail" class="w-full border p-2 rounded bg-gray-100" disabled />
+      <input id="profileExperience" class="w-full border p-2 rounded" placeholder="Experience" />
+      <input id="profileEducation" class="w-full border p-2 rounded" placeholder="Education" />
+      <div class="flex justify-between">
+        <button class="bg-green-600 text-white px-4 py-2 rounded">Save</button>
+        <button type="button" id="closeProfilePopupBtn" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= POST JOB POPUP ================= -->
+<div id="postJobPopup" class="popup-overlay">
+  <div class="popup">
+    <h3 class="text-xl font-bold mb-4 text-center">📝 Post a Job</h3>
+    <form id="postJobForm" class="space-y-3">
+      <input id="jobTitle" class="w-full border p-2 rounded" placeholder="Job Title" required />
+      <input id="jobCompanyName" class="w-full border p-2 rounded" placeholder="Company Name" required />
+
+      <select id="jobEmploymentType" class="w-full border p-2 rounded" required>
+        <option value="">Employment Type</option>
+        <option>Full-time</option>
+        <option>Part-time</option>
+        <option>Internship</option>
+      </select>
+
+      <input id="jobSalary" class="w-full border p-2 rounded" placeholder="Salary (optional)" />
+      <input id="jobLocation" class="w-full border p-2 rounded" placeholder="Location" required />
+      <input id="jobApplyLink" class="w-full border p-2 rounded" placeholder="Apply Link" required />
+      <input id="jobCompanyImageUrl" class="w-full border p-2 rounded" placeholder="Company Logo URL" />
+      <input id="jobJobImageUrl" class="w-full border p-2 rounded" placeholder="Header Image URL" />
+      <textarea id="jobDetails" class="w-full border p-2 rounded" rows="4" placeholder="Job Description" required></textarea>
+
+      <div class="flex justify-between">
+        <button class="bg-yellow-500 text-white px-4 py-2 rounded">Publish</button>
+        <button type="button" id="closeJobPostPopupBtn" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -81,67 +127,74 @@ const firebaseConfig = {
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
-/* ✅ FIX (do not remove) */
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.firestore();
-</script>
 
-<script>
-let allJobs = [];
-let jobsToShow = 10;
-
+/* Auth */
 auth.onAuthStateChanged(user=>{
   if(!user){ location.href="login.html"; return; }
   userName.innerText = user.displayName || user.email.split("@")[0];
   userEmail.innerText = user.email;
+  profileEmail.value = user.email;
   loadJobs(user.uid);
 });
 
+/* Profile */
+profileBtn.onclick=()=>profilePopup.style.display="flex";
+closeProfilePopupBtn.onclick=()=>profilePopup.style.display="none";
+
+profileForm.onsubmit=async e=>{
+  e.preventDefault();
+  const u=auth.currentUser;
+  await db.collection("users").doc(u.uid).set({
+    fullName: profileName.value,
+    experience: profileExperience.value,
+    education: profileEducation.value,
+    email: u.email
+  },{merge:true});
+  await u.updateProfile({displayName:profileName.value});
+  profilePopup.style.display="none";
+};
+
+/* Post Job */
+postJobBtn.onclick=()=>postJobPopup.style.display="flex";
+closeJobPostPopupBtn.onclick=()=>postJobPopup.style.display="none";
+
+postJobForm.onsubmit=async e=>{
+  e.preventDefault();
+  const u=auth.currentUser;
+  await db.collection("jobs").add({
+    title:jobTitle.value,
+    companyName:jobCompanyName.value,
+    employmentType:jobEmploymentType.value,
+    salary:jobSalary.value,
+    location:jobLocation.value,
+    applyLink:jobApplyLink.value,
+    companyImageUrl:jobCompanyImageUrl.value,
+    jobImageUrl:jobJobImageUrl.value,
+    details:jobDetails.value,
+    postedBy:u.uid,
+    timestamp:firebase.firestore.FieldValue.serverTimestamp()
+  });
+  postJobForm.reset();
+  postJobPopup.style.display="none";
+};
+
+/* Jobs */
 function loadJobs(uid){
   db.collection("jobs").where("postedBy","==",uid)
-  .onSnapshot(snap=>{
-    allJobs=[];
-    snap.forEach(d=>allJobs.push({id:d.id,...d.data()}));
-    allJobs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
-    renderJobs();
+  .onSnapshot(s=>{
+    jobsList.innerHTML="";
+    s.forEach(d=>{
+      const j=d.data();
+      jobsList.innerHTML+=`
+      <div class="border p-3 rounded flex justify-between">
+        <div><b>${j.title}</b><div class="text-xs">${j.companyName} • ${j.location}</div></div>
+      </div>`;
+    });
   });
-}
-
-function renderJobs(){
-  jobsList.innerHTML="";
-  allJobs.slice(0,jobsToShow).forEach(j=>{
-    jobsList.innerHTML+=`
-    <div class="border p-3 mb-2 rounded flex justify-between">
-      <div>
-        <b>${j.title}</b>
-        <div class="text-sm text-gray-500">${j.companyName} • ${j.location}</div>
-      </div>
-      <div class="space-x-2">
-        <button onclick="openEditJobPopup('${j.id}')" class="text-blue-600">Edit</button>
-        <button onclick="deleteJob('${j.id}')" class="text-red-600">Delete</button>
-      </div>
-    </div>`;
-  });
-
-  loadMoreContainer.classList.toggle(
-    "hidden",
-    jobsToShow >= allJobs.length
-  );
-}
-
-function loadMoreJobs(){
-  jobsToShow+=10;
-  renderJobs();
-}
-
-async function deleteJob(id){
-  if(confirm("Delete job?")){
-    await db.collection("jobs").doc(id).delete();
-  }
 }
 </script>
 
