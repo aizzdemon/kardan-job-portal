@@ -1,201 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
 <title>Dashboard - BooterSpace</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Firebase Compat -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
-<style>
-body { font-family: Inter, sans-serif; }
-.popup-overlay{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.7);
-  display:none; align-items:center; justify-content:center;
-  z-index:50;
-}
-.popup{
-  background:#fff;
-  padding:2rem;
-  border-radius:1rem;
-  width:95%; max-width:600px;
-}
-</style>
 </head>
 
 <body class="bg-gray-100">
 
-<!-- Navbar -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html")
-  .then(r=>r.text())
-  .then(h=>navbar.innerHTML=h);
-</script>
-
-<!-- Header -->
-<section class="text-center my-6">
-  <h2 class="text-3xl font-bold">Dashboard</h2>
-  <p>👋 Welcome, <span id="userName">Loading...</span></p>
-  <p id="userEmail" class="text-sm text-gray-500"></p>
-</section>
-
-<!-- Layout -->
-<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 px-4 mb-16">
-
-  <!-- Left -->
-  <div class="space-y-4">
-    <div class="bg-white p-4 rounded shadow text-center">
-      <h4 class="font-semibold text-green-600">Profile</h4>
-      <button id="profileBtn" class="bg-green-600 text-white px-4 py-2 rounded mt-2">✏️ Edit Profile</button>
-    </div>
-
-    <div class="bg-white p-4 rounded shadow text-center">
-      <h4 class="font-semibold text-yellow-600">Post Job</h4>
-      <button id="postJobBtn" class="bg-yellow-500 text-white px-4 py-2 rounded mt-2">📝 Post Job</button>
-    </div>
+<!-- ================= NAVBAR ================= -->
+<nav class="bg-white shadow-md px-6 py-4">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <h1 class="text-xl font-bold text-blue-600">BooterSpace</h1>
+    <button onclick="openJobPopup()"
+      class="bg-blue-600 text-white px-4 py-2 rounded">
+      + Post Job
+    </button>
   </div>
+</nav>
 
-  <!-- Right -->
-  <div class="md:col-span-2 bg-white p-6 rounded shadow">
-    <h3 class="text-xl font-bold mb-4">📋 Your Posted Jobs</h3>
-    <div id="jobsList" class="space-y-2 text-sm"></div>
-  </div>
-</div>
+<!-- ================= MAIN ================= -->
+<main class="max-w-7xl mx-auto p-6">
+  <h2 class="text-2xl font-semibold mb-4">Welcome to Dashboard</h2>
+  <p class="text-gray-600">
+    Post jobs and manage your listings.
+  </p>
+</main>
 
-<!-- ================= PROFILE POPUP ================= -->
-<div id="profilePopup" class="popup-overlay">
-  <div class="popup">
-    <h3 class="text-xl font-bold mb-4 text-center">👤 Edit Profile</h3>
-    <form id="profileForm" class="space-y-3">
-      <input id="profileName" class="w-full border p-2 rounded" placeholder="Full Name" required />
-      <input id="profileEmail" class="w-full border p-2 rounded bg-gray-100" disabled />
-      <input id="profileExperience" class="w-full border p-2 rounded" placeholder="Experience" />
-      <input id="profileEducation" class="w-full border p-2 rounded" placeholder="Education" />
-      <div class="flex justify-between">
-        <button class="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-        <button type="button" id="closeProfilePopupBtn" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+<!-- ================= JOB POPUP ================= -->
+<div id="jobPopup"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+  <div class="bg-white w-full max-w-lg rounded-lg shadow-lg
+              max-h-[85vh] overflow-y-auto p-6">
+
+    <h2 class="text-xl font-bold mb-4">Post a Job</h2>
+
+    <form id="jobForm" class="space-y-4">
+
+      <input id="jobTitle" required
+        type="text" placeholder="Job Title"
+        class="w-full border p-2 rounded">
+
+      <input id="company" required
+        type="text" placeholder="Company Name"
+        class="w-full border p-2 rounded">
+
+      <input id="location" required
+        type="text" placeholder="Location"
+        class="w-full border p-2 rounded">
+
+      <input id="salary"
+        type="number" placeholder="Salary"
+        class="w-full border p-2 rounded">
+
+      <textarea id="description" required
+        placeholder="Job Description"
+        class="w-full border p-2 rounded h-32"></textarea>
+
+      <div class="flex justify-between pt-2">
+        <button type="submit"
+          class="bg-blue-600 text-white px-4 py-2 rounded">
+          Publish Job
+        </button>
+
+        <button type="button" onclick="closeJobPopup()"
+          class="bg-gray-400 px-4 py-2 rounded">
+          Cancel
+        </button>
       </div>
+
     </form>
   </div>
 </div>
 
-<!-- ================= POST JOB POPUP ================= -->
-<div id="postJobPopup" class="popup-overlay">
-  <div class="popup">
-    <h3 class="text-xl font-bold mb-4 text-center">📝 Post a Job</h3>
-    <form id="postJobForm" class="space-y-3">
-      <input id="jobTitle" class="w-full border p-2 rounded" placeholder="Job Title" required />
-      <input id="jobCompanyName" class="w-full border p-2 rounded" placeholder="Company Name" required />
+<!-- ================= SUCCESS POPUP ================= -->
+<div id="successPopup"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
 
-      <select id="jobEmploymentType" class="w-full border p-2 rounded" required>
-        <option value="">Employment Type</option>
-        <option>Full-time</option>
-        <option>Part-time</option>
-        <option>Internship</option>
-      </select>
-
-      <input id="jobSalary" class="w-full border p-2 rounded" placeholder="Salary (optional)" />
-      <input id="jobLocation" class="w-full border p-2 rounded" placeholder="Location" required />
-      <input id="jobApplyLink" class="w-full border p-2 rounded" placeholder="Apply Link" required />
-      <input id="jobCompanyImageUrl" class="w-full border p-2 rounded" placeholder="Company Logo URL" />
-      <input id="jobJobImageUrl" class="w-full border p-2 rounded" placeholder="Header Image URL" />
-      <textarea id="jobDetails" class="w-full border p-2 rounded" rows="4" placeholder="Job Description" required></textarea>
-
-      <div class="flex justify-between">
-        <button class="bg-yellow-500 text-white px-4 py-2 rounded">Publish</button>
-        <button type="button" id="closeJobPostPopupBtn" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
-      </div>
-    </form>
+  <div class="bg-white p-6 rounded shadow-lg text-center">
+    <h3 class="text-lg font-bold text-green-600">
+      ✅ Job Published
+    </h3>
+    <button onclick="closeSuccessPopup()"
+      class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">
+      OK
+    </button>
   </div>
 </div>
 
-<!-- ================= FIREBASE ================= -->
-<script>
+<!-- ================= FIREBASE + JS ================= -->
+<script type="module">
+import { initializeApp } from
+  "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from
+  "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged
+} from
+  "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+/* 🔥 Firebase Config */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  projectId: "kar-kardan"
 };
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-const auth = firebase.auth();
-const db = firebase.firestore();
-
-/* Auth */
-auth.onAuthStateChanged(user=>{
-  if(!user){ location.href="login.html"; return; }
-  userName.innerText = user.displayName || user.email.split("@")[0];
-  userEmail.innerText = user.email;
-  profileEmail.value = user.email;
-  loadJobs(user.uid);
+/* ===== AUTH CHECK ===== */
+let currentUser = null;
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    currentUser = user;
+  }
 });
 
-/* Profile */
-profileBtn.onclick=()=>profilePopup.style.display="flex";
-closeProfilePopupBtn.onclick=()=>profilePopup.style.display="none";
-
-profileForm.onsubmit=async e=>{
-  e.preventDefault();
-  const u=auth.currentUser;
-  await db.collection("users").doc(u.uid).set({
-    fullName: profileName.value,
-    experience: profileExperience.value,
-    education: profileEducation.value,
-    email: u.email
-  },{merge:true});
-  await u.updateProfile({displayName:profileName.value});
-  profilePopup.style.display="none";
+/* ===== POPUP FUNCTIONS ===== */
+window.openJobPopup = () => {
+  jobPopup.classList.remove("hidden");
+  jobPopup.classList.add("flex");
 };
 
-/* Post Job */
-postJobBtn.onclick=()=>postJobPopup.style.display="flex";
-closeJobPostPopupBtn.onclick=()=>postJobPopup.style.display="none";
-
-postJobForm.onsubmit=async e=>{
-  e.preventDefault();
-  const u=auth.currentUser;
-  await db.collection("jobs").add({
-    title:jobTitle.value,
-    companyName:jobCompanyName.value,
-    employmentType:jobEmploymentType.value,
-    salary:jobSalary.value,
-    location:jobLocation.value,
-    applyLink:jobApplyLink.value,
-    companyImageUrl:jobCompanyImageUrl.value,
-    jobImageUrl:jobJobImageUrl.value,
-    details:jobDetails.value,
-    postedBy:u.uid,
-    timestamp:firebase.firestore.FieldValue.serverTimestamp()
-  });
-  postJobForm.reset();
-  postJobPopup.style.display="none";
+window.closeJobPopup = () => {
+  jobPopup.classList.add("hidden");
 };
 
-/* Jobs */
-function loadJobs(uid){
-  db.collection("jobs").where("postedBy","==",uid)
-  .onSnapshot(s=>{
-    jobsList.innerHTML="";
-    s.forEach(d=>{
-      const j=d.data();
-      jobsList.innerHTML+=`
-      <div class="border p-3 rounded flex justify-between">
-        <div><b>${j.title}</b><div class="text-xs">${j.companyName} • ${j.location}</div></div>
-      </div>`;
+window.closeSuccessPopup = () => {
+  successPopup.classList.add("hidden");
+};
+
+/* ===== JOB SUBMIT ===== */
+jobForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  if (!currentUser) {
+    alert("Login required");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "jobs"), {
+      title: jobTitle.value,
+      company: company.value,
+      location: location.value,
+      salary: salary.value,
+      description: description.value,
+      postedBy: currentUser.uid,
+      createdAt: serverTimestamp(),
+      status: "approved"
     });
-  });
-}
+
+    jobForm.reset();
+    closeJobPopup();
+
+    successPopup.classList.remove("hidden");
+    successPopup.classList.add("flex");
+
+  } catch (err) {
+    console.error(err);
+    alert("Error publishing job");
+  }
+});
 </script>
 
 </body>
