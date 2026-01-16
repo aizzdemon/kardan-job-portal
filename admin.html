@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – KARDAN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        .sidebar-transition {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
+
+<!-- SIDEBAR OVERLAYS -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeAllSidebars()"></div>
+
+<!-- USER DETAILS SIDEBAR -->
+<div id="userDetailsSidebar" class="fixed inset-y-0 left-0 w-full max-w-md bg-white shadow-2xl sidebar-transition -translate-x-full z-50 overflow-y-auto">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6 border-b pb-4 sticky top-0 bg-white z-10">
+            <h2 class="text-2xl font-bold text-slate-800">User Profile</h2>
+            <button onclick="closeAllSidebars()" class="p-2 hover:bg-slate-100 rounded-full transition">&times;</button>
+        </div>
+        <div id="userDetailsContent" class="space-y-4"></div>
+    </div>
+</div>
+
+<!-- JOB DETAILS SIDEBAR -->
+<div id="jobDetailsSidebar" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl sidebar-transition translate-x-full z-50 overflow-y-auto">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6 border-b pb-4 sticky top-0 bg-white z-10">
+            <h2 class="text-2xl font-bold text-slate-800">Job Specification</h2>
+            <button onclick="closeAllSidebars()" class="p-2 hover:bg-slate-100 rounded-full transition">&times;</button>
+        </div>
+        <div id="jobDetailsContent" class="space-y-4"></div>
+    </div>
+</div>
+
+<!-- LOGIN SCREEN -->
+<div id="loginDiv" class="flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-black text-indigo-600">KARDAN</h1>
+            <p class="text-slate-500 font-medium">Administrative Gateway</p>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold mb-1">Admin Email</label>
+                <input id="email" type="email" placeholder="admin@kardan.com" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"/>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Password</label>
+                <input id="password" type="password" placeholder="••••••••" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"/>
+            </div>
+            <button onclick="login()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200">Authorize Access</button>
+            <p id="loginError" class="text-red-500 text-sm text-center mt-2 font-medium"></p>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN INTERFACE -->
+<div id="adminDiv" class="hidden pb-20">
+    <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl font-black text-indigo-600">KARDAN</span>
+                <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">ADMIN</span>
+            </div>
+            <button onclick="logout()" class="text-sm font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1">
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Navigation Tabs -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8">
+            <button onclick="setActiveTab('jobs')" id="btn-jobs" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <span class="text-xl">💼</span>
+                <span class="text-xs font-bold mt-1">All Jobs</span>
+            </button>
+            <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <span class="text-xl">⏳</span>
+                <span class="text-xs font-bold mt-1">Pending Jobs</span>
+            </button>
+            <button onclick="setActiveTab('users')" id="btn-users" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <span class="text-xl">👥</span>
+                <span class="text-xs font-bold mt-1">Users</span>
+            </button>
+            <button onclick="setActiveTab('providers')" id="btn-providers" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <span class="text-xl">🏢</span>
+                <span class="text-xs font-bold mt-1">Providers</span>
+            </button>
+            <button onclick="setActiveTab('pendingProviders')" id="btn-pendingProviders" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+                <span class="text-xl">🆕</span>
+                <span class="text-xs font-bold mt-1">New Signups</span>
+            </button>
+        </div>
+
+        <div id="content" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
+            <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                <span class="text-5xl mb-4">🖥️</span>
+                <p>Select a category to manage Kardan systems.</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+/* ============================
+   Firebase Configuration
+============================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+  measurementId: "G-RRC3X485KQ"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
+
+/* ============================
+   UI State & Auth
+============================ */
+let activeTab = null;
+
+function setActiveTab(tab) {
+    activeTab = tab;
+    // Highlight button
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-600'));
+    const activeBtn = document.getElementById(`btn-${tab}`);
+    if(activeBtn) activeBtn.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-600');
+    
+    // Route content
+    switch(tab) {
+        case 'jobs': showJobs(); break;
+        case 'pendingJobs': showPendingJobs(); break;
+        case 'users': showUsers(); break;
+        case 'providers': showProviders(); break;
+        case 'pendingProviders': showPendingProviders(); break;
+    }
+}
+
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorDiv = document.getElementById("loginError");
+
+  try {
+    const userCred = await auth.signInWithEmailAndPassword(email, password);
+    if (userCred.user.uid !== ADMIN_UID) {
+      errorDiv.textContent = "Access Denied: Non-Administrative Account.";
+      await auth.signOut();
+      return;
+    }
+  } catch (err) {
+    errorDiv.textContent = err.message;
+  }
+}
+
+async function logout() {
+    await auth.signOut();
+    location.reload();
+}
+
+auth.onAuthStateChanged(user => {
+  if (user && user.uid === ADMIN_UID) {
+    document.getElementById("loginDiv").classList.add("hidden");
+    document.getElementById("adminDiv").classList.remove("hidden");
+  } else {
+    document.getElementById("loginDiv").classList.remove("hidden");
+    document.getElementById("adminDiv").classList.add("hidden");
+  }
+});
+
+/* ============================
+   Common Helpers
+============================ */
+function closeAllSidebars() {
+    document.getElementById("userDetailsSidebar").classList.add("-translate-x-full");
+    document.getElementById("jobDetailsSidebar").classList.add("translate-x-full");
+    document.getElementById("sidebarOverlay").classList.add("hidden");
+}
+
+async function fetchUserName(uid) {
+    if (!uid) return "System";
+    try {
+        const uDoc = await db.collection("users").doc(uid).get();
+        return uDoc.exists ? (uDoc.data().name || "Kardan User") : "Guest User";
+    } catch {
+        return "Unknown";
+    }
+}
+
+/* ============================
+   Module: Jobs
+============================ */
+async function showJobs() {
+    const content = document.getElementById("content");
+    content.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">Master Job Board</h2>
+            <div class="flex gap-2">
+                <input id="jobSearch" type="text" placeholder="Email search..." class="text-sm p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" onkeyup="if(event.key==='Enter') loadJobs()"/>
+                <button onclick="loadJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Filter</button>
+            </div>
+        </div>
+        <div id="jobsList" class="space-y-3">Loading records...</div>
+    `;
+    loadJobs();
+}
+
+async function loadJobs() {
+    const emailFilter = document.getElementById("jobSearch")?.value.toLowerCase() || "";
+    const list = document.getElementById("jobsList");
+    
+    try {
+        const snap = await db.collection("jobs").orderBy("timestamp","desc").get();
+        if(snap.empty) {
+            list.innerHTML = `<div class="text-center py-10 text-slate-400">No job listings found.</div>`;
+            return;
+        }
+
+        const items = await Promise.all(snap.docs.map(async doc => {
+            const j = doc.data();
+            if (emailFilter && !j.userEmail?.toLowerCase().includes(emailFilter)) return null;
+
+            const isApproved = j.status === 'approved';
+            const poster = await fetchUserName(j.postedBy);
+
+            return `
+                <div class="p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition bg-white flex justify-between items-center group">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-sm px-2 py-0.5 rounded ${isApproved ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} font-bold text-[10px] uppercase">
+                                ${j.status || 'pending'}
+                            </span>
+                            <span class="text-xs text-slate-400">${j.timestamp?.toDate().toLocaleDateString()}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 truncate">${j.title}</h3>
+                        <p class="text-xs text-slate-500">${j.company} • Posted by <span class="font-semibold text-slate-700">${poster}</span></p>
+                    </div>
+                    <div class="flex items-center gap-2 ml-4">
+                        <button onclick="viewJob('${doc.id}')" class="p-2 hover:bg-slate-100 rounded-lg transition" title="View Details">🔍</button>
+                        ${!isApproved ? `<button onclick="updateJobStatus('${doc.id}', 'approved')" class="bg-green-600 text-white p-2 rounded-lg text-xs font-bold px-3">Approve</button>` : ''}
+                        <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 p-2 rounded-lg text-xs font-bold px-3 hover:bg-red-100 transition">Delete</button>
+                    </div>
+                </div>
+            `;
+        }));
+
+        list.innerHTML = items.filter(x => x !== null).join("");
+    } catch (e) {
+        list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
+    }
+}
+
+async function showPendingJobs() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Jobs Awaiting Approval</h2><div id="pendingList" class="space-y-3"></div>`;
+    
+    const list = document.getElementById("pendingList");
+    const snap = await db.collection("jobs").where("status", "!=", "approved").get();
+    
+    if(snap.empty) {
+        list.innerHTML = `<div class="text-center py-20 text-slate-400">Great job! All listings are moderated.</div>`;
+        return;
+    }
+
+    const htmlArr = await Promise.all(snap.docs.map(async doc => {
+        const j = doc.data();
+        const poster = await fetchUserName(j.postedBy);
+        return `
+            <div class="bg-amber-50/30 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
+                <div>
+                    <h4 class="font-bold text-slate-800">${j.title}</h4>
+                    <p class="text-sm text-slate-600">${j.company} • ${j.userEmail}</p>
+                    <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${poster}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="viewJob('${doc.id}')" class="bg-white border p-2 rounded-lg">View</button>
+                    <button onclick="updateJobStatus('${doc.id}', 'approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm">Approve</button>
+                </div>
+            </div>
+        `;
+    }));
+    list.innerHTML = htmlArr.join("");
+}
+
+async function updateJobStatus(id, status) {
+    await db.collection("jobs").doc(id).update({ status });
+    if(activeTab === 'pendingJobs') showPendingJobs();
+    else loadJobs();
+}
+
+async function deleteJob(id) {
+    if(confirm("Confirm deletion of this job record?")) {
+        await db.collection("jobs").doc(id).delete();
+        loadJobs();
+    }
+}
+
+async function viewJob(id) {
+    const sidebar = document.getElementById("jobDetailsSidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    const content = document.getElementById("jobDetailsContent");
+    
+    sidebar.classList.remove("translate-x-full");
+    overlay.classList.remove("hidden");
+    content.innerHTML = `<div class="animate-pulse space-y-4">
+        <div class="h-10 bg-slate-100 rounded w-3/4"></div>
+        <div class="h-4 bg-slate-100 rounded w-full"></div>
+        <div class="h-4 bg-slate-100 rounded w-5/6"></div>
+    </div>`;
+
+    const doc = await db.collection("jobs").doc(id).get();
+    const data = doc.data();
+
+    let html = `<div class="bg-indigo-50 p-5 rounded-2xl mb-6">
+        <p class="text-[10px] text-indigo-400 font-black uppercase mb-1">Position</p>
+        <h3 class="text-2xl font-black text-indigo-900 leading-tight">${data.title}</h3>
+        <p class="text-indigo-600 font-bold mt-1">${data.company}</p>
+    </div>`;
+
+    for (const [key, val] of Object.entries(data)) {
+        if(['title', 'company'].includes(key)) continue;
+        let display = val;
+        if(val && val.seconds) display = new Date(val.seconds * 1000).toLocaleString();
+        
+        html += `
+            <div class="mb-5 pb-3 border-b border-slate-100 last:border-0">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-1">${key}</label>
+                <div class="text-sm font-medium text-slate-700 break-words">${display}</div>
+            </div>
+        `;
+    }
+    content.innerHTML = html;
+}
+
+/* ============================
+   Module: Users
+============================ */
+async function showUsers() {
+    const content = document.getElementById("content");
+    content.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold">User Directory</h2>
+            <input id="userSearch" type="text" placeholder="Name or Email..." class="text-sm p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" onkeyup="loadUsers()"/>
+        </div>
+        <div id="usersList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    `;
+    loadUsers();
+}
+
+async function loadUsers() {
+    const queryStr = document.getElementById("userSearch")?.value.toLowerCase() || "";
+    const list = document.getElementById("usersList");
+    const snap = await db.collection("users").get();
+    
+    list.innerHTML = "";
+    snap.forEach(doc => {
+        const u = doc.data();
+        if(queryStr && !(`${u.name} ${u.email}`).toLowerCase().includes(queryStr)) return;
+
+        list.innerHTML += `
+            <div class="p-4 border rounded-xl hover:shadow-sm transition bg-white">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-400">
+                        ${u.name ? u.name[0] : '?'}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="font-bold truncate">${u.name || 'Unnamed User'}</h4>
+                        <p class="text-xs text-slate-500 truncate">${u.email}</p>
+                        <div class="mt-2 flex gap-1">
+                            <span class="text-[9px] font-black px-1.5 py-0.5 rounded ${u.role==='jobProvider' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'} uppercase">
+                                ${u.role || 'user'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex gap-2">
+                    <button onclick="viewUser('${doc.id}')" class="flex-1 bg-slate-100 text-slate-600 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200">Inspect</button>
+                    <button onclick="deleteUser('${doc.id}')" class="p-1.5 text-red-400 hover:text-red-600">🗑️</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+async function deleteUser(id) {
+    if(confirm("Permanently delete this user profile?")) {
+        await db.collection("users").doc(id).delete();
+        loadUsers();
+    }
+}
+
+async function viewUser(id) {
+    const sidebar = document.getElementById("userDetailsSidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    const content = document.getElementById("userDetailsContent");
+    
+    sidebar.classList.remove("-translate-x-full");
+    overlay.classList.remove("hidden");
+    
+    const doc = await db.collection("users").doc(id).get();
+    const data = doc.data();
+
+    let html = `<div class="text-center mb-8">
+        <div class="w-20 h-20 bg-indigo-600 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl text-white font-black">
+            ${data.name ? data.name[0] : 'U'}
+        </div>
+        <h3 class="text-xl font-bold">${data.name || 'Anonymous'}</h3>
+        <p class="text-slate-500 text-sm">${data.email}</p>
+    </div>`;
+
+    for (const [key, val] of Object.entries(data)) {
+        html += `<div class="mb-4">
+            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">${key}</label>
+            <div class="text-sm text-slate-800 break-words font-medium">${val && val.seconds ? new Date(val.seconds*1000).toLocaleString() : val}</div>
+        </div>`;
+    }
+
+    if(!data.jobPostAccess && data.role === 'jobProvider') {
+        html += `<button onclick="approveProvider('${doc.id}')" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl mt-6">Approve Provider Access</button>`;
+    }
+
+    content.innerHTML = html;
+}
+
+/* ============================
+   Module: Providers
+============================ */
+async function showProviders() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6">Verified Job Providers</h2><div id="providersList" class="space-y-3"></div>`;
+    
+    const list = document.getElementById("providersList");
+    const snap = await db.collection("users").where("role","==","jobProvider").where("jobPostAccess","==",true).get();
+    
+    if(snap.empty) {
+        list.innerHTML = `<p class="text-center py-10 text-slate-400">No verified providers yet.</p>`;
+        return;
+    }
+
+    snap.forEach(doc => {
+        const u = doc.data();
+        list.innerHTML += `
+            <div class="p-4 border border-purple-100 bg-purple-50/20 rounded-xl flex justify-between items-center">
+                <div>
+                    <h4 class="font-bold text-purple-900">${u.company || 'Private Recruiter'}</h4>
+                    <p class="text-sm text-purple-700">${u.name} (${u.email})</p>
+                </div>
+                <button onclick="viewUser('${doc.id}')" class="bg-white border border-purple-200 text-purple-600 px-4 py-2 rounded-lg font-bold text-xs">View Account</button>
+            </div>
+        `;
+    });
+}
+
+async function showPendingProviders() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-indigo-600">Pending Provider Applications</h2><div id="pendingProviders" class="space-y-3"></div>`;
+    
+    const list = document.getElementById("pendingProviders");
+    const snap = await db.collection("users").where("role","==","jobProvider").get();
+    
+    const pending = snap.docs.filter(d => !d.data().jobPostAccess);
+
+    if(pending.length === 0) {
+        list.innerHTML = `<div class="text-center py-20 text-slate-400">No pending applications found.</div>`;
+        return;
+    }
+
+    pending.forEach(doc => {
+        const u = doc.data();
+        list.innerHTML += `
+            <div class="p-4 border border-indigo-200 bg-indigo-50/30 rounded-xl flex justify-between items-center">
+                <div>
+                    <h4 class="font-bold text-indigo-900">${u.name}</h4>
+                    <p class="text-sm text-indigo-700">${u.email} • ${u.company || 'No Company Specified'}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="viewUser('${doc.id}')" class="bg-white px-3 py-2 border rounded-lg text-xs font-bold">Review</button>
+                    <button onclick="approveProvider('${doc.id}')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold text-xs">Authorize</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+async function approveProvider(id) {
+    if(confirm("Allow this user to post job listings on Kardan?")) {
+        await db.collection("users").doc(id).update({ jobPostAccess: true });
+        closeAllSidebars();
+        if(activeTab === 'pendingProviders') showPendingProviders();
+        else setActiveTab('providers');
+    }
+}
+</script>
+</body>
+</html>
