@@ -13,25 +13,18 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-body { font-family: 'Inter', sans-serif; }
-.popup-overlay {
-	position: fixed;
-	inset: 0;
-	background: rgba(0,0,0,0.7);
-	display: none;
-	align-items: center;
-	justify-content: center;
-	z-index: 50;
-	backdrop-filter: blur(3px);
+body { font-family: Inter, sans-serif; }
+.popup-overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.7);
+  display:none; align-items:center; justify-content:center;
+  z-index:50;
 }
-.popup {
-	background: white;
-	border-radius: 1rem;
-	box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-	padding: 2rem;
-	width: 95%;
-	max-width: 600px;
+.popup{
+  background:#fff;
+  padding:2rem;
+  border-radius:1rem;
+  width:95%; max-width:600px;
 }
 </style>
 </head>
@@ -41,31 +34,56 @@ body { font-family: 'Inter', sans-serif; }
 <div id="navbar"></div>
 <script>
 fetch("navbar.html")
-  .then(res => res.text())
-  .then(html => document.getElementById("navbar").innerHTML = html);
+  .then(r=>r.text())
+  .then(h=>navbar.innerHTML=h);
 </script>
 
 <section class="text-center my-6">
-	<h2 class="text-3xl font-bold">Dashboard</h2>
-	<p>👋 Welcome, <span id="userName">Loading...</span></p>
-	<p id="userEmail"></p>
+  <h2 class="text-3xl font-bold">Dashboard</h2>
+  <p>👋 Welcome, <span id="userName">Loading...</span></p>
+  <p id="userEmail" class="text-sm text-gray-500"></p>
 </section>
 
-<!-- Firebase -->
+<div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 px-4">
+
+  <div class="space-y-4">
+    <div class="bg-white p-4 rounded shadow text-center">
+      <h4 class="font-semibold text-green-600">Profile</h4>
+      <button id="profileBtn" class="bg-green-600 text-white px-4 py-2 rounded mt-2">Edit</button>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow text-center">
+      <h4 class="font-semibold text-yellow-600">Post Job</h4>
+      <button id="postJobBtn" class="bg-yellow-500 text-white px-4 py-2 rounded mt-2">Post</button>
+    </div>
+  </div>
+
+  <div class="md:col-span-2 bg-white p-6 rounded shadow">
+    <h3 class="text-xl font-bold mb-4">📋 Your Posted Jobs</h3>
+    <div id="jobsList"></div>
+
+    <div id="loadMoreContainer" class="text-center pt-4 hidden">
+      <button id="loadMoreBtn" onclick="loadMoreJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded">
+        Load More
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FIREBASE ================= -->
 <script>
 const firebaseConfig = {
-	apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-	authDomain: "kar-kardan.firebaseapp.com",
-	projectId: "kar-kardan",
-	storageBucket: "kar-kardan.firebasestorage.app",
-	messagingSenderId: "554147696994",
-	appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
-	measurementId: "G-RRC3X485KQ"
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
-/* ✅ FIX: prevent double init */
+/* ✅ FIX (do not remove) */
 if (!firebase.apps.length) {
-	firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
 }
 
 const auth = firebase.auth();
@@ -73,40 +91,58 @@ const db = firebase.firestore();
 </script>
 
 <script>
-auth.onAuthStateChanged(user => {
-	if (!user) {
-		window.location.href = "login.html";
-		return;
-	}
-	document.getElementById("userName").innerText =
-		user.displayName || user.email.split("@")[0];
-	document.getElementById("userEmail").innerText = user.email;
+let allJobs = [];
+let jobsToShow = 10;
+
+auth.onAuthStateChanged(user=>{
+  if(!user){ location.href="login.html"; return; }
+  userName.innerText = user.displayName || user.email.split("@")[0];
+  userEmail.innerText = user.email;
+  loadJobs(user.uid);
 });
-</script>
 
-<script>
-document.getElementById("postJobForm")?.addEventListener("submit", async e => {
-	e.preventDefault();
-	const user = auth.currentUser;
-	if (!user) return alert("Not logged in");
+function loadJobs(uid){
+  db.collection("jobs").where("postedBy","==",uid)
+  .onSnapshot(snap=>{
+    allJobs=[];
+    snap.forEach(d=>allJobs.push({id:d.id,...d.data()}));
+    allJobs.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+    renderJobs();
+  });
+}
 
-	await db.collection("jobs").add({
-		title: jobTitle.value,
-		companyName: jobCompanyName.value,
-		employmentType: jobEmploymentType.value,
-		salary: jobSalary.value,
-		location: jobLocation.value,
-		applyLink: jobApplyLink.value,
-		companyImageUrl: jobCompanyImageUrl.value,
-		jobImageUrl: jobJobImageUrl.value,
-		details: jobDetails.value,
-		postedBy: user.uid,
-		timestamp: firebase.firestore.FieldValue.serverTimestamp()
-	});
+function renderJobs(){
+  jobsList.innerHTML="";
+  allJobs.slice(0,jobsToShow).forEach(j=>{
+    jobsList.innerHTML+=`
+    <div class="border p-3 mb-2 rounded flex justify-between">
+      <div>
+        <b>${j.title}</b>
+        <div class="text-sm text-gray-500">${j.companyName} • ${j.location}</div>
+      </div>
+      <div class="space-x-2">
+        <button onclick="openEditJobPopup('${j.id}')" class="text-blue-600">Edit</button>
+        <button onclick="deleteJob('${j.id}')" class="text-red-600">Delete</button>
+      </div>
+    </div>`;
+  });
 
-	alert("✅ Job published successfully");
-	postJobForm.reset();
-});
+  loadMoreContainer.classList.toggle(
+    "hidden",
+    jobsToShow >= allJobs.length
+  );
+}
+
+function loadMoreJobs(){
+  jobsToShow+=10;
+  renderJobs();
+}
+
+async function deleteJob(id){
+  if(confirm("Delete job?")){
+    await db.collection("jobs").doc(id).delete();
+  }
+}
 </script>
 
 </body>
