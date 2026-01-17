@@ -1,190 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Jobs – BooterSpace</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Jobs – BooterSpace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
 
-<script src="https://cdn.tailwindcss.com"></script>
+    <!-- ================= FIREBASE SDKs ================= -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-<!-- ================= FIREBASE INIT (ONLY ONCE) ================= -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+            authDomain: "kar-kardan.firebaseapp.com",
+            projectId: "kar-kardan",
+            storageBucket: "kar-kardan.firebasestorage.app",
+            messagingSenderId: "554147696994",
+            appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+        };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
+        // Expose to window for global access
+        window.db = db;
+        window.auth = auth;
 
-window.auth = getAuth(app);
-window.db = getFirestore(app);
-</script>
+        // Ensure Auth for Firestore Access
+        signInAnonymously(auth).catch(err => console.error("Auth failed:", err));
+    </script>
 
-<style>
-/* Flashing animation for the "New" badge */
-.latest-badge {
-  animation: pulse 1.5s infinite;
-}
-@keyframes pulse {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1); }
-}
-</style>
+    <style>
+        /* Flashing animation for the Fire/New badge */
+        .latest-badge { 
+            animation: flashRed 1s infinite alternate; 
+        }
+        @keyframes flashRed {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.05); }
+        }
+        .suggestion-item:hover { background-color: #f3f4f6; cursor: pointer; }
+        #suggestionsDropdown { display: none; z-index: 50; }
+        #suggestionsDropdown.active { display: block; }
+    </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
 <!-- ================= NAVBAR ================= -->
 <div id="navbar"></div>
-<script>
-fetch("navbar.html").then(r=>r.text()).then(html=>{
-  document.getElementById("navbar").innerHTML = html;
-  const s = document.createElement("script");
-  s.type = "module";
-  s.src = "navbar.js";
-  document.body.appendChild(s);
-}).catch(err => console.log("Navbar placeholder - file not found locally"));
-</script>
 
 <!-- ================= HEADER ================= -->
 <header class="bg-white border-b">
-  <div class="max-w-6xl mx-auto px-4 py-10 text-center">
-    <h1 class="text-4xl font-extrabold">Explore <span class="text-blue-600">Careers</span></h1>
-    <p class="text-gray-500 mt-2">Find the best jobs for you</p>
+    <div class="max-w-6xl mx-auto px-4 py-10 text-center">
+        <h1 class="text-4xl font-extrabold">Explore <span class="text-blue-600">Careers</span></h1>
+        <p class="text-gray-500 mt-2">Find the best jobs for you</p>
 
-    <div class="bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
-        <input id="searchInput" placeholder="Job title or company" class="md:col-span-4 p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
-        <input id="locationInput" placeholder="Location" class="md:col-span-3 p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
-        <select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50 outline-none">
-          <option value="all">Any time</option>
-          <option value="1">24 Hours</option>
-          <option value="7">7 Days</option>
-          <option value="30">30 Days</option>
-        </select>
-        <button id="mainSearchBtn" class="md:col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">Search</button>
-      </div>
+        <div class="relative bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
+                <div class="md:col-span-4 relative">
+                    <input id="searchInput" autocomplete="off" placeholder="Job title or company" class="w-full p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
+                    <!-- Dropdown Suggestions -->
+                    <div id="suggestionsDropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 mt-1 rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto"></div>
+                </div>
+                <input id="locationInput" placeholder="Location" class="md:col-span-3 p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
+                <select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50 outline-none">
+                    <option value="all">Any time</option>
+                    <option value="1">Last 24 Hours</option>
+                    <option value="7">Last 7 Days</option>
+                    <option value="30">Last 30 Days</option>
+                </select>
+                <button id="mainSearchBtn" class="md:col-span-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors">Search</button>
+            </div>
+        </div>
     </div>
-  </div>
 </header>
 
 <!-- ================= JOBS LIST ================= -->
 <main class="max-w-5xl mx-auto px-4 py-10 flex-grow">
-  <h2 id="jobCount" class="font-bold mb-6 text-gray-700 text-xl text-center md:text-left">Loading jobs…</h2>
-  <div id="jobsList" class="space-y-6"></div>
-  <div class="flex justify-center">
-    <button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl hover:bg-gray-50 shadow-sm transition-all">Load More</button>
-  </div>
+    <div id="statusContainer" class="flex flex-col items-center justify-center py-10 hidden">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-4"></div>
+        <p class="text-gray-500">Finding opportunities...</p>
+    </div>
+
+    <h2 id="jobCount" class="font-bold mb-6 text-gray-700 text-xl text-center md:text-left">Initializing...</h2>
+    
+    <div id="jobsList" class="grid grid-cols-1 gap-6"></div>
+    
+    <div class="flex justify-center">
+        <button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl hover:bg-gray-50 shadow-sm transition-all font-medium">Load More</button>
+    </div>
 </main>
 
-<!-- ================= JOBS FIRESTORE ================= -->
 <script type="module">
-import { collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { collection, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-const db = window.db;
-
-const jobsList = document.getElementById("jobsList");
+const jobsListEl = document.getElementById("jobsList");
 const loadMoreBtn = document.getElementById("loadMoreBtn");
-const jobCount = document.getElementById("jobCount");
-
+const jobCountEl = document.getElementById("jobCount");
 const searchInput = document.getElementById("searchInput");
 const locationInput = document.getElementById("locationInput");
+const dateFilter = document.getElementById("dateFilter");
 const mainSearchBtn = document.getElementById("mainSearchBtn");
+const suggestionsDropdown = document.getElementById("suggestionsDropdown");
+const loader = document.getElementById("statusContainer");
 
-let allJobs = [], filteredJobs = [], visible = [], index = 0, pageSize = 6;
+let allJobs = [];
+let filteredJobs = [];
+let pageSize = 10;
+let currentLimit = 10;
 
-async function loadJobs() {
-  try {
-    // Note: This requires a Firestore index for status and timestamp
-    const q = query(collection(db, "jobs"), where("status", "==", "approved"), orderBy("timestamp", "desc"));
-    const snap = await getDocs(q);
-    allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    filteredJobs = [...allJobs];
-    render();
-  } catch (error) {
-    console.error("Error loading jobs:", error);
-    jobCount.innerText = "Error loading jobs. Please check console.";
-  }
+// Helper: Format Dates
+const isRecentlyPosted = (timestamp, days) => {
+    if (!timestamp) return false;
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const diff = (new Date() - date) / (1000 * 60 * 60 * 24);
+    return diff <= days;
+};
+
+// Start Real-time Listener (Reduced Latency)
+function initJobsSync() {
+    loader.classList.remove("hidden");
+    const q = query(collection(window.db, "jobs"), where("status", "==", "approved"));
+    
+    onSnapshot(q, (snapshot) => {
+        allJobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+        
+        loader.classList.add("hidden");
+        applyFilters();
+    }, (error) => {
+        console.error("Firestore Error:", error);
+        jobCountEl.innerText = "Check your Firestore indexes.";
+    });
 }
 
-function render() {
-  const next = filteredJobs.slice(index, index + pageSize);
-  visible = visible.concat(next);
-  
-  // Clear list only on first load/filter
-  if (index === 0) jobsList.innerHTML = "";
+function applyFilters() {
+    const term = searchInput.value.toLowerCase();
+    const loc = locationInput.value.toLowerCase();
+    const days = dateFilter.value === "all" ? Infinity : parseInt(dateFilter.value);
 
-  visible.forEach(job => {
-    // Check if job is "new" (posted in last 7 days)
-    let isNew = false;
-    if (job.timestamp) {
-      const postDate = job.timestamp.toDate ? job.timestamp.toDate() : new Date(job.timestamp);
-      const diffTime = Math.abs(new Date() - postDate);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays <= 7) isNew = true;
+    filteredJobs = allJobs.filter(job => {
+        const matchesTerm = (job.title || "").toLowerCase().includes(term) || (job.company || "").toLowerCase().includes(term);
+        const matchesLoc = (job.location || "").toLowerCase().includes(loc);
+        const matchesDate = days === Infinity || isRecentlyPosted(job.timestamp, days);
+        return matchesTerm && matchesLoc && matchesDate;
+    });
+
+    currentLimit = pageSize;
+    renderJobs();
+}
+
+function renderJobs() {
+    jobsListEl.innerHTML = "";
+    const toShow = filteredJobs.slice(0, currentLimit);
+
+    if (toShow.length === 0) {
+        jobCountEl.innerText = "No jobs found matching your criteria.";
+        return;
     }
 
-    const logo = job.companyImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=random`;
-    const div = document.createElement("div");
-    div.className = "bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-4 items-start md:items-center relative overflow-hidden";
+    jobCountEl.innerText = `${filteredJobs.length} jobs available`;
+
+    toShow.forEach(job => {
+        const isNew = isRecentlyPosted(job.timestamp, 7);
+        const logo = job.companyImageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random&color=fff&size=128`;
+        
+        const card = document.createElement("div");
+        card.className = "bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-5 items-start md:items-center relative";
+        
+        // Fire Icon SVG
+        const fireIcon = `<svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.334-.398-1.817a1 1 0 00-1.514-.857 4.028 4.028 0 00-1.174 1.4c-.393.749-.607 1.81-.607 3.487 0 3.113 2.458 5.636 5.5 5.636s5.5-2.523 5.5-5.636c0-1.11-.305-2.167-.834-3.074-1.058-1.817-2.344-3.203-3.539-4.26a1 1 0 00-.312-.17z" clip-rule="evenodd"></path></svg>`;
+        
+        card.innerHTML = `
+            <div class="w-16 h-16 shrink-0 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex items-center justify-center">
+                <img src="${logo}" alt="${job.company}" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Company&background=E5E7EB'">
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="font-bold text-lg text-gray-900 leading-tight">${job.title}</h3>
+                    ${isNew ? `
+                        <span class="latest-badge inline-flex items-center bg-red-100 text-red-600 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter border border-red-200">
+                            ${fireIcon} New
+                        </span>
+                    ` : ''}
+                </div>
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-sm text-gray-500">
+                    <span class="font-medium text-gray-700">${job.company}</span>
+                    <span>•</span>
+                    <span>${job.location || "Remote"}</span>
+                    <span>•</span>
+                    <span class="text-blue-600 font-semibold">${job.salary || "Salary Undisclosed"}</span>
+                </div>
+            </div>
+            <div class="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
+                <button onclick="window.viewJob('${job.id}')" class="flex-1 md:flex-none px-5 py-2.5 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg font-semibold hover:bg-gray-100 transition-colors">Details</button>
+                <button onclick="window.applyJob('${job.id}')" class="flex-1 md:flex-none px-5 py-2.5 bg-blue-600 text-white rounded-lg font-bold shadow-sm hover:bg-blue-700 transition-colors">Apply Now</button>
+            </div>
+        `;
+        jobsListEl.appendChild(card);
+    });
+
+    loadMoreBtn.classList.toggle("hidden", currentLimit >= filteredJobs.length);
+}
+
+// Live Suggestions Logic
+searchInput.oninput = (e) => {
+    const val = e.target.value.toLowerCase();
+    if (val.length < 2) {
+        suggestionsDropdown.classList.remove("active");
+        return;
+    }
+
+    const suggestions = new Set();
+    allJobs.forEach(j => {
+        if (j.title?.toLowerCase().includes(val)) suggestions.add(j.title);
+        if (j.company?.toLowerCase().includes(val)) suggestions.add(j.company);
+    });
+
+    const list = Array.from(suggestions).slice(0, 6);
+    if (list.length > 0) {
+        suggestionsDropdown.innerHTML = list.map(item => `
+            <div class="suggestion-item p-3 text-sm text-gray-700 border-b border-gray-50 last:border-0" onclick="window.selectSuggestion('${item.replace(/'/g, "\\'")}')">
+                ${item}
+            </div>
+        `).join("");
+        suggestionsDropdown.classList.add("active");
+    } else {
+        suggestionsDropdown.classList.remove("active");
+    }
     
-    // The "New" badge HTML
-    const newBadge = isNew ? `<span class="latest-badge bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full absolute top-4 right-4 uppercase tracking-wider border border-green-200">New</span>` : '';
+    applyFilters();
+};
 
-    div.innerHTML = `
-      ${newBadge}
-      <img src="${logo}" class="w-16 h-16 rounded-xl object-cover bg-gray-100" onerror="this.src='https://ui-avatars.com/api/?name=Company'">
-      <div class="flex-1">
-        <div class="flex items-center gap-2">
-            <h3 class="font-bold text-lg text-gray-800">${job.title}</h3>
-        </div>
-        <p class="text-sm text-gray-500 mt-1">${job.company} • <span class="text-gray-400">${job.location || "Remote"}</span></p>
-        <p class="text-blue-600 font-bold mt-2 text-sm">${job.salary || "Salary not disclosed"}</p>
-      </div>
-      <div class="flex gap-2 w-full md:w-auto">
-        <button onclick="viewJob('${job.id}')" class="flex-1 md:flex-none bg-white border border-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-50 font-medium text-sm transition-all">Details</button>
-        <button onclick="applyJob('${job.id}')" class="flex-1 md:flex-none bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 font-bold text-sm shadow-sm transition-all">Apply Now</button>
-      </div>`;
-    jobsList.appendChild(div);
-  });
-  
-  index += pageSize;
-  loadMoreBtn.classList.toggle("hidden", index >= filteredJobs.length);
-  jobCount.innerText = filteredJobs.length > 0 ? `${filteredJobs.length} jobs available` : "No jobs found";
-}
+window.selectSuggestion = (val) => {
+    searchInput.value = val;
+    suggestionsDropdown.classList.remove("active");
+    applyFilters();
+};
 
-function filterJobs() {
-  const q = searchInput.value.toLowerCase();
-  const l = locationInput.value.toLowerCase();
-  filteredJobs = allJobs.filter(j => {
-    const t = (j.title || "").toLowerCase();
-    const c = (j.company || "").toLowerCase();
-    const loc = (j.location || "").toLowerCase();
-    return (t.includes(q) || c.includes(q)) && loc.includes(l);
-  });
-  visible = []; 
-  index = 0;
-  jobsList.innerHTML = "";
-  render();
-}
+// Global Listeners
+mainSearchBtn.onclick = applyFilters;
+dateFilter.onchange = applyFilters;
+locationInput.oninput = applyFilters;
+loadMoreBtn.onclick = () => {
+    currentLimit += pageSize;
+    renderJobs();
+};
 
-mainSearchBtn.onclick = filterJobs;
-loadMoreBtn.onclick = render;
+document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
+        suggestionsDropdown.classList.remove("active");
+    }
+});
 
-window.viewJob = id => location.href = `job-detail.html?id=${id}`;
-window.applyJob = id => location.href = `job-detail.html?id=${id}`;
+window.viewJob = (id) => window.location.href = `job-detail.html?id=${id}`;
+window.applyJob = (id) => window.location.href = `job-detail.html?id=${id}`;
 
-// Initialize
-loadJobs();
+setTimeout(initJobsSync, 500);
+
 </script>
 
 </body>
