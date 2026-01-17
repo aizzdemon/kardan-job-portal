@@ -1,74 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Job Details - BooterSpace</title>
+<meta charset="UTF-8" />
+<title>Job Details – BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase -->
+<!-- Firebase COMPAT -->
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
 
 <style>
 body { background:#f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-.job-card { background:#fff; border-radius:24px; }
-.gradient-border::after {
-    content:'';
-    position:absolute; top:0; left:0; right:0;
-    height:6px;
-    background:linear-gradient(90deg,#ef4444,#f87171);
-    border-radius:24px 24px 0 0;
+.job-card { background:#fff; border-radius:24px; box-shadow: 0 10px 25px -5px rgba(0,0,0,.05); }
+.custom-modal {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
 }
-.shimmer {
-    background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
-    background-size:200% 100%;
-    animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
 </style>
 </head>
 
-<body class="min-h-screen">
+<body>
 
-<!-- Navbar -->
-<div id="navbar"></div>
-
+<!-- ================= CONTENT ================= -->
 <main class="max-w-4xl mx-auto px-4 py-10">
-<div id="jobDetailsContent" class="job-card gradient-border p-6 md:p-10 relative">
-
-<!-- Skeleton -->
-<div class="space-y-6">
-<div class="h-48 shimmer rounded-2xl"></div>
-<div class="h-10 w-3/4 shimmer rounded"></div>
-</div>
-
-</div>
+  <div id="jobDetailsContent" class="job-card p-8">
+    Loading...
+  </div>
 </main>
 
+<!-- ================= ALERT MODAL ================= -->
+<div id="alertModal" class="custom-modal">
+  <div class="bg-white p-6 rounded-2xl max-w-sm w-full text-center">
+    <h3 id="alertTitle" class="text-lg font-bold mb-2"></h3>
+    <p id="alertMsg" class="text-gray-600 mb-6"></p>
+    <button onclick="closeAlert()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Close</button>
+  </div>
+</div>
+
+<!-- ================= LOGIN MODAL ================= -->
+<div id="loginModal" class="custom-modal">
+  <div class="bg-white p-8 rounded-2xl max-w-sm w-full text-center shadow-xl">
+    <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+      <i class="fa-solid fa-lock"></i>
+    </div>
+    <h3 class="text-xl font-black mb-2">Login Required</h3>
+    <p class="text-gray-600 mb-6">
+      Please login to apply. You’ll be redirected back to this job.
+    </p>
+    <div class="flex gap-3">
+      <button onclick="redirectToLogin()" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold">
+        Login
+      </button>
+      <button onclick="closeLoginPopup()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ---------- NAVBAR LOAD ---------- */
-fetch('navbar.html')
-.then(r=>r.text())
-.then(d=>document.getElementById('navbar').innerHTML=d);
-
 /* ---------- FIREBASE ---------- */
-const firebaseConfig = {
-apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-authDomain: "kar-kardan.firebaseapp.com",
-projectId: "kar-kardan",
-storageBucket: "kar-kardan.firebasestorage.app",
-messagingSenderId: "554147696994",
-appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
-
-if (!firebase.apps.length) {
-firebase.initializeApp(firebaseConfig);
-}
+firebase.initializeApp({
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan"
+});
 
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -78,116 +84,64 @@ let currentJobId = null;
 
 auth.onAuthStateChanged(u => currentUser = u);
 
-/* ---------- JOB LOAD ---------- */
-window.addEventListener('DOMContentLoaded', loadJobDetails);
-
+/* ---------- HELPERS ---------- */
 function getJobId() {
-return new URLSearchParams(window.location.search).get('id');
+  return new URLSearchParams(window.location.search).get("id");
 }
 
-async function loadJobDetails() {
-currentJobId = getJobId();
-if (!currentJobId) return renderError("Invalid Job");
+function showAlert(t,m){
+  alertTitle.innerText=t;
+  alertMsg.innerText=m;
+  alertModal.style.display="flex";
+}
+function closeAlert(){ alertModal.style.display="none"; }
 
-const doc = await db.collection('jobs').doc(currentJobId).get();
-if (!doc.exists) return renderError("Job not found");
+function showLoginPopup(){ loginModal.style.display="flex"; }
+function closeLoginPopup(){ loginModal.style.display="none"; }
 
-renderJob(doc.data());
+function redirectToLogin(){
+  localStorage.setItem("redirectAfterLogin", window.location.href);
+  window.location.href = "login.html";
 }
 
-/* ---------- RENDER JOB ---------- */
-function renderJob(job) {
-document.getElementById('jobDetailsContent').innerHTML = `
-<h1 class="text-3xl font-extrabold mb-4">${job.title}</h1>
-<p class="text-lg text-slate-600 mb-6">${job.companyName} • ${job.location || 'Remote'}</p>
+/* ---------- LOAD JOB ---------- */
+window.onload = async () => {
+  currentJobId = getJobId();
+  if (!currentJobId) return;
 
-<p class="text-slate-600 mb-8 whitespace-pre-line">${job.details || ''}</p>
+  const snap = await db.collection("jobs").doc(currentJobId).get();
+  if (!snap.exists) return;
 
-<div class="flex gap-4 flex-wrap">
-<button onclick="handleApply('${job.applyLink}')"
-class="bg-red-600 text-white px-6 py-3 rounded-xl font-bold">
-Apply Now
-</button>
+  const job = snap.data();
+  renderJob(job);
+};
 
-<button onclick="toggleSaveJob()"
-id="saveBtn"
-class="border px-6 py-3 rounded-xl font-bold">
-<i class="fa-regular fa-bookmark"></i> Save
-</button>
+/* ---------- RENDER ---------- */
+function renderJob(job){
+  jobDetailsContent.innerHTML = `
+    <h1 class="text-3xl font-black mb-2">${job.title}</h1>
+    <p class="text-blue-600 font-bold mb-4">${job.company}</p>
 
-<button onclick="shareJob()"
-class="border px-6 py-3 rounded-xl font-bold">
-<i class="fas fa-share-nodes"></i> Share
-</button>
-</div>
-`;
+    <div class="mb-6 text-gray-600 whitespace-pre-line">
+      ${job.about}
+    </div>
 
-checkSaved();
+    <button onclick="applyJob('${job.applyLink}')"
+      class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black">
+      Apply Now
+    </button>
+  `;
 }
 
-/* ---------- APPLY LOGIN CHECK ---------- */
-function handleApply(link) {
-if (!currentUser) {
-alert("Please login to apply");
-location.href = "login.html";
-return;
-}
-window.open(link, "_blank");
-}
-
-/* ---------- SAVE JOB ---------- */
-async function toggleSaveJob() {
-if (!currentUser) {
-alert("Login required to save job");
-location.href = "login.html";
-return;
-}
-
-const ref = db.collection('users')
-.doc(currentUser.uid)
-.collection('savedJobs')
-.doc(currentJobId);
-
-const snap = await ref.get();
-
-if (snap.exists) {
-await ref.delete();
-document.getElementById('saveBtn').innerHTML =
-`<i class="fa-regular fa-bookmark"></i> Save`;
-} else {
-await ref.set({
-jobId: currentJobId,
-savedAt: firebase.firestore.FieldValue.serverTimestamp()
-});
-document.getElementById('saveBtn').innerHTML =
-`<i class="fa-solid fa-bookmark"></i> Saved`;
-}
-}
-
-async function checkSaved() {
-if (!currentUser) return;
-const ref = db.collection('users')
-.doc(currentUser.uid)
-.collection('savedJobs')
-.doc(currentJobId);
-
-if ((await ref.get()).exists) {
-document.getElementById('saveBtn').innerHTML =
-`<i class="fa-solid fa-bookmark"></i> Saved`;
-}
-}
-
-/* ---------- SHARE ---------- */
-function shareJob() {
-navigator.clipboard.writeText(window.location.href);
-alert("Job link copied to clipboard");
-}
-
-/* ---------- ERROR ---------- */
-function renderError(msg) {
-document.getElementById('jobDetailsContent').innerHTML =
-`<p class="text-center text-red-500 font-bold">${msg}</p>`;
+/* ---------- APPLY ---------- */
+function applyJob(link){
+  if(!currentUser){
+    showLoginPopup();
+    return;
+  }
+  window.open(link,"_blank");
 }
 </script>
+
 </body>
 </html>
