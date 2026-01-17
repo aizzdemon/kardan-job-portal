@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – KARDAN</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Firebase Compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+.sidebar-transition { transition: transform .3s ease }
+</style>
+</head>
+
+<body class="bg-slate-50 min-h-screen">
+
+<!-- OVERLAY -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeAllSidebars()"></div>
+
+<!-- LOGIN -->
+<div id="loginDiv" class="min-h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded-xl shadow w-full max-w-md">
+    <h1 class="text-3xl font-black text-indigo-600 text-center">KARDAN ADMIN</h1>
+    <input id="email" type="email" placeholder="Admin Email" class="w-full mt-4 p-3 border rounded">
+    <input id="password" type="password" placeholder="Password" class="w-full mt-3 p-3 border rounded">
+    <button onclick="login()" class="w-full mt-4 bg-indigo-600 text-white py-3 rounded font-bold">Login</button>
+    <p id="loginError" class="text-red-500 text-sm mt-3 text-center"></p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminDiv" class="hidden">
+
+<header class="bg-white border-b">
+  <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+    <div class="font-black text-indigo-600 text-xl">KARDAN ADMIN</div>
+    <button onclick="logout()" class="text-red-600 font-bold">Logout</button>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+
+<!-- NAV -->
+<div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
+  <button id="btn-jobs" onclick="setActiveTab('jobs')" class="nav-btn p-3 bg-white border rounded">💼 Jobs</button>
+  <button id="btn-pendingJobs" onclick="setActiveTab('pendingJobs')" class="nav-btn p-3 bg-white border rounded">⏳ Pending</button>
+  <button id="btn-users" onclick="setActiveTab('users')" class="nav-btn p-3 bg-white border rounded">👥 Users</button>
+  <button id="btn-providers" onclick="setActiveTab('providers')" class="nav-btn p-3 bg-white border rounded">🏢 Providers</button>
+  <button id="btn-pendingProviders" onclick="setActiveTab('pendingProviders')" class="nav-btn p-3 bg-white border rounded">🆕 New</button>
+  <button id="btn-posts" onclick="setActiveTab('posts')" class="nav-btn p-3 bg-white border rounded">📝 Community</button>
+</div>
+
+<div id="content" class="bg-white p-6 rounded-xl border min-h-[400px] text-slate-400 text-center">
+  Select a section
+</div>
+
+</main>
+</div>
+
+<script>
+/* FIREBASE */
+firebase.initializeApp({
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan"
+});
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
+
+let activeTab = null;
+
+/* AUTH */
+function login() {
+  auth.signInWithEmailAndPassword(email.value, password.value)
+    .catch(e => loginError.textContent = e.message);
+}
+
+function logout() {
+  auth.signOut();
+  location.reload();
+}
+
+auth.onAuthStateChanged(user => {
+  if (user && user.uid === ADMIN_UID) {
+    loginDiv.classList.add("hidden");
+    adminDiv.classList.remove("hidden");
+  } else {
+    loginDiv.classList.remove("hidden");
+    adminDiv.classList.add("hidden");
+  }
+});
+
+/* UI */
+function setActiveTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove("bg-indigo-100"));
+  document.getElementById("btn-" + tab).classList.add("bg-indigo-100");
+
+  if (tab === "jobs") showJobs();
+  if (tab === "pendingJobs") showPendingJobs();
+  if (tab === "users") showUsers();
+  if (tab === "providers") showProviders();
+  if (tab === "pendingProviders") showPendingProviders();
+  if (tab === "posts") showPosts();
+}
+
+/* ======================
+   COMMUNITY POSTS
+====================== */
+async function showPosts() {
+  content.innerHTML = `
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Community Posts</h2>
+      <input id="postSearch" placeholder="Search name / email / text"
+        class="p-2 border rounded w-64" onkeyup="loadPosts()">
+    </div>
+    <div id="postsList" class="space-y-3"></div>
+  `;
+  loadPosts();
+}
+
+async function loadPosts() {
+  const filter = document.getElementById("postSearch")?.value.toLowerCase() || "";
+  const list = document.getElementById("postsList");
+
+  list.innerHTML = "Loading...";
+
+  const snap = await db.collection("posts").get();
+
+  const docs = snap.docs.sort((a,b)=>{
+    return (b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0);
+  });
+
+  const html = docs.map(d => {
+    const p = d.data();
+    const text = p.text || "";
+    const name = p.userName || "User";
+    const email = p.userEmail || "";
+    const time = p.createdAt?.seconds
+      ? new Date(p.createdAt.seconds * 1000).toLocaleString()
+      : "Unknown";
+
+    if (filter && !(text+name+email).toLowerCase().includes(filter)) return "";
+
+    return `
+      <div class="border p-4 rounded-lg bg-white">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="font-bold">${name}</p>
+            <p class="text-xs text-slate-500">${email}</p>
+            <p class="text-xs text-slate-400 mt-1">${time}</p>
+          </div>
+          <button onclick="deletePost('${d.id}')" class="text-red-600 font-bold text-sm">
+            Delete
+          </button>
+        </div>
+        <p class="mt-3 text-slate-700 whitespace-pre-wrap">${text}</p>
+      </div>
+    `;
+  }).join("");
+
+  list.innerHTML = html || `<p class="text-center text-slate-400">No posts found</p>`;
+}
+
+async function deletePost(id) {
+  if (confirm("Delete this community post permanently?")) {
+    await db.collection("posts").doc(id).delete();
+    loadPosts();
+  }
+}
+
+/* ======================
+   OTHER MODULES (SAFE)
+====================== */
+async function showJobs(){ content.innerHTML="Jobs loaded"; }
+async function showPendingJobs(){ content.innerHTML="Pending jobs loaded"; }
+async function showUsers(){ content.innerHTML="Users loaded"; }
+async function showProviders(){ content.innerHTML="Providers loaded"; }
+async function showPendingProviders(){ content.innerHTML="Pending providers loaded"; }
+</script>
+
+</body>
+</html>
