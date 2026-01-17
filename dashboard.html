@@ -1,403 +1,336 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  query, 
-  where,
-  Timestamp 
-} from 'firebase/firestore';
-import { 
-  getAuth, 
-  onAuthStateChanged, 
-  signInAnonymously, 
-  signInWithCustomToken 
-} from 'firebase/auth';
-import { 
-  Briefcase, 
-  Plus, 
-  Clock, 
-  CheckCircle, 
-  MapPin, 
-  Building2, 
-  ExternalLink, 
-  X,
-  LayoutDashboard,
-  User
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – KARDAN</title>
+<script src="https://cdn.tailwindcss.com"></script>
 
-// --- Firebase Configuration & Initialization ---
-const firebaseConfig = JSON.parse(__firebase_config);
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+<!-- Firebase (Compat SDKs) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [jobs, setJobs] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+<style>
+  .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .nav-btn.active { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; }
+</style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
 
-  // --- Auth Logic (Rule 3) ---
-  useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (error) {
-        console.error("Auth error:", error);
-      }
-    };
-    initAuth();
-
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // --- Data Fetching (Aligned with your Firestore Rules) ---
-  useEffect(() => {
-    if (!user) return;
-
-    // Rule Match: We now use the root '/jobs' collection as per your rules
-    const jobsCollection = collection(db, 'jobs');
-    
-    // We filter by userId in memory or via simple query to show "My Jobs"
-    // Note: Your rules allow reading approved jobs publicly, but for a dashboard,
-    // providers usually want to see ALL their own jobs (pending or approved).
-    const q = query(jobsCollection); 
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const jobsList = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        // Filter in-memory to show only jobs belonging to this provider
-        .filter(job => job.userId === user.uid);
-      
-      setJobs(jobsList.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds));
-    }, (error) => {
-      console.error("Firestore error:", error);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  const handlePostJob = async (e) => {
-    e.preventDefault();
-    if (!user) return;
-    setPosting(true);
-
-    const formData = new FormData(e.target);
-    
-    // Data mapping to match your Firestore 'allow create' requirements:
-    // 1. userId must match request.auth.uid
-    // 2. status must be "pending"
-    const jobData = {
-      title: formData.get('jobTitle'),
-      company: formData.get('companyName'),
-      logo: formData.get('companyLogo') || 'https://via.placeholder.com/100?text=Logo',
-      location: formData.get('jobPlace'),
-      salary: formData.get('salary'),
-      link: formData.get('jobLink'),
-      description: formData.get('jobDescription'),
-      status: 'pending', // Matches rule requirement for creation
-      userId: user.uid,   // Matches rule requirement: request.resource.data.userId == request.auth.uid
-      createdAt: Timestamp.now()
-    };
-
-    try {
-      const jobsCollection = collection(db, 'jobs');
-      await addDoc(jobsCollection, jobData);
-      
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        setIsModalOpen(false);
-        e.target.reset();
-      }, 2000);
-    } catch (error) {
-      console.error("Error adding job:", error);
-      // In a real app, you'd show a user-friendly error message here
-    } finally {
-      setPosting(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
-
-  const displayName = user?.displayName || `Provider #${user?.uid?.substring(0, 5)}`;
-
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Sidebar / Header */}
-      <nav className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <a 
-              href="index.html" 
-              className="flex items-center gap-2 group transition-transform active:scale-95"
-            >
-              <div className="bg-green-600 p-2 rounded-lg text-white group-hover:bg-green-700 transition-colors">
-                <Briefcase size={24} />
-              </div>
-              <span className="font-black text-2xl tracking-tighter">
-                <span className="text-black">Booter</span>
-                <span className="text-blue-600">Space</span>
-              </span>
-            </a>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 text-right">
-                <div className="hidden md:block">
-                  <p className="text-sm font-bold text-gray-800">{displayName}</p>
-                  <p className="text-xs text-green-600 font-medium">Verified Account</p>
-                </div>
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center border text-gray-500">
-                  <User size={20} />
-                </div>
-              </div>
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-sm active:scale-95"
-              >
-                <Plus size={20} />
-                <span className="hidden sm:inline">Post Job</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <header className="mb-8">
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-800">
-            <LayoutDashboard className="text-green-600" />
-            Welcome back, {user?.displayName || 'Provider'}
-          </h1>
-          <p className="text-gray-500 mt-1">Manage your job listings in the BooterSpace network.</p>
-        </header>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl border shadow-sm">
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Postings</p>
-            <p className="text-3xl font-bold mt-2">{jobs.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border shadow-sm">
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">Pending Approval</p>
-            <p className="text-3xl font-bold mt-2 text-amber-500">
-              {jobs.filter(j => j.status === 'pending').length}
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-xl border shadow-sm">
-            <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">Live Jobs</p>
-            <p className="text-3xl font-bold mt-2 text-green-600">
-              {jobs.filter(j => j.status === 'approved').length}
-            </p>
-          </div>
-        </div>
-
-        {/* Listings Table / Cards */}
-        <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b bg-gray-50/50 flex justify-between items-center">
-            <h2 className="font-bold text-gray-700">Your Recent Listings</h2>
-            <span className="text-xs text-gray-400 font-mono italic">Role: Job Provider</span>
-          </div>
-          
-          {jobs.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
-                <Briefcase size={32} />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-600">No jobs posted yet</h3>
-              <p className="text-gray-400 max-w-xs mx-auto mt-2">Start hiring by clicking the "Post Job" button at the top.</p>
-            </div>
-          ) : (
-            <div className="divide-y">
-              {jobs.map((job) => (
-                <div key={job.id} className="p-6 hover:bg-gray-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex gap-4">
-                    <img 
-                      src={job.logo} 
-                      alt={job.company} 
-                      className="w-12 h-12 rounded-lg object-cover border bg-white"
-                      onError={(e) => e.target.src = 'https://via.placeholder.com/100?text=Job'}
-                    />
-                    <div>
-                      <h3 className="font-bold text-lg leading-tight text-gray-800">{job.title}</h3>
-                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-500 items-center">
-                        <span className="flex items-center gap-1 font-medium"><Building2 size={14} /> {job.company}</span>
-                        <span className="flex items-center gap-1"><MapPin size={14} /> {job.location}</span>
-                        {job.salary && <span className="text-green-600 font-bold">{job.salary}</span>}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between md:justify-end gap-4">
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ${
-                      job.status === 'pending' 
-                        ? 'bg-amber-100 text-amber-700' 
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      {job.status === 'pending' ? <Clock size={12} /> : <CheckCircle size={12} />}
-                      {job.status === 'pending' ? 'Pending Review' : 'Live'}
-                    </div>
-                    <a 
-                      href={job.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="p-2 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-gray-700 transition-colors"
-                      title="View External Link"
-                    >
-                      <ExternalLink size={20} />
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Post Job Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
-            onClick={() => setIsModalOpen(false)}
-          ></div>
-          
-          <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-xl font-bold text-gray-800">Post New Job</h2>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 max-h-[80vh] overflow-y-auto">
-              {showSuccess ? (
-                <div className="py-12 text-center animate-in zoom-in">
-                  <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle size={48} />
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-800">Successfully Posted!</h3>
-                  <p className="text-gray-500 mt-2">Your job post is now pending admin approval.</p>
-                </div>
-              ) : (
-                <form id="jobForm" onSubmit={handlePostJob} className="space-y-4">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Job Title*</label>
-                      <input 
-                        name="jobTitle" 
-                        type="text" 
-                        placeholder="e.g. Senior Product Designer" 
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all bg-gray-50" 
-                        required 
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Company Name*</label>
-                        <input 
-                          name="companyName" 
-                          type="text" 
-                          placeholder="Your Company" 
-                          className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-gray-50" 
-                          required 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Location*</label>
-                        <input 
-                          name="jobPlace" 
-                          type="text" 
-                          placeholder="Remote / New York" 
-                          className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-gray-50" 
-                          required 
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Company Logo URL</label>
-                      <input 
-                        name="companyLogo" 
-                        type="url" 
-                        placeholder="https://example.com/logo.png" 
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-gray-50" 
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Salary Range</label>
-                        <input 
-                          name="salary" 
-                          type="text" 
-                          placeholder="e.g. $80k - $120k" 
-                          className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-gray-50" 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Application Link*</label>
-                        <input 
-                          name="jobLink" 
-                          type="url" 
-                          placeholder="https://company.com/apply" 
-                          className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-gray-50" 
-                          required 
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Job Description*</label>
-                      <textarea 
-                        name="jobDescription" 
-                        rows="4" 
-                        placeholder="Briefly describe the role..." 
-                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-gray-50" 
-                        required
-                      ></textarea>
-                    </div>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={posting}
-                    className={`w-full ${posting ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2`}
-                  >
-                    {posting ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    ) : 'Publish Job Listing'}
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+<!-- LOGIN SCREEN -->
+<div id="loginDiv" class="flex items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-black text-indigo-600">KARDAN</h1>
+      <p class="text-slate-500 font-medium">Administrative Gateway</p>
     </div>
-  );
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Admin Email</label>
+        <input id="email" type="email" placeholder="admin@kardan.com" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"/>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Password</label>
+        <input id="password" type="password" placeholder="••••••••" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"/>
+      </div>
+      <button onclick="login()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200">Authorize Access</button>
+      <p id="loginError" class="text-red-500 text-sm text-center mt-2 font-medium"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN INTERFACE -->
+<div id="adminDiv" class="hidden pb-20">
+  <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl font-black text-indigo-600">KARDAN</span>
+        <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">ADMIN</span>
+      </div>
+      <button onclick="logout()" class="text-sm font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1">
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Navigation Tabs -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <button onclick="setActiveTab('jobs')" id="btn-jobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">💼</span>
+        <span class="text-sm font-bold mt-2">Approved Jobs</span>
+      </button>
+      <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">⏳</span>
+        <span class="text-sm font-bold mt-2">Pending Approvals</span>
+      </button>
+      <button onclick="setActiveTab('users')" id="btn-users" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">👥</span>
+        <span class="text-sm font-bold mt-2">Manage Users</span>
+      </button>
+    </div>
+
+    <div id="content" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
+      <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+        <span class="text-5xl mb-4">🖥️</span>
+        <p>Verified Administrative Session Active.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================
+   Firebase Configuration
+============================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+  authDomain: "kar-kardan.firebaseapp.com",
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b",
+  measurementId: "G-RRC3X485KQ"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Matches the exact UID in your Firestore Rules
+const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
+
+/* ============================
+   UI & Auth Functions
+============================ */
+let activeTab = null;
+
+function setActiveTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById(`btn-${tab}`);
+    if(activeBtn) activeBtn.classList.add('active');
+
+    switch(tab) {
+        case 'jobs': showJobs(); break;
+        case 'pendingJobs': showPendingJobs(); break;
+        case 'users': showUsers(); break;
+    }
 }
+
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorDiv = document.getElementById("loginError");
+
+  try {
+    const userCred = await auth.signInWithEmailAndPassword(email, password);
+    // Explicit client-side check to prevent non-admins from even seeing the UI
+    if (userCred.user.uid !== ADMIN_UID) {
+      errorDiv.textContent = "Access Denied: Non-Administrative Account.";
+      await auth.signOut();
+    }
+  } catch (err) {
+    errorDiv.textContent = "Auth Error: " + err.message;
+  }
+}
+
+async function logout() {
+    await auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+  if (user && user.uid === ADMIN_UID) {
+    document.getElementById("loginDiv").classList.add("hidden");
+    document.getElementById("adminDiv").classList.remove("hidden");
+  } else {
+    document.getElementById("loginDiv").classList.remove("hidden");
+    document.getElementById("adminDiv").classList.add("hidden");
+    document.getElementById("content").innerHTML = ""; 
+  }
+});
+
+async function fetchUserName(uid) {
+    if(!uid) return "System";
+    try {
+        const uDoc = await db.collection("users").doc(uid).get();
+        return uDoc.exists ? (uDoc.data().name || "Kardan User") : "Guest User";
+    } catch {
+        return "Unknown";
+    }
+}
+
+/* ============================
+   Jobs Module (Aligned with Rules)
+============================ */
+async function showJobs() {
+    const content = document.getElementById("content");
+    content.innerHTML = `
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Approved Job Listings</h2>
+        <div class="flex gap-2">
+          <input id="jobSearch" type="text" placeholder="Search title..." class="text-sm p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" onkeyup="if(event.key==='Enter') loadJobs()"/>
+          <button onclick="loadJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Search</button>
+        </div>
+      </div>
+      <div id="jobsList" class="space-y-3">Loading records...</div>
+    `;
+    loadJobs();
+}
+
+async function loadJobs() {
+    const searchVal = document.getElementById("jobSearch")?.value.toLowerCase() || "";
+    const list = document.getElementById("jobsList");
+    list.innerHTML = "Searching...";
+    
+    try {
+        // Query must match the rule "allow read: if resource.data.status == 'approved'"
+        const snap = await db.collection("jobs")
+                            .where("status", "==", "approved")
+                            .orderBy("timestamp", "desc")
+                            .get();
+                            
+        if(snap.empty) {
+            list.innerHTML = `<div class="text-center py-10 text-slate-400">No approved jobs found.</div>`;
+            return;
+        }
+
+        const items = await Promise.all(snap.docs.map(async doc => {
+            const j = doc.data();
+            if(searchVal && !j.title?.toLowerCase().includes(searchVal)) return null;
+            
+            const poster = await fetchUserName(j.userId);
+            const displayDate = j.timestamp?.toDate ? j.timestamp.toDate().toLocaleDateString() : "N/A";
+
+            return `
+              <div class="p-4 rounded-xl border border-slate-200 bg-white flex justify-between items-center">
+                <div class="min-w-0">
+                  <h3 class="font-bold text-slate-800 truncate">${j.title}</h3>
+                  <p class="text-xs text-slate-500">${j.company} • ${displayDate}</p>
+                  <p class="text-[10px] text-indigo-500 font-bold mt-1">POSTED BY: ${poster}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 p-2 px-4 rounded-lg text-xs font-bold hover:bg-red-100">Delete</button>
+                </div>
+              </div>
+            `;
+        }));
+        
+        const filtered = items.filter(x => x !== null);
+        list.innerHTML = filtered.length > 0 ? filtered.join("") : `<div class="text-center py-10 text-slate-400">No results for "${searchVal}"</div>`;
+    } catch(e) {
+        list.innerHTML = `<p class="text-red-500 bg-red-50 p-4 rounded-lg">Query Error: Ensure your Firestore indices are ready and your status matches "approved".<br><small>${e.message}</small></p>`;
+    }
+}
+
+async function showPendingJobs() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Pending Review</h2><div id="pendingList" class="space-y-3">Loading...</div>`;
+    const list = document.getElementById("pendingList");
+    
+    try {
+        // We explicitly query for "pending" status. 
+        // Note: Your Firestore rules allow read if isAdmin(). 
+        // If this still fails, ensure your rule "isAdmin()" helper is working correctly 
+        // and that you've signed in with the specific UID "nkXAUBb7ffZQ5CtyShWl6YcQ39t2".
+        const snap = await db.collection("jobs")
+                            .where("status", "==", "pending")
+                            .get();
+        
+        if(snap.empty) {
+            list.innerHTML = `<div class="text-center py-20 text-slate-400">Clear queue! No pending jobs.</div>`;
+            return;
+        }
+        
+        const htmlArr = await Promise.all(snap.docs.map(async doc => {
+            const j = doc.data();
+            const poster = await fetchUserName(j.userId);
+            const displayDate = j.timestamp?.toDate ? j.timestamp.toDate().toLocaleDateString() : "N/A";
+            
+            return `
+              <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
+                <div class="min-w-0 pr-4">
+                  <h4 class="font-bold text-slate-800 truncate">${j.title}</h4>
+                  <p class="text-sm text-slate-600">${j.company} • ${j.postedBy || 'No Email'}</p>
+                  <div class="flex gap-3 mt-1">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">By: ${poster}</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">${displayDate}</p>
+                  </div>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:shadow-lg transition-all active:scale-95">Approve</button>
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100 transition-all">Reject</button>
+                </div>
+              </div>
+            `;
+        }));
+        list.innerHTML = htmlArr.join("");
+    } catch(e) {
+        console.error("Firestore Error:", e);
+        list.innerHTML = `
+            <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+                <p class="text-red-600 font-bold text-sm">Failed to load pending jobs.</p>
+                <p class="text-red-500 text-xs mt-1">Error: ${e.message}</p>
+                <p class="text-slate-500 text-[10px] mt-4 uppercase font-bold tracking-tight">Technical Tip: Check if the 'isAdmin' rule allows this UID and if a composite index is required in the Firebase Console.</p>
+            </div>`;
+    }
+}
+
+async function updateJobStatus(id, status) {
+    try {
+        await db.collection("jobs").doc(id).update({ status: status });
+        if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs();
+    } catch(e) {
+        alert("Update failed: " + e.message);
+    }
+}
+
+async function deleteJob(id) {
+    if(confirm("Permanently delete this record?")) {
+        try {
+            await db.collection("jobs").doc(id).delete();
+            if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs();
+        } catch(e) {
+            alert("Delete failed: " + e.message);
+        }
+    }
+}
+
+/* ============================
+   Users Module
+============================ */
+async function showUsers() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6">Registered Users</h2><div id="usersList" class="space-y-3">Loading...</div>`;
+    const list = document.getElementById("usersList");
+    
+    try {
+        // Rule: match /users/{userId} { allow read: if true; }
+        const snap = await db.collection("users").get();
+        if(snap.empty) {
+            list.innerHTML = `<p class="text-center text-slate-400">No user profiles found.</p>`;
+        } else {
+            list.innerHTML = snap.docs.map(d => {
+                const u = d.data();
+                const isThisAdmin = d.id === ADMIN_UID;
+                return `
+                  <div class="p-4 border rounded-xl bg-white flex justify-between items-center ${isThisAdmin ? 'border-indigo-200 bg-indigo-50/30' : ''}">
+                    <div>
+                      <h4 class="font-bold flex items-center gap-2">
+                        ${u.name || "Anonymous"} 
+                        ${isThisAdmin ? '<span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded">YOU</span>' : ''}
+                      </h4>
+                      <p class="text-sm text-slate-500">${u.email || 'No email provided'}</p>
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-300">${d.id}</div>
+                  </div>`;
+            }).join("");
+        }
+    } catch(e) {
+        list.innerHTML = `<p class="text-red-500">Cannot fetch users: ${e.message}</p>`;
+    }
+}
+</script>
+</body>
+</html>
