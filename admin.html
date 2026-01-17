@@ -12,38 +12,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-.sidebar-transition {
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-}
+.sidebar-transition { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
 </style>
 </head>
-
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
-
-<!-- SIDEBAR OVERLAYS -->
-<div id="sidebarOverlay" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeAllSidebars()"></div>
-
-<!-- USER DETAILS SIDEBAR -->
-<div id="userDetailsSidebar" class="fixed inset-y-0 left-0 w-full max-w-md bg-white shadow-2xl sidebar-transition -translate-x-full z-50 overflow-y-auto">
-  <div class="p-6">
-    <div class="flex justify-between items-center mb-6 border-b pb-4 sticky top-0 bg-white z-10">
-      <h2 class="text-2xl font-bold text-slate-800">User Profile</h2>
-      <button onclick="closeAllSidebars()" class="p-2 hover:bg-slate-100 rounded-full transition">&times;</button>
-    </div>
-    <div id="userDetailsContent" class="space-y-4"></div>
-  </div>
-</div>
-
-<!-- JOB DETAILS SIDEBAR -->
-<div id="jobDetailsSidebar" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl sidebar-transition translate-x-full z-50 overflow-y-auto">
-  <div class="p-6">
-    <div class="flex justify-between items-center mb-6 border-b pb-4 sticky top-0 bg-white z-10">
-      <h2 class="text-2xl font-bold text-slate-800">Job Specification</h2>
-      <button onclick="closeAllSidebars()" class="p-2 hover:bg-slate-100 rounded-full transition">&times;</button>
-    </div>
-    <div id="jobDetailsContent" class="space-y-4"></div>
-  </div>
-</div>
 
 <!-- LOGIN SCREEN -->
 <div id="loginDiv" class="flex items-center justify-center min-h-screen p-4">
@@ -96,14 +68,6 @@
         <span class="text-xl">👥</span>
         <span class="text-xs font-bold mt-1">Users</span>
       </button>
-      <button onclick="setActiveTab('providers')" id="btn-providers" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
-        <span class="text-xl">🏢</span>
-        <span class="text-xs font-bold mt-1">Providers</span>
-      </button>
-      <button onclick="setActiveTab('pendingProviders')" id="btn-pendingProviders" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
-        <span class="text-xl">🆕</span>
-        <span class="text-xs font-bold mt-1">New Signups</span>
-      </button>
     </div>
 
     <div id="content" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
@@ -135,7 +99,7 @@ const db = firebase.firestore();
 const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
 /* ============================
-   UI State & Auth
+   UI & Auth Functions
 ============================ */
 let activeTab = null;
 
@@ -149,8 +113,6 @@ function setActiveTab(tab) {
         case 'jobs': showJobs(); break;
         case 'pendingJobs': showPendingJobs(); break;
         case 'users': showUsers(); break;
-        case 'providers': showProviders(); break;
-        case 'pendingProviders': showPendingProviders(); break;
     }
 }
 
@@ -186,12 +148,6 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-function closeAllSidebars() {
-    document.getElementById("userDetailsSidebar").classList.add("-translate-x-full");
-    document.getElementById("jobDetailsSidebar").classList.add("translate-x-full");
-    document.getElementById("sidebarOverlay").classList.add("hidden");
-}
-
 async function fetchUserName(uid) {
     if(!uid) return "System";
     try {
@@ -203,7 +159,7 @@ async function fetchUserName(uid) {
 }
 
 /* ============================
-   Module: Jobs (Root collection)
+   Jobs Module
 ============================ */
 async function showJobs() {
     const content = document.getElementById("content");
@@ -223,6 +179,7 @@ async function showJobs() {
 async function loadJobs() {
     const emailFilter = document.getElementById("jobSearch")?.value.toLowerCase() || "";
     const list = document.getElementById("jobsList");
+    list.innerHTML = "Loading...";
     try {
         const snap = await db.collection("jobs").orderBy("timestamp","desc").get();
         if(snap.empty) {
@@ -232,9 +189,15 @@ async function loadJobs() {
 
         const items = await Promise.all(snap.docs.map(async doc => {
             const j = doc.data();
-            if(emailFilter && !j.userEmail?.toLowerCase().includes(emailFilter)) return null;
-            const isApproved = j.status==='approved';
+            if(emailFilter && !j.postedBy?.toLowerCase().includes(emailFilter)) return null;
+            const isApproved = (j.status || '').toLowerCase() === 'approved';
             const poster = await fetchUserName(j.userId);
+
+            let displayDate;
+            if(j.timestamp?.toDate) displayDate = j.timestamp.toDate().toLocaleDateString();
+            else if(j.timestamp) displayDate = new Date(j.timestamp).toLocaleDateString();
+            else displayDate = "N/A";
+
             return `
               <div class="p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition bg-white flex justify-between items-center group">
                 <div class="min-w-0">
@@ -242,20 +205,18 @@ async function loadJobs() {
                     <span class="text-sm px-2 py-0.5 rounded ${isApproved ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} font-bold text-[10px] uppercase">
                       ${j.status || 'pending'}
                     </span>
-                    <span class="text-xs text-slate-400">${j.timestamp?.toDate().toLocaleDateString()}</span>
+                    <span class="text-xs text-slate-400">${displayDate}</span>
                   </div>
                   <h3 class="font-bold text-slate-800 truncate">${j.title}</h3>
                   <p class="text-xs text-slate-500">${j.company} • Posted by <span class="font-semibold text-slate-700">${poster}</span></p>
                 </div>
                 <div class="flex items-center gap-2 ml-4">
-                  <button onclick="viewJob('${doc.id}')" class="p-2 hover:bg-slate-100 rounded-lg transition" title="View Details">🔍</button>
-                  ${!isApproved ? `<button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white p-2 rounded-lg text-xs font-bold px-3">Approve</button>` : ''}
                   <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 p-2 rounded-lg text-xs font-bold px-3 hover:bg-red-100 transition">Delete</button>
                 </div>
               </div>
             `;
         }));
-        list.innerHTML = items.filter(x=>x!==null).join("");
+        list.innerHTML = items.filter(x=>x!==null).join("") || `<div class="text-center py-10 text-slate-400">No matching jobs found.</div>`;
     } catch(e) {
         console.error(e);
         list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
@@ -264,31 +225,42 @@ async function loadJobs() {
 
 async function showPendingJobs() {
     const content = document.getElementById("content");
-    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Jobs Awaiting Approval</h2><div id="pendingList" class="space-y-3"></div>`;
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Jobs Awaiting Approval</h2><div id="pendingList" class="space-y-3">Loading...</div>`;
     const list = document.getElementById("pendingList");
-    const snap = await db.collection("jobs").where("status","==","pending").get();
-    if(snap.empty) {
-        list.innerHTML = `<div class="text-center py-20 text-slate-400">All jobs are approved!</div>`;
-        return;
+    try {
+        const snap = await db.collection("jobs").where("status","==","pending").get();
+        if(snap.empty) {
+            list.innerHTML = `<div class="text-center py-20 text-slate-400">All jobs are approved!</div>`;
+            return;
+        }
+        const htmlArr = await Promise.all(snap.docs.map(async doc => {
+            const j = doc.data();
+            const poster = await fetchUserName(j.userId);
+            let displayDate;
+            if(j.timestamp?.toDate) displayDate = j.timestamp.toDate().toLocaleDateString();
+            else if(j.timestamp) displayDate = new Date(j.timestamp).toLocaleDateString();
+            else displayDate = "N/A";
+
+            return `
+              <div class="bg-amber-50/30 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
+                <div>
+                  <h4 class="font-bold text-slate-800">${j.title}</h4>
+                  <p class="text-sm text-slate-600">${j.company} • ${j.postedBy || 'N/A'}</p>
+                  <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${poster}</p>
+                  <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${displayDate}</p>
+                </div>
+                <div class="flex gap-2">
+                  <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm">Approve</button>
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100 transition">Delete</button>
+                </div>
+              </div>
+            `;
+        }));
+        list.innerHTML = htmlArr.join("");
+    } catch(e) {
+        console.error(e);
+        list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
     }
-    const htmlArr = await Promise.all(snap.docs.map(async doc => {
-        const j = doc.data();
-        const poster = await fetchUserName(j.userId);
-        return `
-          <div class="bg-amber-50/30 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
-            <div>
-              <h4 class="font-bold text-slate-800">${j.title}</h4>
-              <p class="text-sm text-slate-600">${j.company} • ${j.userEmail}</p>
-              <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${poster}</p>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="viewJob('${doc.id}')" class="bg-white border p-2 rounded-lg">View</button>
-              <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm">Approve</button>
-            </div>
-          </div>
-        `;
-    }));
-    list.innerHTML = htmlArr.join("");
 }
 
 async function updateJobStatus(id,status) {
@@ -299,40 +271,13 @@ async function updateJobStatus(id,status) {
 async function deleteJob(id) {
     if(confirm("Confirm deletion of this job record?")) {
         await db.collection("jobs").doc(id).delete();
-        loadJobs();
+        if(activeTab==='pendingJobs') showPendingJobs(); else loadJobs();
     }
 }
 
-async function viewJob(id) {
-    const sidebar = document.getElementById("jobDetailsSidebar");
-    const overlay = document.getElementById("sidebarOverlay");
-    const content = document.getElementById("jobDetailsContent");
-    sidebar.classList.remove("translate-x-full");
-    overlay.classList.remove("hidden");
-    content.innerHTML = `<div class="animate-pulse space-y-4">
-      <div class="h-10 bg-slate-100 rounded w-3/4"></div>
-      <div class="h-4 bg-slate-100 rounded w-full"></div>
-      <div class="h-4 bg-slate-100 rounded w-5/6"></div>
-    </div>`;
-    const doc = await db.collection("jobs").doc(id).get();
-    const data = doc.data();
-    let html = `<div class="bg-indigo-50 p-5 rounded-2xl mb-6">
-      <p class="text-[10px] text-indigo-400 font-black uppercase mb-1">Position</p>
-      <h3 class="text-2xl font-black text-indigo-900 leading-tight">${data.title}</h3>
-      <p class="text-indigo-600 font-bold mt-1">${data.company}</p>
-    </div>`;
-    for(const [key,val] of Object.entries(data)){
-      if(['title','company'].includes(key)) continue;
-      let display = val;
-      if(val && val.seconds) display = new Date(val.seconds*1000).toLocaleString();
-      html += `<div class="mb-5 pb-3 border-b border-slate-100 last:border-0">
-        <label class="block text-[10px] font-black text-slate-400 uppercase">${key}</label>
-        <p class="mt-1 text-slate-700">${display}</p>
-      </div>`;
-    }
-    content.innerHTML = html;
-}
-
+/* ============================
+   Users Module
+============================ */
 async function showUsers() {
     const content = document.getElementById("content");
     content.innerHTML = `<h2 class="text-xl font-bold mb-6">All Users</h2><div id="usersList" class="space-y-3">Loading...</div>`;
@@ -351,10 +296,6 @@ async function showUsers() {
         }).join("");
     }
 }
-
-async function showProviders() { document.getElementById("content").innerHTML="<p class='text-center py-20'>Providers section coming soon</p>"; }
-async function showPendingProviders() { document.getElementById("content").innerHTML="<p class='text-center py-20'>Pending providers section coming soon</p>"; }
-
 </script>
 </body>
 </html>
