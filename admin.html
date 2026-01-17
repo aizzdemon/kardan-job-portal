@@ -61,25 +61,34 @@
         </div>
         
         <nav class="flex-1 p-4 space-y-1">
+            <!-- All Jobs -->
             <button onclick="setTab('jobs')" class="nav-btn w-full flex items-center px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all gap-3" data-tab="jobs">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                Approved Jobs
+                <span class="text-xl">💼</span>
+                <span>All Jobs</span>
             </button>
+            
+            <!-- Pending Jobs -->
             <button onclick="setTab('pending')" class="nav-btn w-full flex items-center px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all gap-3" data-tab="pending">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Pending Review
+                <span class="text-xl">⏳</span>
+                <span>Pending Jobs</span>
             </button>
+            
+            <!-- Users -->
             <button onclick="setTab('users')" class="nav-btn w-full flex items-center px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all gap-3" data-tab="users">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                User Directory
+                <span class="text-xl">👥</span>
+                <span>Users</span>
             </button>
+            
+            <!-- Providers (Local Places) -->
             <button onclick="setTab('places')" class="nav-btn w-full flex items-center px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all gap-3" data-tab="places">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                Local Places
+                <span class="text-xl">🏢</span>
+                <span>Providers</span>
             </button>
+
+            <!-- Community Posts -->
             <button onclick="setTab('posts')" class="nav-btn w-full flex items-center px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 font-medium transition-all gap-3" data-tab="posts">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
-                Community
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 framework-0.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/></svg>
+                <span>Community</span>
             </button>
         </nav>
         
