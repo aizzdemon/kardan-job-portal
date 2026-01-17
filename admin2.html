@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Kardan Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase Compat SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-main);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #64748b;
+        }
+
+        .nav-btn:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .nav-active {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+
+<body class="min-h-screen text-slate-900 flex overflow-hidden">
+
+<!-- Sidebar -->
+<aside class="w-72 bg-white border-r border-slate-200 flex flex-col h-screen fixed z-20 transition-transform">
+    <div class="p-8 flex items-center gap-3">
+        <div class="bg-indigo-600 w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+            <i data-lucide="layout-dashboard" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <h1 class="font-extrabold text-xl tracking-tight text-slate-900">Kardan</h1>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">Admin Panel</p>
+        </div>
+    </div>
+
+    <div class="flex-1 px-4 py-2 space-y-8 overflow-y-auto">
+        <div>
+            <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Main Menu</p>
+            <div class="space-y-1">
+                <button onclick="setTab('jobs')" class="nav-btn" data-tab="jobs">
+                    <i data-lucide="briefcase" class="w-5 h-5"></i>
+                    <span>All Jobs</span>
+                </button>
+                <button onclick="setTab('pending')" class="nav-btn" data-tab="pending">
+                    <i data-lucide="clock" class="w-5 h-5"></i>
+                    <span>Pending Jobs</span>
+                </button>
+            </div>
+        </div>
+
+        <div>
+            <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Management</p>
+            <div class="space-y-1">
+                <button onclick="setTab('newUsers')" class="nav-btn" data-tab="newUsers">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                    <span>New Users</span>
+                </button>
+                <button onclick="setTab('users')" class="nav-btn" data-tab="users">
+                    <i data-lucide="users" class="w-5 h-5"></i>
+                    <span>User Directory</span>
+                </button>
+                <button onclick="setTab('places')" class="nav-btn" data-tab="places">
+                    <i data-lucide="building-2" class="w-5 h-5"></i>
+                    <span>Providers</span>
+                </button>
+            </div>
+        </div>
+
+        <div>
+            <p class="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-3">Community</p>
+            <div class="space-y-1">
+                <button onclick="setTab('posts')" class="nav-btn" data-tab="posts">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                    <span>Community Feed</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 border-t border-slate-100">
+        <div class="bg-slate-50 p-4 rounded-2xl flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div class="overflow-hidden">
+                <p class="text-xs font-bold text-slate-900 truncate">Administrator</p>
+                <p class="text-[10px] text-green-500 font-medium flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Open Access
+                </p>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Content Area -->
+<main class="flex-1 ml-72 flex flex-col h-screen overflow-hidden">
+    <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-10 sticky top-0 z-10">
+        <div class="flex flex-col">
+            <h2 id="viewTitle" class="text-xl font-bold text-slate-900">Dashboard</h2>
+            <p id="viewSubtitle" class="text-xs text-slate-500 font-medium">Overview and insights.</p>
+        </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-10">
+        <div id="content" class="max-w-6xl mx-auto space-y-8">
+            <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
+                <p class="font-medium">Connecting...</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Unified Modal -->
+<div id="customModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-[100] p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl border border-slate-200 transition-all scale-95 opacity-0" id="modalContainer">
+        <div class="flex items-center justify-between mb-6">
+            <h3 id="modalTitle" class="text-2xl font-bold text-slate-900 tracking-tight">Notification</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 bg-slate-50 p-2 rounded-xl">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div id="modalBody" class="text-slate-600 mb-8 leading-relaxed max-h-[60vh] overflow-y-auto pr-2"></div>
+        <div class="flex gap-4" id="modalButtons">
+            <!-- Buttons dynamically inserted -->
+        </div>
+    </div>
+</div>
+
+<script>
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'kardan-admin';
+const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const PUBLIC_PATH = ['artifacts', appId, 'public', 'data'];
+
+let currentTab = 'jobs';
+let allLoadedJobs = [];
+
+async function initApp() {
+    try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await auth.signInWithCustomToken(__initial_auth_token);
+        } else {
+            await auth.signInAnonymously();
+        }
+        lucide.createIcons();
+        setTab('jobs');
+    } catch (e) { showError("Database connection failed."); }
+}
+
+function setTab(tab) {
+    currentTab = tab;
+    const titles = { jobs: "All Job Listings", pending: "Moderation Queue", newUsers: "New Users", users: "User Directory", places: "Providers", posts: "Community" };
+    document.getElementById('viewTitle').textContent = titles[tab] || tab;
+    
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("nav-active", b.dataset.tab === tab));
+    document.getElementById('content').innerHTML = `<div class="flex justify-center p-12"><div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div></div>`;
+
+    if (tab === "jobs") loadJobs(false);
+    if (tab === "pending") loadJobs(true);
+    if (tab === "users") loadUsers(false);
+    if (tab === "newUsers") loadUsers(true);
+    if (tab === "places") loadPlaces();
+    if (tab === "posts") loadPosts();
+}
+
+async function loadJobs(pendingOnly) {
+    try {
+        const snap = await db.collection([...PUBLIC_PATH, 'jobs'].join('/')).get();
+        allLoadedJobs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const filtered = pendingOnly 
+            ? allLoadedJobs.filter(j => j.status !== 'approved')
+            : allLoadedJobs;
+
+        document.getElementById('content').innerHTML = `
+            <div class="grid grid-cols-1 gap-4" id="jobsListContainer"></div>
+        `;
+        renderJobsList(filtered);
+    } catch (e) { showError(e.message); }
+}
+
+function renderJobsList(list) {
+    const container = document.getElementById('jobsListContainer');
+    if (list.length === 0) {
+        container.innerHTML = `<div class="card p-20 text-center text-slate-400">No jobs found.</div>`;
+        return;
+    }
+
+    container.innerHTML = list.map(j => `
+        <div class="card p-6 flex items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+                <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100">
+                    <i data-lucide="briefcase" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-900">${j.title || 'Untitled Job'}</h4>
+                    <p class="text-sm text-slate-500">${j.company || 'Private Poster'} • ${j.location || 'Remote'}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-full ${j.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                    ${j.status || 'pending'}
+                </span>
+                <button onclick="viewJobDetails('${j.id}')" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100">
+                    View
+                </button>
+            </div>
+        </div>
+    `).join("");
+    lucide.createIcons();
+}
+
+function viewJobDetails(id) {
+    const job = allLoadedJobs.find(j => j.id === id);
+    if (!job) return;
+
+    const title = job.title || "Job Details";
+    const body = `
+        <div class="space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Company</p>
+                    <p class="font-bold text-slate-900">${job.company || 'N/A'}</p>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-2xl">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Location</p>
+                    <p class="font-bold text-slate-900">${job.location || 'N/A'}</p>
+                </div>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Full Description</p>
+                <div class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl whitespace-pre-wrap">${job.description || 'No description provided.'}</div>
+            </div>
+            <div class="p-4 border border-indigo-100 rounded-2xl flex justify-between items-center">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Status</p>
+                    <p class="text-sm font-bold text-indigo-600 uppercase tracking-wide">${job.status || 'Pending Review'}</p>
+                </div>
+                <p class="text-xs text-slate-400 italic">ID: ${job.id}</p>
+            </div>
+        </div>
+    `;
+
+    // Modal Action Buttons
+    const buttons = `
+        <button onclick="closeModal()" class="px-6 py-3 border border-slate-200 text-slate-600 rounded-2xl font-bold hover:bg-slate-50 transition-colors">Close</button>
+        <button onclick="confirmJobAction('${job.id}', 'delete')" class="px-6 py-3 bg-red-50 text-red-600 rounded-2xl font-bold hover:bg-red-100 transition-colors">Delete</button>
+        ${job.status !== 'approved' ? `
+            <button onclick="confirmJobAction('${job.id}', 'approve')" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">Approve Job</button>
+        ` : ''}
+    `;
+
+    openModal(title, body, buttons);
+}
+
+function openModal(title, body, buttonsHtml) {
+    const modal = document.getElementById('customModal');
+    const container = document.getElementById('modalContainer');
+    
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = body;
+    document.getElementById('modalButtons').innerHTML = buttonsHtml;
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        container.classList.remove('scale-95', 'opacity-0');
+        container.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    lucide.createIcons();
+}
+
+function closeModal() {
+    const container = document.getElementById('modalContainer');
+    container.classList.remove('scale-100', 'opacity-100');
+    container.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => { document.getElementById('customModal').classList.add('hidden'); }, 200);
+}
+
+async function confirmJobAction(id, action) {
+    try {
+        if (action === 'approve') {
+            await db.collection([...PUBLIC_PATH, 'jobs'].join('/')).doc(id).update({ status: 'approved' });
+        } else if (action === 'delete') {
+            await db.collection([...PUBLIC_PATH, 'jobs'].join('/')).doc(id).delete();
+        }
+        closeModal();
+        setTab(currentTab);
+    } catch (e) { alert("Action failed: " + e.message); }
+}
+
+async function loadUsers(onlyPending) {
+    try {
+        const snap = await db.collection([...PUBLIC_PATH, 'users'].join('/')).get();
+        const users = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const filtered = users.filter(u => onlyPending ? !u.isVerified : u.isVerified);
+
+        document.getElementById('content').innerHTML = `
+            <div class="card overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase">User</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase">Status</th>
+                            <th class="p-6 text-[11px] font-bold text-slate-400 uppercase text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        ${filtered.map(u => `
+                            <tr>
+                                <td class="p-6 font-bold">${u.name || 'Anonymous'}</td>
+                                <td class="p-6">
+                                    <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${u.isVerified ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}">
+                                        ${u.isVerified ? 'VERIFIED' : 'PENDING'}
+                                    </span>
+                                </td>
+                                <td class="p-6 text-right">
+                                    ${!u.isVerified ? `<button onclick="verifyUser('${u.id}')" class="text-indigo-600 font-bold text-sm">Verify</button>` : ''}
+                                </td>
+                            </tr>
+                        `).join("")}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (e) { showError(e.message); }
+}
+
+async function verifyUser(id) {
+    await db.collection([...PUBLIC_PATH, 'users'].join('/')).doc(id).update({ isVerified: true });
+    setTab(currentTab);
+}
+
+function loadPlaces() { /* Porting placeholder */ }
+function loadPosts() { /* Porting placeholder */ }
+
+function showError(msg) { 
+    document.getElementById('content').innerHTML = `<div class="p-10 text-red-500 font-bold">${msg}</div>`;
+}
+
+window.onload = initApp;
+</script>
+
+</body>
+</html>
