@@ -43,8 +43,8 @@
             100% { opacity: 0.7; transform: scale(1.05); }
         }
         .suggestion-item:hover { background-color: #f3f4f6; cursor: pointer; }
-        #suggestionsDropdown { display: none; z-index: 50; }
-        #suggestionsDropdown.active { display: block; }
+        .dropdown-panel { display: none; z-index: 50; }
+        .dropdown-panel.active { display: block; }
     </style>
 </head>
 
@@ -52,6 +52,15 @@
 
 <!-- ================= NAVBAR ================= -->
 <div id="navbar"></div>
+<script>
+fetch("navbar.html").then(r=>r.text()).then(html=>{
+  document.getElementById("navbar").innerHTML = html;
+  const s = document.createElement("script");
+  s.type = "module";
+  s.src = "navbar.js";
+  document.body.appendChild(s);
+}).catch(err => console.log("Navbar placeholder - file not found locally"));
+</script>
 
 <!-- ================= HEADER ================= -->
 <header class="bg-white border-b">
@@ -61,12 +70,18 @@
 
         <div class="relative bg-white p-2 rounded-2xl shadow-xl border max-w-5xl mx-auto mt-8">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-2">
+                <!-- Search Input with Dropdown -->
                 <div class="md:col-span-4 relative">
                     <input id="searchInput" autocomplete="off" placeholder="Job title or company" class="w-full p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
-                    <!-- Dropdown Suggestions -->
-                    <div id="suggestionsDropdown" class="absolute top-full left-0 right-0 bg-white border border-gray-200 mt-1 rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto"></div>
+                    <div id="suggestionsDropdown" class="dropdown-panel absolute top-full left-0 right-0 bg-white border border-gray-200 mt-1 rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto"></div>
                 </div>
-                <input id="locationInput" placeholder="Location" class="md:col-span-3 p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
+                
+                <!-- Location Input with Dropdown -->
+                <div class="md:col-span-3 relative">
+                    <input id="locationInput" autocomplete="off" placeholder="Location" class="w-full p-4 rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500">
+                    <div id="locationDropdown" class="dropdown-panel absolute top-full left-0 right-0 bg-white border border-gray-200 mt-1 rounded-xl shadow-lg overflow-hidden max-h-60 overflow-y-auto"></div>
+                </div>
+
                 <select id="dateFilter" class="md:col-span-3 p-4 rounded-xl bg-gray-50 outline-none">
                     <option value="all">Any time</option>
                     <option value="1">Last 24 Hours</option>
@@ -106,6 +121,7 @@ const locationInput = document.getElementById("locationInput");
 const dateFilter = document.getElementById("dateFilter");
 const mainSearchBtn = document.getElementById("mainSearchBtn");
 const suggestionsDropdown = document.getElementById("suggestionsDropdown");
+const locationDropdown = document.getElementById("locationDropdown");
 const loader = document.getElementById("statusContainer");
 
 let allJobs = [];
@@ -121,7 +137,7 @@ const isRecentlyPosted = (timestamp, days) => {
     return diff <= days;
 };
 
-// Start Real-time Listener (Reduced Latency)
+// Start Real-time Listener
 function initJobsSync() {
     loader.classList.remove("hidden");
     const q = query(collection(window.db, "jobs"), where("status", "==", "approved"));
@@ -172,7 +188,6 @@ function renderJobs() {
         const card = document.createElement("div");
         card.className = "bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row gap-5 items-start md:items-center relative";
         
-        // Fire Icon SVG
         const fireIcon = `<svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.334-.398-1.817a1 1 0 00-1.514-.857 4.028 4.028 0 00-1.174 1.4c-.393.749-.607 1.81-.607 3.487 0 3.113 2.458 5.636 5.5 5.636s5.5-2.523 5.5-5.636c0-1.11-.305-2.167-.834-3.074-1.058-1.817-2.344-3.203-3.539-4.26a1 1 0 00-.312-.17z" clip-rule="evenodd"></path></svg>`;
         
         card.innerHTML = `
@@ -207,9 +222,11 @@ function renderJobs() {
     loadMoreBtn.classList.toggle("hidden", currentLimit >= filteredJobs.length);
 }
 
-// Live Suggestions Logic
+// Live Suggestions for Search Input
 searchInput.oninput = (e) => {
     const val = e.target.value.toLowerCase();
+    locationDropdown.classList.remove("active"); // Close other dropdown
+    
     if (val.length < 2) {
         suggestionsDropdown.classList.remove("active");
         return;
@@ -224,7 +241,7 @@ searchInput.oninput = (e) => {
     const list = Array.from(suggestions).slice(0, 6);
     if (list.length > 0) {
         suggestionsDropdown.innerHTML = list.map(item => `
-            <div class="suggestion-item p-3 text-sm text-gray-700 border-b border-gray-50 last:border-0" onclick="window.selectSuggestion('${item.replace(/'/g, "\\'")}')">
+            <div class="suggestion-item p-3 text-sm text-gray-700 border-b border-gray-50 last:border-0" onclick="window.selectSuggestion('search', '${item.replace(/'/g, "\\'")}')">
                 ${item}
             </div>
         `).join("");
@@ -232,20 +249,55 @@ searchInput.oninput = (e) => {
     } else {
         suggestionsDropdown.classList.remove("active");
     }
-    
     applyFilters();
 };
 
-window.selectSuggestion = (val) => {
-    searchInput.value = val;
-    suggestionsDropdown.classList.remove("active");
+// Live Suggestions for Location Input
+locationInput.oninput = (e) => {
+    const val = e.target.value.toLowerCase();
+    suggestionsDropdown.classList.remove("active"); // Close other dropdown
+    
+    if (val.length < 1) {
+        locationDropdown.classList.remove("active");
+        return;
+    }
+
+    const locSuggestions = new Set();
+    allJobs.forEach(j => {
+        if (j.location && j.location.toLowerCase().includes(val)) {
+            locSuggestions.add(j.location);
+        }
+    });
+
+    const list = Array.from(locSuggestions).slice(0, 6);
+    if (list.length > 0) {
+        locationDropdown.innerHTML = list.map(loc => `
+            <div class="suggestion-item p-3 text-sm text-gray-700 border-b border-gray-50 last:border-0" onclick="window.selectSuggestion('location', '${loc.replace(/'/g, "\\'")}')">
+                <svg class="w-3 h-3 inline mr-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                ${loc}
+            </div>
+        `).join("");
+        locationDropdown.classList.add("active");
+    } else {
+        locationDropdown.classList.remove("active");
+    }
+    applyFilters();
+};
+
+window.selectSuggestion = (type, val) => {
+    if (type === 'search') {
+        searchInput.value = val;
+        suggestionsDropdown.classList.remove("active");
+    } else {
+        locationInput.value = val;
+        locationDropdown.classList.remove("active");
+    }
     applyFilters();
 };
 
 // Global Listeners
 mainSearchBtn.onclick = applyFilters;
 dateFilter.onchange = applyFilters;
-locationInput.oninput = applyFilters;
 loadMoreBtn.onclick = () => {
     currentLimit += pageSize;
     renderJobs();
@@ -254,6 +306,9 @@ loadMoreBtn.onclick = () => {
 document.addEventListener('click', (e) => {
     if (!searchInput.contains(e.target) && !suggestionsDropdown.contains(e.target)) {
         suggestionsDropdown.classList.remove("active");
+    }
+    if (!locationInput.contains(e.target) && !locationDropdown.contains(e.target)) {
+        locationDropdown.classList.remove("active");
     }
 });
 
