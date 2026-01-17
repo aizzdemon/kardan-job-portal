@@ -12,7 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-.sidebar-transition { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .nav-btn.active { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; }
 </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
@@ -55,25 +56,25 @@
 
   <main class="max-w-7xl mx-auto px-4 py-8">
     <!-- Navigation Tabs -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-8">
-      <button onclick="setActiveTab('jobs')" id="btn-jobs" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
-        <span class="text-xl">💼</span>
-        <span class="text-xs font-bold mt-1">All Jobs</span>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <button onclick="setActiveTab('jobs')" id="btn-jobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">💼</span>
+        <span class="text-sm font-bold mt-2">Approved Jobs</span>
       </button>
-      <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
-        <span class="text-xl">⏳</span>
-        <span class="text-xs font-bold mt-1">Pending Jobs</span>
+      <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">⏳</span>
+        <span class="text-sm font-bold mt-2">Pending Approvals</span>
       </button>
-      <button onclick="setActiveTab('users')" id="btn-users" class="nav-btn bg-white border border-slate-200 p-3 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
-        <span class="text-xl">👥</span>
-        <span class="text-xs font-bold mt-1">Users</span>
+      <button onclick="setActiveTab('users')" id="btn-users" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">👥</span>
+        <span class="text-sm font-bold mt-2">Manage Users</span>
       </button>
     </div>
 
     <div id="content" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
       <div class="flex flex-col items-center justify-center h-64 text-slate-400">
         <span class="text-5xl mb-4">🖥️</span>
-        <p>Select a category to manage Kardan systems.</p>
+        <p>Verified Administrative Session Active.</p>
       </div>
     </div>
   </main>
@@ -96,6 +97,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Matches the exact UID in your Firestore Rules
 const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
 /* ============================
@@ -105,9 +108,9 @@ let activeTab = null;
 
 function setActiveTab(tab) {
     activeTab = tab;
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('border-indigo-500','bg-indigo-50','text-indigo-600'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.getElementById(`btn-${tab}`);
-    if(activeBtn) activeBtn.classList.add('border-indigo-500','bg-indigo-50','text-indigo-600');
+    if(activeBtn) activeBtn.classList.add('active');
 
     switch(tab) {
         case 'jobs': showJobs(); break;
@@ -123,19 +126,18 @@ async function login() {
 
   try {
     const userCred = await auth.signInWithEmailAndPassword(email, password);
+    // Explicit client-side check to prevent non-admins from even seeing the UI
     if (userCred.user.uid !== ADMIN_UID) {
       errorDiv.textContent = "Access Denied: Non-Administrative Account.";
       await auth.signOut();
-      return;
     }
   } catch (err) {
-    errorDiv.textContent = err.message;
+    errorDiv.textContent = "Auth Error: " + err.message;
   }
 }
 
 async function logout() {
     await auth.signOut();
-    location.reload();
 }
 
 auth.onAuthStateChanged(user => {
@@ -145,6 +147,7 @@ auth.onAuthStateChanged(user => {
   } else {
     document.getElementById("loginDiv").classList.remove("hidden");
     document.getElementById("adminDiv").classList.add("hidden");
+    document.getElementById("content").innerHTML = ""; 
   }
 });
 
@@ -159,16 +162,16 @@ async function fetchUserName(uid) {
 }
 
 /* ============================
-   Jobs Module
+   Jobs Module (Aligned with Rules)
 ============================ */
 async function showJobs() {
     const content = document.getElementById("content");
     content.innerHTML = `
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold">Master Job Board</h2>
+        <h2 class="text-xl font-bold">Approved Job Listings</h2>
         <div class="flex gap-2">
-          <input id="jobSearch" type="text" placeholder="Email search..." class="text-sm p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" onkeyup="if(event.key==='Enter') loadJobs()"/>
-          <button onclick="loadJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Filter</button>
+          <input id="jobSearch" type="text" placeholder="Search title..." class="text-sm p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" onkeyup="if(event.key==='Enter') loadJobs()"/>
+          <button onclick="loadJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Search</button>
         </div>
       </div>
       <div id="jobsList" class="space-y-3">Loading records...</div>
@@ -177,101 +180,106 @@ async function showJobs() {
 }
 
 async function loadJobs() {
-    const emailFilter = document.getElementById("jobSearch")?.value.toLowerCase() || "";
+    const searchVal = document.getElementById("jobSearch")?.value.toLowerCase() || "";
     const list = document.getElementById("jobsList");
-    list.innerHTML = "Loading...";
+    list.innerHTML = "Searching...";
+    
     try {
-        const snap = await db.collection("jobs").orderBy("timestamp","desc").get();
+        // Query must match the rule "allow read: if resource.data.status == 'approved'"
+        const snap = await db.collection("jobs")
+                            .where("status", "==", "approved")
+                            .orderBy("timestamp", "desc")
+                            .get();
+                            
         if(snap.empty) {
-            list.innerHTML = `<div class="text-center py-10 text-slate-400">No job listings found.</div>`;
+            list.innerHTML = `<div class="text-center py-10 text-slate-400">No approved jobs found.</div>`;
             return;
         }
 
         const items = await Promise.all(snap.docs.map(async doc => {
             const j = doc.data();
-            if(emailFilter && !j.postedBy?.toLowerCase().includes(emailFilter)) return null;
-            const isApproved = (j.status || '').toLowerCase() === 'approved';
+            if(searchVal && !j.title?.toLowerCase().includes(searchVal)) return null;
+            
             const poster = await fetchUserName(j.userId);
-
-            let displayDate;
-            if(j.timestamp?.toDate) displayDate = j.timestamp.toDate().toLocaleDateString();
-            else if(j.timestamp) displayDate = new Date(j.timestamp).toLocaleDateString();
-            else displayDate = "N/A";
+            const displayDate = j.timestamp?.toDate ? j.timestamp.toDate().toLocaleDateString() : "N/A";
 
             return `
-              <div class="p-4 rounded-xl border border-slate-200 hover:border-indigo-200 transition bg-white flex justify-between items-center group">
+              <div class="p-4 rounded-xl border border-slate-200 bg-white flex justify-between items-center">
                 <div class="min-w-0">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="text-sm px-2 py-0.5 rounded ${isApproved ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} font-bold text-[10px] uppercase">
-                      ${j.status || 'pending'}
-                    </span>
-                    <span class="text-xs text-slate-400">${displayDate}</span>
-                  </div>
                   <h3 class="font-bold text-slate-800 truncate">${j.title}</h3>
-                  <p class="text-xs text-slate-500">${j.company} • Posted by <span class="font-semibold text-slate-700">${poster}</span></p>
+                  <p class="text-xs text-slate-500">${j.company} • ${displayDate}</p>
+                  <p class="text-[10px] text-indigo-500 font-bold mt-1">POSTED BY: ${poster}</p>
                 </div>
-                <div class="flex items-center gap-2 ml-4">
-                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 p-2 rounded-lg text-xs font-bold px-3 hover:bg-red-100 transition">Delete</button>
+                <div class="flex items-center gap-2">
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 p-2 px-4 rounded-lg text-xs font-bold hover:bg-red-100">Delete</button>
                 </div>
               </div>
             `;
         }));
-        list.innerHTML = items.filter(x=>x!==null).join("") || `<div class="text-center py-10 text-slate-400">No matching jobs found.</div>`;
+        
+        const filtered = items.filter(x => x !== null);
+        list.innerHTML = filtered.length > 0 ? filtered.join("") : `<div class="text-center py-10 text-slate-400">No results for "${searchVal}"</div>`;
     } catch(e) {
-        console.error(e);
-        list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
+        list.innerHTML = `<p class="text-red-500 bg-red-50 p-4 rounded-lg">Query Error: Ensure your Firestore indices are ready and your status matches "approved".<br><small>${e.message}</small></p>`;
     }
 }
 
 async function showPendingJobs() {
     const content = document.getElementById("content");
-    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Jobs Awaiting Approval</h2><div id="pendingList" class="space-y-3">Loading...</div>`;
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Pending Review</h2><div id="pendingList" class="space-y-3">Loading...</div>`;
     const list = document.getElementById("pendingList");
+    
     try {
-        const snap = await db.collection("jobs").where("status","==","pending").get();
+        // In the rules, update/delete is allowed if isAdmin().
+        // However, reading non-approved jobs usually needs careful rule alignment.
+        // We use the same 'jobs' collection but specifically for 'pending' status.
+        const snap = await db.collection("jobs").where("status", "==", "pending").get();
+        
         if(snap.empty) {
-            list.innerHTML = `<div class="text-center py-20 text-slate-400">All jobs are approved!</div>`;
+            list.innerHTML = `<div class="text-center py-20 text-slate-400">Clear queue! No pending jobs.</div>`;
             return;
         }
+        
         const htmlArr = await Promise.all(snap.docs.map(async doc => {
             const j = doc.data();
             const poster = await fetchUserName(j.userId);
-            let displayDate;
-            if(j.timestamp?.toDate) displayDate = j.timestamp.toDate().toLocaleDateString();
-            else if(j.timestamp) displayDate = new Date(j.timestamp).toLocaleDateString();
-            else displayDate = "N/A";
-
             return `
-              <div class="bg-amber-50/30 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
+              <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
                 <div>
                   <h4 class="font-bold text-slate-800">${j.title}</h4>
-                  <p class="text-sm text-slate-600">${j.company} • ${j.postedBy || 'N/A'}</p>
-                  <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${poster}</p>
-                  <p class="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">${displayDate}</p>
+                  <p class="text-sm text-slate-600">${j.company} • ${j.postedBy || 'No Email'}</p>
+                  <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">By: ${poster}</p>
                 </div>
                 <div class="flex gap-2">
-                  <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm">Approve</button>
-                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100 transition">Delete</button>
+                  <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:shadow-lg">Approve</button>
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm">Reject</button>
                 </div>
               </div>
             `;
         }));
         list.innerHTML = htmlArr.join("");
     } catch(e) {
-        console.error(e);
-        list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`;
+        list.innerHTML = `<p class="text-red-500">Access Restricted: ${e.message}</p>`;
     }
 }
 
-async function updateJobStatus(id,status) {
-    await db.collection("jobs").doc(id).update({status});
-    if(activeTab==='pendingJobs') showPendingJobs(); else loadJobs();
+async function updateJobStatus(id, status) {
+    try {
+        await db.collection("jobs").doc(id).update({ status: status });
+        if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs();
+    } catch(e) {
+        alert("Update failed: " + e.message);
+    }
 }
 
 async function deleteJob(id) {
-    if(confirm("Confirm deletion of this job record?")) {
-        await db.collection("jobs").doc(id).delete();
-        if(activeTab==='pendingJobs') showPendingJobs(); else loadJobs();
+    if(confirm("Permanently delete this record?")) {
+        try {
+            await db.collection("jobs").doc(id).delete();
+            if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs();
+        } catch(e) {
+            alert("Delete failed: " + e.message);
+        }
     }
 }
 
@@ -280,20 +288,33 @@ async function deleteJob(id) {
 ============================ */
 async function showUsers() {
     const content = document.getElementById("content");
-    content.innerHTML = `<h2 class="text-xl font-bold mb-6">All Users</h2><div id="usersList" class="space-y-3">Loading...</div>`;
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6">Registered Users</h2><div id="usersList" class="space-y-3">Loading...</div>`;
     const list = document.getElementById("usersList");
-    const snap = await db.collection("users").get();
-    if(snap.empty) list.innerHTML=`<p class="text-center text-slate-400">No users found.</p>`;
-    else {
-        list.innerHTML = snap.docs.map(d=>{
-            const u = d.data();
-            return `<div class="p-4 border rounded-xl bg-white flex justify-between items-center">
-                <div>
-                    <h4 class="font-bold">${u.name || "Anonymous"}</h4>
-                    <p class="text-sm text-slate-500">${u.email}</p>
-                </div>
-            </div>`;
-        }).join("");
+    
+    try {
+        // Rule: match /users/{userId} { allow read: if true; }
+        const snap = await db.collection("users").get();
+        if(snap.empty) {
+            list.innerHTML = `<p class="text-center text-slate-400">No user profiles found.</p>`;
+        } else {
+            list.innerHTML = snap.docs.map(d => {
+                const u = d.data();
+                const isThisAdmin = d.id === ADMIN_UID;
+                return `
+                  <div class="p-4 border rounded-xl bg-white flex justify-between items-center ${isThisAdmin ? 'border-indigo-200 bg-indigo-50/30' : ''}">
+                    <div>
+                      <h4 class="font-bold flex items-center gap-2">
+                        ${u.name || "Anonymous"} 
+                        ${isThisAdmin ? '<span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded">YOU</span>' : ''}
+                      </h4>
+                      <p class="text-sm text-slate-500">${u.email || 'No email provided'}</p>
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-300">${d.id}</div>
+                  </div>`;
+            }).join("");
+        }
+    } catch(e) {
+        list.innerHTML = `<p class="text-red-500">Cannot fetch users: ${e.message}</p>`;
     }
 }
 </script>
