@@ -2,21 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>KARDAN Admin Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard – KARDAN</title>
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Firebase Compat -->
+<!-- Firebase Compat SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<style>
-.sidebar-transition { transition: transform .3s ease }
-</style>
 </head>
 
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-100 min-h-screen">
 
 <!-- LOGIN -->
 <div id="loginDiv" class="min-h-screen flex items-center justify-center">
@@ -29,7 +25,7 @@
   </div>
 </div>
 
-<!-- ADMIN -->
+<!-- ADMIN PANEL -->
 <div id="adminDiv" class="hidden">
 
 <header class="bg-white border-b">
@@ -42,16 +38,15 @@
 <main class="max-w-7xl mx-auto px-4 py-8">
 
 <!-- NAV -->
-<div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
-  <button id="btn-jobs" onclick="setActiveTab('jobs')" class="nav-btn p-3 bg-white border rounded">💼 Jobs</button>
-  <button id="btn-pendingJobs" onclick="setActiveTab('pendingJobs')" class="nav-btn p-3 bg-white border rounded">⏳ Pending</button>
-  <button id="btn-users" onclick="setActiveTab('users')" class="nav-btn p-3 bg-white border rounded">👥 Users</button>
-  <button id="btn-providers" onclick="setActiveTab('providers')" class="nav-btn p-3 bg-white border rounded">🏢 Providers</button>
-  <button id="btn-pendingProviders" onclick="setActiveTab('pendingProviders')" class="nav-btn p-3 bg-white border rounded">🆕 New</button>
-  <button id="btn-posts" onclick="setActiveTab('posts')" class="nav-btn p-3 bg-white border rounded">📝 Community</button>
+<div class="grid grid-cols-2 md:grid-cols-6 gap-2 mb-6">
+  <button onclick="setTab('jobs')" class="nav-btn p-3 bg-white border rounded">💼 Jobs</button>
+  <button onclick="setTab('pending')" class="nav-btn p-3 bg-white border rounded">⏳ Pending</button>
+  <button onclick="setTab('users')" class="nav-btn p-3 bg-white border rounded">👥 Users</button>
+  <button onclick="setTab('places')" class="nav-btn p-3 bg-white border rounded">📍 Places</button>
+  <button onclick="setTab('posts')" class="nav-btn p-3 bg-white border rounded">📝 Community</button>
 </div>
 
-<div id="content" class="bg-white p-6 rounded-xl border min-h-[400px] text-slate-400 text-center">
+<div id="content" class="bg-white p-6 rounded-xl border min-h-[400px]">
   Select a section
 </div>
 
@@ -59,7 +54,9 @@
 </div>
 
 <script>
-/* ================= FIREBASE ================= */
+/* ======================
+   FIREBASE INIT
+====================== */
 firebase.initializeApp({
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -70,9 +67,11 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
-let activeTab = null;
+let currentTab = null;
 
-/* ================= AUTH ================= */
+/* ======================
+   AUTH
+====================== */
 function login() {
   auth.signInWithEmailAndPassword(email.value, password.value)
     .catch(e => loginError.textContent = e.message);
@@ -93,77 +92,111 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-/* ================= UI ================= */
-function setActiveTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove("bg-indigo-100"));
-  document.getElementById("btn-" + tab).classList.add("bg-indigo-100");
+/* ======================
+   NAV
+====================== */
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("bg-indigo-100"));
+  event.target.classList.add("bg-indigo-100");
 
-  if (tab === "posts") showPosts();
-  else content.innerHTML = "Module ready";
+  if (tab === "jobs") loadJobs(false);
+  if (tab === "pending") loadJobs(true);
+  if (tab === "users") loadUsers();
+  if (tab === "places") loadPlaces();
+  if (tab === "posts") loadPosts();
 }
 
-/* =================================================
-   💬 COMMUNITY POSTS (FIXED TO MATCH RULES)
-================================================= */
-async function showPosts() {
-  content.innerHTML = `
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-bold">Community Posts</h2>
-      <input id="postSearch" placeholder="Search name / email / text"
-        class="p-2 border rounded w-64" onkeyup="loadPosts()">
-    </div>
-    <div id="postsList" class="space-y-3"></div>
-  `;
-  loadPosts();
-}
+/* ======================
+   JOBS
+====================== */
+async function loadJobs(pendingOnly) {
+  content.innerHTML = "Loading jobs...";
+  const snap = await db.collection("jobs").get();
 
-async function loadPosts() {
-  const filter = document.getElementById("postSearch")?.value.toLowerCase() || "";
-  const list = document.getElementById("postsList");
-  list.innerHTML = "Loading...";
-
-  const snap = await db.collection("communityPosts").get();
-
-  const sorted = snap.docs.sort((a,b)=>{
-    return (b.data().createdAt?.seconds||0)-(a.data().createdAt?.seconds||0);
+  const rows = snap.docs.filter(d => {
+    const s = d.data().status;
+    return pendingOnly ? s !== "approved" : s === "approved";
   });
 
-  list.innerHTML = sorted.map(d => {
+  content.innerHTML = rows.map(d => `
+    <div class="border p-4 rounded mb-2">
+      <b>${d.data().title}</b>
+      <p class="text-sm text-gray-500">${d.data().company}</p>
+      <p class="text-xs">Status: ${d.data().status}</p>
+    </div>
+  `).join("") || "No jobs found";
+}
+
+/* ======================
+   USERS
+====================== */
+async function loadUsers() {
+  content.innerHTML = "Loading users...";
+  const snap = await db.collection("users").get();
+  content.innerHTML = snap.docs.map(d => `
+    <div class="border p-3 rounded mb-2">
+      <b>${d.data().name || "User"}</b>
+      <p class="text-xs">${d.data().email || ""}</p>
+    </div>
+  `).join("") || "No users";
+}
+
+/* ======================
+   PLACES
+====================== */
+async function loadPlaces() {
+  content.innerHTML = "Loading places...";
+  const snap = await db.collection("places").get();
+  content.innerHTML = snap.docs.map(d => `
+    <div class="border p-3 rounded mb-2">
+      <b>${d.data().name}</b>
+      <p class="text-xs">${d.data().category}</p>
+    </div>
+  `).join("") || "No places";
+}
+
+/* ======================
+   COMMUNITY POSTS
+====================== */
+async function loadPosts() {
+  content.innerHTML = `
+    <input id="search" placeholder="Search posts..."
+      class="mb-4 p-2 border rounded w-full" onkeyup="renderPosts()">
+    <div id="postList"></div>
+  `;
+  renderPosts();
+}
+
+async function renderPosts() {
+  const filter = document.getElementById("search")?.value.toLowerCase() || "";
+  const list = document.getElementById("postList");
+
+  const snap = await db.collection("communityPosts").orderBy("timestamp", "desc").get();
+
+  list.innerHTML = snap.docs.map(d => {
     const p = d.data();
-    const text = p.text || "";
-    const name = p.userName || "User";
-    const email = p.userEmail || "";
-    const time = p.createdAt?.seconds
-      ? new Date(p.createdAt.seconds * 1000).toLocaleString()
-      : "";
-
-    if (filter && !(text+name+email).toLowerCase().includes(filter)) return "";
-
+    if (filter && !p.content.toLowerCase().includes(filter)) return "";
     return `
-      <div class="border p-4 rounded-lg bg-white">
-        <div class="flex justify-between items-start">
-          <div>
-            <p class="font-bold">${name}</p>
-            <p class="text-xs text-slate-500">${email}</p>
-            <p class="text-xs text-slate-400 mt-1">${time}</p>
-          </div>
-          <button onclick="deletePost('${d.id}')"
-            class="text-red-600 font-bold text-sm">Delete</button>
+      <div class="border p-4 rounded mb-3">
+        <div class="flex justify-between">
+          <b>${p.userName || "User"}</b>
+          <button class="text-red-600 text-sm" onclick="deletePost('${d.id}')">Delete</button>
         </div>
-        <p class="mt-3 text-slate-700 whitespace-pre-wrap">${text}</p>
+        <p class="mt-2 text-sm">${p.content}</p>
       </div>
     `;
-  }).join("") || `<p class="text-center text-slate-400">No posts found</p>`;
+  }).join("") || "No posts";
 }
 
 async function deletePost(id) {
-  if (confirm("Delete this post permanently?")) {
+  if (confirm("Delete this post?")) {
     await db.collection("communityPosts").doc(id).delete();
-    loadPosts();
+    renderPosts();
   }
 }
 </script>
 
 </body>
 </html>
+
