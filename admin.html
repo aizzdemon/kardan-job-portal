@@ -230,10 +230,13 @@ async function showPendingJobs() {
     const list = document.getElementById("pendingList");
     
     try {
-        // In the rules, update/delete is allowed if isAdmin().
-        // However, reading non-approved jobs usually needs careful rule alignment.
-        // We use the same 'jobs' collection but specifically for 'pending' status.
-        const snap = await db.collection("jobs").where("status", "==", "pending").get();
+        // We explicitly query for "pending" status. 
+        // Note: Your Firestore rules allow read if isAdmin(). 
+        // If this still fails, ensure your rule "isAdmin()" helper is working correctly 
+        // and that you've signed in with the specific UID "nkXAUBb7ffZQ5CtyShWl6YcQ39t2".
+        const snap = await db.collection("jobs")
+                            .where("status", "==", "pending")
+                            .get();
         
         if(snap.empty) {
             list.innerHTML = `<div class="text-center py-20 text-slate-400">Clear queue! No pending jobs.</div>`;
@@ -243,23 +246,34 @@ async function showPendingJobs() {
         const htmlArr = await Promise.all(snap.docs.map(async doc => {
             const j = doc.data();
             const poster = await fetchUserName(j.userId);
+            const displayDate = j.timestamp?.toDate ? j.timestamp.toDate().toLocaleDateString() : "N/A";
+            
             return `
               <div class="bg-amber-50/50 p-4 rounded-xl border border-amber-200 flex justify-between items-center">
-                <div>
-                  <h4 class="font-bold text-slate-800">${j.title}</h4>
+                <div class="min-w-0 pr-4">
+                  <h4 class="font-bold text-slate-800 truncate">${j.title}</h4>
                   <p class="text-sm text-slate-600">${j.company} • ${j.postedBy || 'No Email'}</p>
-                  <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">By: ${poster}</p>
+                  <div class="flex gap-3 mt-1">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">By: ${poster}</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">${displayDate}</p>
+                  </div>
                 </div>
-                <div class="flex gap-2">
-                  <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:shadow-lg">Approve</button>
-                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm">Reject</button>
+                <div class="flex gap-2 shrink-0">
+                  <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:shadow-lg transition-all active:scale-95">Approve</button>
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100 transition-all">Reject</button>
                 </div>
               </div>
             `;
         }));
         list.innerHTML = htmlArr.join("");
     } catch(e) {
-        list.innerHTML = `<p class="text-red-500">Access Restricted: ${e.message}</p>`;
+        console.error("Firestore Error:", e);
+        list.innerHTML = `
+            <div class="p-4 bg-red-50 border border-red-100 rounded-xl">
+                <p class="text-red-600 font-bold text-sm">Failed to load pending jobs.</p>
+                <p class="text-red-500 text-xs mt-1">Error: ${e.message}</p>
+                <p class="text-slate-500 text-[10px] mt-4 uppercase font-bold tracking-tight">Technical Tip: Check if the 'isAdmin' rule allows this UID and if a composite index is required in the Firebase Console.</p>
+            </div>`;
     }
 }
 
