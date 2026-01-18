@@ -173,7 +173,10 @@ window.addEventListener("DOMContentLoaded", async () => {
 
 /* ---------- RENDER JOB ---------- */
 function renderJob(job) {
-  const logoUrl = job.companyImageUrl || 'https://via.placeholder.com/100?text=Logo';
+  const logoUrl =
+  job.companyImageUrl ||
+  job.logoUrl ||
+  'https://via.placeholder.com/100?text=Logo';
   const postedDate = job.timestamp ? new Date(job.timestamp.seconds * 1000).toLocaleDateString() : 'Recently';
 
   document.getElementById("jobDetailsContent").innerHTML = `
