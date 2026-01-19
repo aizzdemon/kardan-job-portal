@@ -59,7 +59,7 @@ fetch("navbar.html").then(r=>r.text()).then(html=>{
       <div id="featured-jobs" class="flex-grow min-h-[100px]">
         <div class="p-8 text-center text-gray-400 italic">Loading jobs...</div>
       </div>
-      <button onclick="window.location.href='featured.html'" class="mt-2 py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Load More</button>
+      <button onclick="window.location.href='jobs.html'" class="mt-2 py-2 px-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition">Load More</button>
     </div>
   </div>
 
@@ -170,7 +170,7 @@ async function init() {
       }
       snap.forEach(docSnap => {
         const job = docSnap.data();
-        const logo = job.companyImageUrl || job.icon || job.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
+        const logo = job.companyImageUrl || job.icon || job.logo || logoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
         containers.featured.innerHTML += `
           <a href="job-detail.html?id=${docSnap.id}" class="group block p-4 hover:bg-blue-50/50 transition-all border-b border-gray-50 last:border-0 relative">
             <div class="flex items-center gap-3">
