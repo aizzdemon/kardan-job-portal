@@ -6,129 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Firebase COMPAT -->
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
 
-<style>
-body { background:#f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-.job-card { background:#fff; border-radius:24px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-.gradient-border::after {
-  content:''; position:absolute; top:0; left:0; right:0;
-  height:6px; background:linear-gradient(90deg,#2563eb,#60a5fa);
-  border-radius:24px 24px 0 0;
-}
-.shimmer {
-  background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
-  background-size:200% 100%; animation: shimmer 1.5s infinite;
-}
-@keyframes shimmer {
-  0% { background-position:200% 0 } 100% { background-position:-200% 0 }
-}
-.slide { max-height:0; overflow:hidden; transition:max-height 0.4s ease; }
-.slide.open { max-height:400px; }
-.custom-modal {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;
-}
-</style>
-</head>
+<!-- ================= FIREBASE v10 ================= -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, collection, setDoc, deleteDoc, addDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-<body class="min-h-screen bg-gray-50">
-
-<!-- ================= NAVBAR (FIXED) ================= -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html").then(r=>r.text()).then(html=>{
-  document.getElementById("navbar").innerHTML = html;
-  const s = document.createElement("script");
-  s.type = "module";
-  s.src = "navbar.js";
-  document.body.appendChild(s);
-}).catch(e => console.error("Navbar failed to load"));
-</script>
-
-<!-- ================= HEADER ================= -->
-<header class="bg-white border-b border-gray-200 py-10">
-  <div class="max-w-7xl mx-auto px-4 text-center">
-    <h1 class="text-3xl font-black tracking-tight text-gray-900 sm:text-4xl">
-      Booter<span class="text-blue-600">Space</span>
-    </h1>
-    <p class="mt-2 text-sm text-gray-500 max-w-md mx-auto">
-      Explore your career opportunities and community posts
-    </p>
-  </div>
-</header>
-
-<!-- ================= MAIN ================= -->
-<main class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-  <!-- LEFT: JOB DETAILS -->
-  <div class="lg:col-span-2">
-    <div id="jobDetailsContent" class="job-card gradient-border p-6 md:p-10 relative">
-      <div class="space-y-6">
-        <div class="flex items-center gap-4">
-          <div class="w-16 h-16 shimmer rounded-xl"></div>
-          <div class="flex-1">
-            <div class="h-8 w-1/2 shimmer rounded mb-2"></div>
-            <div class="h-4 w-1/4 shimmer rounded"></div>
-          </div>
-        </div>
-        <div class="h-48 shimmer rounded-2xl"></div>
-        <div class="h-12 w-48 shimmer rounded-xl"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT: FEEDBACK -->
-  <div>
-    <div class="bg-white rounded-2xl shadow-md p-6 sticky top-24">
-      <h3 class="text-lg font-bold mb-3">
-        💙 Our Mission for <span class="text-gray-900">Job</span><span class="text-blue-600">Seeker</span>
-      </h3>
-
-      <p class="text-sm text-gray-600 leading-relaxed mb-4 whitespace-pre-line">
-🚀 We are building this platform to help job seekers find the right job for free.
-
-💯 Built with Love ❤️ and hard work.
-In return, we only ask for your support 🤝 and feedback.
-      </p>
-
-      <button onclick="toggleFeedback()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 mb-2">
-        💬 Give Feedback
-      </button>
-
-      <div id="feedbackBox" class="slide mt-4">
-        <input id="feedbackEmail" type="email" placeholder="Your email address"
-          class="w-full border rounded-lg p-3 mb-1">
-        <p id="emailError" class="hidden text-sm text-red-600 mb-2">Please enter email</p>
-        <textarea id="feedbackText" rows="3" placeholder="Write your feedback..."
-          class="w-full border rounded-lg p-3 mb-3"></textarea>
-        <button onclick="submitFeedback()" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">
-          Submit
-        </button>
-      </div>
-    </div>
-  </div>
-</main>
-
-<!-- ================= ALERT MODAL ================= -->
-<div id="alertModal" class="custom-modal">
-  <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-xl">
-    <h3 id="alertTitle" class="text-lg font-bold mb-2"></h3>
-    <p id="alertMsg" class="text-gray-600 mb-6"></p>
-    <button onclick="closeAlert()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">
-      Close
-    </button>
-  </div>
-</div>
-
-<!-- ================= FIREBASE + LOGIC ================= -->
-<script>
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -138,60 +25,221 @@ const firebaseConfig = {
   appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+window.auth = getAuth(app);
+window.db = getFirestore(app);
+window.serverTimestamp = serverTimestamp;
+</script>
 
-let currentUser = null;
-let currentJobId = null;
-
-auth.onAuthStateChanged(u => currentUser = u);
-
-function getJobId(){ return new URLSearchParams(location.search).get("id"); }
-function showAlert(t,m){
-  alertTitle.innerText=t; alertMsg.innerText=m;
-  alertModal.style.display="flex";
+<style>
+body { background:#f8fafc; font-family:'Plus Jakarta Sans',sans-serif; }
+.job-card { background:#fff; border-radius:24px; box-shadow:0 10px 25px -5px rgba(0,0,0,0.05); }
+.gradient-border::after {
+  content:''; position:absolute; top:0; left:0; right:0;
+  height:6px; background:linear-gradient(90deg,#2563eb,#60a5fa);
+  border-radius:24px 24px 0 0;
 }
-function closeAlert(){ alertModal.style.display="none"; }
+.shimmer {
+  background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);
+  background-size:200% 100%; animation:shimmer 1.5s infinite;
+}
+@keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
+.slide { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+.slide.open { max-height:400px; }
+.custom-modal {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.5); align-items:center; justify-content:center; z-index:1000;
+}
+</style>
+</head>
 
-window.addEventListener("DOMContentLoaded", async ()=>{
-  currentJobId = getJobId();
-  if(!currentJobId) return;
+<body class="min-h-screen bg-gray-50">
 
-  const ref = db.collection("jobs").doc(currentJobId);
-  await ref.set({ views: firebase.firestore.FieldValue.increment(1) },{merge:true});
-  const snap = await ref.get();
-  if(!snap.exists) return;
+<!-- ================= NAVBAR ================= -->
+<div id="navbar"></div>
+<script>
+fetch("navbar.html")
+  .then(r=>r.text())
+  .then(html=>{
+    document.getElementById("navbar").innerHTML=html;
+    const s=document.createElement("script");
+    s.type="module"; s.src="navbar.js";
+    document.body.appendChild(s);
+  });
+</script>
 
-  const job = snap.data();
-  document.getElementById("jobDetailsContent").innerHTML = `
-    <h1 class="text-3xl font-black">${job.title}</h1>
-    <p class="text-blue-600 font-bold">${job.company}</p>
-    <p class="mt-4 whitespace-pre-line">${job.about || ""}</p>
-    <button onclick="applyJob('${job.applyLink||""}')" class="mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">Apply</button>
-  `;
+<!-- ================= HEADER ================= -->
+<header class="bg-white border-b py-10">
+  <div class="max-w-7xl mx-auto px-4 text-center">
+    <h1 class="text-3xl font-black">
+      Booter<span class="text-blue-600">Space</span>
+    </h1>
+    <p class="mt-2 text-sm text-gray-500">
+      Explore your career opportunities and community posts
+    </p>
+  </div>
+</header>
+
+<!-- ================= MAIN ================= -->
+<main class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+  <!-- LEFT -->
+  <div class="lg:col-span-2">
+    <div id="jobDetailsContent" class="job-card gradient-border p-6 md:p-10 relative">
+      <div class="space-y-6">
+        <div class="h-6 w-1/2 shimmer rounded"></div>
+        <div class="h-4 w-1/3 shimmer rounded"></div>
+        <div class="h-40 shimmer rounded"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div>
+    <div class="bg-white rounded-2xl shadow-md p-6 sticky top-24">
+      <h3 class="text-lg font-bold mb-3">
+        💙 Our Mission for Job<span class="text-blue-600">Seekers</span>
+      </h3>
+      <p class="text-sm text-gray-600 whitespace-pre-line mb-4">
+🚀 We are building this platform with one clear mission — to help job seekers find the right job, without any cost.
+
+🔍 This project is created with dedication, research, and continuous effort. We carefully research and list job opportunities so job seekers can apply from one place.
+
+💯 Our platform is 100% free, easy to use, reliable, and constantly improving.
+
+We built this website with Love ❤️ and hard work. In return, all we ask is your love ❤️ and support 🤝. Please share your valuable feedback and suggestions!
+      </p>
+
+      <button onclick="toggleFeedback()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">
+        💬 Give Feedback
+      </button>
+
+      <div id="feedbackBox" class="slide mt-4">
+        <input id="feedbackEmail" class="w-full border rounded-lg p-3 mb-2" placeholder="Your email">
+        <textarea id="feedbackText" rows="3" class="w-full border rounded-lg p-3 mb-3" placeholder="Write your feedback..."></textarea>
+        <button onclick="submitFeedback()" class="w-full bg-gray-900 text-white py-3 rounded-xl font-bold">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ================= LOGIN REQUIRED MODAL ================= -->
+<div id="alertModal" class="custom-modal">
+  <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-xl text-center">
+    <h3 id="alertTitle" class="text-lg font-bold mb-2"></h3>
+    <p id="alertMsg" class="text-gray-600 mb-6"></p>
+
+    <div id="authButtons" class="space-y-3 hidden">
+      <a href="login.html" class="block w-full bg-blue-600 text-white py-3 rounded-xl font-bold">
+        Sign In
+      </a>
+      <a href="signup.html" class="block w-full border border-gray-300 py-3 rounded-xl font-bold">
+        Sign Up
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LOGIC ================= -->
+<script type="module">
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { doc, getDoc, collection, setDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const auth = window.auth;
+const db = window.db;
+
+let currentUser=null;
+let currentJobId=null;
+
+onAuthStateChanged(auth,u=>{
+  currentUser=u;
+  if(currentJobId) checkSaved();
 });
 
-function applyJob(link){
-  if(!currentUser) return showAlert("Login Required","Please login first");
+function getJobId(){
+  return new URLSearchParams(window.location.search).get("id");
+}
+
+window.addEventListener("DOMContentLoaded",async()=>{
+  currentJobId=getJobId();
+  if(!currentJobId) return renderError("Invalid Job ID");
+
+  const snap=await getDoc(doc(db,"jobs",currentJobId));
+  if(!snap.exists()) return renderError("Job not found");
+
+  renderJob(snap.data());
+  checkSaved();
+});
+
+function renderJob(job){
+  document.getElementById("jobDetailsContent").innerHTML=`
+    <h1 class="text-3xl font-black mb-2">${job.title}</h1>
+    <p class="text-blue-600 font-semibold mb-4">${job.company}</p>
+    <p class="text-gray-600 whitespace-pre-line mb-6">${job.about||""}</p>
+
+    <button onclick="applyJob('${job.applyLink||""}')"
+      class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">
+      Apply Now
+    </button>
+
+    <button id="saveBtn" onclick="toggleSaveJob()"
+      class="ml-3 border px-6 py-3 rounded-xl font-bold">
+      Save
+    </button>
+  `;
+}
+
+window.applyJob=(link)=>{
+  if(!currentUser) return showLoginPopup();
   window.open(link,"_blank");
+};
+
+window.toggleSaveJob=async()=>{
+  if(!currentUser) return showLoginPopup();
+  const ref=doc(db,"users",currentUser.uid,"savedJobs",currentJobId);
+  const snap=await getDoc(ref);
+  snap.exists()?await deleteDoc(ref):await setDoc(ref,{jobId:currentJobId,savedAt:serverTimestamp()});
+  checkSaved();
+};
+
+async function checkSaved(){
+  if(!currentUser) return;
+  const ref=doc(db,"users",currentUser.uid,"savedJobs",currentJobId);
+  if((await getDoc(ref)).exists())
+    document.getElementById("saveBtn").innerText="Saved";
 }
 
-function toggleFeedback(){
-  feedbackBox.classList.toggle("open");
-}
+window.toggleFeedback=()=>feedbackBox.classList.toggle("open");
 
-async function submitFeedback(){
-  const email=feedbackEmail.value.trim();
-  const text=feedbackText.value.trim();
-  if(!email) return emailError.classList.remove("hidden");
-  await db.collection("feedbacks").add({
-    email, message:text, jobId:currentJobId,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+window.submitFeedback=async()=>{
+  await addDoc(collection(db,"feedbacks"),{
+    email:feedbackEmail.value,
+    message:feedbackText.value,
+    jobId:currentJobId,
+    createdAt:serverTimestamp()
   });
-  feedbackEmail.value=""; feedbackText.value="";
-  toggleFeedback();
-  showAlert("Thank You ❤️","Feedback submitted");
+  showAlert("Thank You ❤️","Your feedback has been submitted");
+};
+
+function showLoginPopup(){
+  alertTitle.innerText="Login Required";
+  alertMsg.innerText="Please sign in or create an account to continue.";
+  document.getElementById("authButtons").classList.remove("hidden");
+  alertModal.style.display="flex";
+}
+
+function showAlert(t,m){
+  alertTitle.innerText=t;
+  alertMsg.innerText=m;
+  document.getElementById("authButtons").classList.add("hidden");
+  alertModal.style.display="flex";
+}
+
+function renderError(msg){
+  document.getElementById("jobDetailsContent").innerHTML=
+    `<p class="text-red-600 font-bold text-center">${msg}</p>`;
 }
 </script>
 
