@@ -11,7 +11,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -24,12 +24,25 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 window.auth = getAuth(app);
-window.db = getFirestore(app);
+const db = getFirestore(app);
+window.db = db;
+
+// Fix latency: Enable Offline Persistence (Cache)
+enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code == 'failed-precondition') {
+        console.warn("Multiple tabs open, persistence can only be enabled in one tab at a time.");
+    } else if (err.code == 'unimplemented') {
+        console.warn("The current browser does not support all of the features required to enable persistence");
+    }
+});
 </script>
 
 <style>
 .latest-badge{animation:pulse 1s infinite;}
 @keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+/* Skeleton loader for latency perception */
+.skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 </style>
 </head>
 
@@ -44,7 +57,7 @@ fetch("navbar.html").then(r=>r.text()).then(html=>{
   s.type = "module";
   s.src = "navbar.js";
   document.body.appendChild(s);
-});
+}).catch(e => console.error("Navbar failed to load"));
 </script>
 
 <!-- ================= HEADER ================= -->
@@ -79,14 +92,19 @@ fetch("navbar.html").then(r=>r.text()).then(html=>{
   <!-- TOTAL JOBS CARD -->
   <div class="bg-white border rounded-xl shadow p-6 mb-6 text-center">
     <p class="text-gray-500">Total Available Jobs</p>
-    <h2 id="totalJobs" class="text-3xl font-extrabold text-blue-600">Loading…</h2>
+    <h2 id="totalJobs" class="text-3xl font-extrabold text-blue-600">...</h2>
   </div>
 
-  <h2 id="jobCount" class="font-bold mb-6">Loading jobs…</h2>
+  <h2 id="jobCount" class="font-bold mb-6">Checking for jobs...</h2>
 
-  <div id="jobsList" class="space-y-6"></div>
+  <div id="jobsList" class="space-y-6">
+    <!-- Initial Loading Skeletons for better UX -->
+    <div class="skeleton h-32 w-full rounded-xl"></div>
+    <div class="skeleton h-32 w-full rounded-xl"></div>
+    <div class="skeleton h-32 w-full rounded-xl"></div>
+  </div>
 
-  <button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl mx-auto block">
+  <button id="loadMoreBtn" class="hidden mt-10 bg-white border px-8 py-3 rounded-xl mx-auto block hover:bg-gray-50 transition">
     Load More
   </button>
 </main>
@@ -95,7 +113,7 @@ fetch("navbar.html").then(r=>r.text()).then(html=>{
 <script type="module">
 import {
  collection, query, where, orderBy, limit,
- getDocs, startAfter, getCountFromServer
+ getDocs, startAfter, getCountFromServer, doc, updateDoc, increment
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const db = window.db;
@@ -110,7 +128,8 @@ const locationSuggestions = document.getElementById("locationSuggestions");
 
 let allJobs = [];
 let lastDoc = null;
-const pageSize = 30; // 🔥 LOAD 30 FIRST
+const pageSize = 30; 
+const suggestionSet = new Set(); // Prevent duplicate suggestions DOM updates
 
 function isNewJob(timestamp){
  const now = Date.now();
@@ -118,89 +137,141 @@ function isNewJob(timestamp){
  return (now - jobTime) <= 7 * 24 * 60 * 60 * 1000;
 }
 
+/* ---------- TRACK INTERACTION ---------- */
+// Function to increment click count in Firestore and then redirect
+window.trackAndRedirect = async (id, action) => {
+  try {
+    const jobRef = doc(db, "jobs", id);
+    // Increment a combined interaction field
+    await updateDoc(jobRef, {
+      interactions: increment(1)
+    });
+  } catch (e) {
+    console.error("Error updating interaction count:", e);
+  } finally {
+    location.href = `job-detail.html?id=${id}`;
+  }
+};
+
+window.viewJob = id => trackAndRedirect(id, 'view');
+window.applyJob = id => trackAndRedirect(id, 'apply');
+
 /* ---------- TOTAL JOB COUNT ---------- */
 async function loadTotalJobs(){
- const q = query(
-  collection(db,"jobs"),
-  where("status","==","approved")
- );
- const snap = await getCountFromServer(q);
- totalJobsEl.innerText = snap.data().count;
+ try {
+  const q = query(
+   collection(db,"jobs"),
+   where("status","==","approved")
+  );
+  const snap = await getCountFromServer(q);
+  totalJobsEl.innerText = snap.data().count;
+ } catch (e) {
+  totalJobsEl.innerText = "Error";
+ }
 }
 
 /* ---------- LOAD JOBS ---------- */
 async function loadJobs(){
- let q = query(
-  collection(db,"jobs"),
-  where("status","==","approved"),
-  orderBy("timestamp","desc"),
-  limit(pageSize)
- );
+ try {
+  let q = query(
+   collection(db,"jobs"),
+   where("status","==","approved"),
+   orderBy("timestamp","desc"),
+   limit(pageSize)
+  );
 
- if(lastDoc) q = query(q, startAfter(lastDoc));
+  if(lastDoc) q = query(q, startAfter(lastDoc));
 
- const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
- if(snap.empty){
-  loadMoreBtn.classList.add("hidden");
-  return;
+  // Remove skeletons on first load
+  if (!lastDoc) jobsList.innerHTML = "";
+
+  if(snap.empty){
+   loadMoreBtn.classList.add("hidden");
+   if(allJobs.length === 0) jobCount.innerText = "No jobs found.";
+   return;
+  }
+
+  lastDoc = snap.docs[snap.docs.length - 1];
+
+  // Batch rendering for performance
+  const fragment = document.createDocumentFragment();
+  snap.docs.forEach(d=>{
+   const job = {id:d.id, ...d.data()};
+   allJobs.push(job);
+   fragment.appendChild(renderJobElement(job));
+   addSuggestions(job);
+  });
+  
+  jobsList.appendChild(fragment);
+  jobCount.innerText = `${allJobs.length} jobs loaded`;
+  loadMoreBtn.classList.remove("hidden");
+ } catch (e) {
+  console.error("Load jobs error:", e);
+  jobCount.innerText = "Failed to load jobs.";
  }
-
- lastDoc = snap.docs[snap.docs.length - 1];
-
- snap.docs.forEach(d=>{
-  const job = {id:d.id, ...d.data()};
-  allJobs.push(job);
-  renderJob(job);
-  addSuggestions(job);
- });
-
- jobCount.innerText = `${allJobs.length} jobs loaded`;
- loadMoreBtn.classList.remove("hidden");
 }
 
-/* ---------- RENDER JOB ---------- */
-function renderJob(job){
+/* ---------- RENDER JOB ELEMENT ---------- */
+function renderJobElement(job){
  const logo =
   job.logoUrl ||
   job.companyImageUrl ||
-  `https://ui-avatars.com/api/?name=${job.company}`;
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}`;
 
  const badge = isNewJob(job.timestamp)
   ? `<span class="latest-badge text-xs bg-red-500 text-white px-2 py-1 rounded-full">🔥 NEW</span>`
   : "";
 
+ // Show interaction count if it exists
+ const interactionCount = job.interactions 
+  ? `<span class="text-[10px] text-gray-400 font-medium">${job.interactions} interactions</span>` 
+  : "";
+
  const div = document.createElement("div");
- div.className="bg-white p-6 rounded-xl border shadow flex gap-4";
+ div.className="bg-white p-6 rounded-xl border shadow flex flex-col md:flex-row gap-4 hover:border-blue-300 transition-colors";
 
  div.innerHTML=`
- <img src="${logo}" class="w-16 h-16 rounded-xl">
- <div class="flex-1">
-   <div class="flex items-center gap-2">
-     <h3 class="font-bold text-lg">${job.title}</h3>
-     ${badge}
+ <div class="flex gap-4 flex-1">
+   <img src="${logo}" class="w-16 h-16 rounded-xl object-cover bg-gray-100" onerror="this.src='https://ui-avatars.com/api/?name=Company'">
+   <div class="flex-1">
+     <div class="flex items-center gap-2">
+       <h3 class="font-bold text-lg">${job.title}</h3>
+       ${badge}
+     </div>
+     <p class="text-sm text-gray-600">${job.company} • ${job.location||"Remote"}</p>
+     <p class="text-blue-600 font-bold">${job.salary||""}</p>
    </div>
-   <p class="text-sm text-gray-600">${job.company} • ${job.location||"Remote"}</p>
-   <p class="text-blue-600 font-bold">${job.salary||""}</p>
  </div>
- <div class="flex flex-col gap-2">
-   <button onclick="viewJob('${job.id}')" class="bg-white border px-4 py-2 rounded">View</button>
-   <button onclick="applyJob('${job.id}')" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
+ <div class="flex md:flex-col gap-2 justify-center items-center md:items-stretch">
+   <div class="flex flex-col items-center gap-1 w-full">
+     <button onclick="viewJob('${job.id}')" class="w-full bg-white border border-gray-300 px-4 py-2 rounded hover:bg-gray-50 transition font-medium">View</button>
+     ${interactionCount}
+   </div>
+   <button onclick="applyJob('${job.id}')" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition font-medium">Apply</button>
  </div>`;
- jobsList.appendChild(div);
+ return div;
 }
 
 /* ---------- SUGGESTIONS ---------- */
 function addSuggestions(job){
- if(job.title) titleSuggestions.innerHTML += `<option value="${job.title}">`;
- if(job.company) titleSuggestions.innerHTML += `<option value="${job.company}">`;
- if(job.location) locationSuggestions.innerHTML += `<option value="${job.location}">`;
+ // Optimized suggestion adding to avoid duplicate DOM writes
+ if(job.title && !suggestionSet.has(job.title)) {
+   suggestionSet.add(job.title);
+   titleSuggestions.innerHTML += `<option value="${job.title}">`;
+ }
+ if(job.company && !suggestionSet.has(job.company)) {
+   suggestionSet.add(job.company);
+   titleSuggestions.innerHTML += `<option value="${job.company}">`;
+ }
+ if(job.location && !suggestionSet.has(job.location)) {
+   suggestionSet.add(job.location);
+   locationSuggestions.innerHTML += `<option value="${job.location}">`;
+ }
 }
 
 loadMoreBtn.onclick = loadJobs;
-
-window.viewJob = id => location.href = `job-detail.html?id=${id}`;
-window.applyJob = id => location.href = `job-detail.html?id=${id}`;
 
 /* ---------- INIT ---------- */
 loadTotalJobs();
