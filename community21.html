@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Community - BooterSpace</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, doc, updateDoc, increment, serverTimestamp, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'booterspace-app';
+
+        let currentUser = null;
+        let userProfile = {
+            name: "Anonymous User",
+            college: "Not Set",
+            position: "New Member",
+            experience: "0",
+            skills: "",
+            avatar: "" 
+        };
+
+        const styles = ['avataaars', 'bottts', 'adventurer', 'fun-emoji', 'pixel-art'];
+        const avatarSeeds = [
+            'Felix', 'Aneka', 'Mason', 'Jude', 'Caleb', 'Molly', 'Lulu', 'Sasha', 'Cookie', 'Tinkerbell', 
+            'Willow', 'Jasper', 'Buster', 'Lucky', 'Pepper', 'Zoe', 'Bailey', 'Oliver', 'Shadow', 'Buddy',
+            'Max', 'Bella', 'Charlie', 'Lucy', 'Cooper', 'Daisy', 'Milo', 'Luna', 'Rocky', 'Rosie',
+            'Bear', 'Ruby', 'Teddy', 'Penny', 'Duke', 'Sophie', 'Leo', 'Stella', 'Bentley', 'Willow',
+            'Zeus', 'Mia', 'Jax', 'Gracie', 'Apollo', 'Nala', 'Murphy', 'Abby', 'Koda', 'Lola'
+        ];
+
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth error", err);
+            }
+        };
+
+        initAuth();
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            if (user) {
+                await loadUserProfile();
+                setupListeners();
+                updateUIForUser();
+                generateSuggestions();
+            }
+        });
+
+        const getPostCol = () => collection(db, 'artifacts', appId, 'public', 'data', 'communityPosts');
+        const getNotifyCol = (uid) => collection(db, 'artifacts', appId, 'users', uid, 'notifications');
+        const getProfileDoc = (uid) => doc(db, 'artifacts', appId, 'users', uid, 'profile', 'info');
+
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            const docSnap = await getDoc(getProfileDoc(currentUser.uid));
+            if (docSnap.exists()) {
+                userProfile = { ...userProfile, ...docSnap.data() };
+            } else {
+                userProfile.name = `User_${currentUser.uid.substring(0, 5)}`;
+                userProfile.avatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.uid}`;
+                await setDoc(getProfileDoc(currentUser.uid), userProfile);
+            }
+        }
+
+        function updateUIForUser() {
+            document.getElementById('user-name-display').innerText = userProfile.name;
+            const avatarImg = document.getElementById('navbar-avatar');
+            const profilePreview = document.getElementById('profile-preview-img');
+            const avatarUrl = userProfile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.uid || 'default'}`;
+            
+            avatarImg.src = avatarUrl;
+            profilePreview.src = avatarUrl;
+            
+            document.getElementById('edit-name').value = userProfile.name;
+            document.getElementById('edit-college').value = userProfile.college;
+            document.getElementById('edit-position').value = userProfile.position;
+            document.getElementById('edit-experience').value = userProfile.experience;
+            document.getElementById('edit-skills').value = userProfile.skills;
+        }
+
+        window.generateSuggestions = () => {
+            const suggestionNames = ["Aarav Sharma", "Priya Patel", "Liam Wilson", "Emma Brown", "Noah Garcia", "Yuki Sato", "Chen Wei", "Sofia Rossi"];
+            const positions = ["UI Designer", "Fullstack Dev", "Student", "Data Scientist", "Product Manager"];
+            const container = document.getElementById('suggestions-list');
+            container.innerHTML = "";
+
+            const shuffled = suggestionNames.sort(() => 0.5 - Math.random()).slice(0, 4);
+            
+            shuffled.forEach(name => {
+                const pos = positions[Math.floor(Math.random() * positions.length)];
+                const seed = avatarSeeds[Math.floor(Math.random() * avatarSeeds.length)];
+                const style = styles[Math.floor(Math.random() * styles.length)];
+                const avatar = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+                const tempId = Math.random().toString(36).substring(7);
+
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between group";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${avatar}" class="w-10 h-10 rounded-full bg-slate-100 border border-slate-100 object-cover" />
+                        <div>
+                            <p class="text-sm font-bold leading-none text-slate-700">${name}</p>
+                            <p class="text-[11px] text-slate-500 mt-1">${pos}</p>
+                        </div>
+                    </div>
+                    <button onclick="window.connectWithUser('${tempId}', '${name}')" class="w-8 h-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center hover:bg-indigo-600 hover:text-white transition shadow-sm">
+                        <i class="fas fa-plus text-xs"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.saveProfile = async () => {
+            if (!currentUser) return;
+            const updated = {
+                ...userProfile,
+                name: document.getElementById('edit-name').value,
+                college: document.getElementById('edit-college').value,
+                position: document.getElementById('edit-position').value,
+                experience: document.getElementById('edit-experience').value,
+                skills: document.getElementById('edit-skills').value,
+            };
+            
+            await setDoc(getProfileDoc(currentUser.uid), updated);
+            userProfile = updated;
+            updateUIForUser();
+            window.toggleProfile();
+            showToast("Profile updated successfully!");
+        };
+
+        window.openAvatarGallery = () => {
+            const gallery = document.getElementById('avatar-gallery');
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = '';
+            
+            styles.forEach(style => {
+                avatarSeeds.forEach(seed => {
+                    const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+                    const div = document.createElement('div');
+                    div.className = "cursor-pointer hover:scale-110 transition p-2 bg-slate-50 rounded-lg border border-transparent hover:border-indigo-300 flex items-center justify-center";
+                    div.innerHTML = `<img src="${url}" class="w-14 h-14" loading="lazy" />`;
+                    div.onclick = () => {
+                        userProfile.avatar = url;
+                        document.getElementById('profile-preview-img').src = url;
+                        window.closeAvatarGallery();
+                    };
+                    grid.appendChild(div);
+                });
+            });
+            
+            gallery.classList.remove('hidden');
+        };
+
+        window.closeAvatarGallery = () => {
+            document.getElementById('avatar-gallery').classList.add('hidden');
+        };
+
+        window.handleSearch = () => {
+            const query = document.getElementById('search-input').value;
+            if (query.trim()) {
+                showToast(`Searching for "${query}"...`);
+            }
+        };
+
+        const showToast = (msg) => {
+            const toast = document.getElementById('toast');
+            toast.querySelector('span').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        };
+
+        function setupListeners() {
+            if (!currentUser) return;
+
+            onSnapshot(query(getPostCol()), (snap) => {
+                const container = document.getElementById("community-posts");
+                container.innerHTML = "";
+                const docs = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                    .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                docs.forEach(p => {
+                    const date = p.timestamp?.toDate().toLocaleString() || "Just now";
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition";
+                    const postAvatar = p.userAvatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.userId}`;
+                    card.innerHTML = `
+                        <div class="flex justify-between text-xs mb-2">
+                            <div class="flex items-center gap-2">
+                                <img src="${postAvatar}" class="w-7 h-7 rounded-full bg-slate-100 border border-slate-100" />
+                                <b class="text-gray-700">${p.userName || 'Anonymous'}</b>
+                            </div>
+                            <span class="text-gray-400">${date}</span>
+                        </div>
+                        <p class="text-sm mb-3 text-gray-800 leading-relaxed">${p.content}</p>
+                        <div class="flex gap-4 text-xs text-gray-500 border-t pt-3">
+                            <button onclick="window.likePost('${p.id}')" class="hover:text-blue-600 flex items-center gap-1"><i class="far fa-thumbs-up"></i> ${p.likes || 0}</button>
+                            <button onclick="window.dislikePost('${p.id}')" class="hover:text-red-600 flex items-center gap-1"><i class="far fa-thumbs-down"></i> ${p.dislikes || 0}</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }, (err) => console.error(err));
+
+            onSnapshot(query(getNotifyCol(currentUser.uid)), (snap) => {
+                const list = document.getElementById('notification-list');
+                const dot = document.getElementById('notification-dot');
+                const unread = snap.docs.filter(d => !d.data().read).length;
+                dot.innerText = unread > 0 ? unread : '';
+                dot.className = unread > 0 ? "absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold" : "hidden";
+                
+                list.innerHTML = snap.empty ? "<div class='p-4 text-sm text-gray-500'>No new alerts</div>" : "";
+                snap.forEach(d => {
+                    const n = d.data();
+                    const item = document.createElement('div');
+                    item.className = `p-3 border-b text-sm cursor-pointer hover:bg-gray-50 ${n.read ? 'opacity-60' : 'bg-blue-50 border-l-4 border-l-blue-500'}`;
+                    item.innerHTML = `<p><strong>${n.fromName}</strong> ${n.message}</p>`;
+                    item.onclick = () => updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'notifications', d.id), { read: true });
+                    list.appendChild(item);
+                });
+            });
+        }
+
+        window.handlePost = async () => {
+            const input = document.getElementById("postContent");
+            if (!input.value.trim()) return;
+            await addDoc(getPostCol(), {
+                content: input.value,
+                userName: userProfile.name,
+                userAvatar: userProfile.avatar,
+                userId: currentUser.uid,
+                timestamp: serverTimestamp(),
+                likes: 0, dislikes: 0
+            });
+            input.value = "";
+        };
+
+        window.connectWithUser = async (targetUid, targetName) => {
+            if (!currentUser) return;
+            await addDoc(collection(db, 'artifacts', appId, 'users', targetUid, 'notifications'), {
+                fromId: currentUser.uid,
+                fromName: userProfile.name,
+                message: "wants to connect with you!",
+                timestamp: serverTimestamp(),
+                read: false
+            }).catch(() => {});
+            
+            showToast(`Connection request sent to ${targetName}`);
+        };
+
+        window.toggleProfile = () => {
+            const panel = document.getElementById('profile-panel');
+            panel.classList.toggle('max-h-0');
+            panel.classList.toggle('max-h-[800px]');
+            panel.classList.toggle('opacity-0');
+            panel.classList.toggle('p-0');
+            panel.classList.toggle('p-6');
+        };
+
+        window.toggleNotifications = () => {
+            document.getElementById('notification-dropdown').classList.toggle('hidden');
+        };
+
+        window.likePost = (id) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'communityPosts', id), { likes: increment(1) });
+        window.dislikePost = (id) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'communityPosts', id), { dislikes: increment(1) });
+
+    </script>
+    <style>
+        .profile-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight hidden sm:block">BooterSpace</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- Search Box with Button -->
+                <div class="relative hidden md:flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1 border border-transparent focus-within:border-indigo-300 transition-all">
+                    <i class="fas fa-search text-slate-400 text-xs ml-1"></i>
+                    <input id="search-input" type="text" placeholder="Search..." class="bg-transparent text-sm w-32 focus:w-48 transition-all outline-none py-1">
+                    <button onclick="handleSearch()" class="bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full hover:bg-indigo-700 transition">
+                        Find
+                    </button>
+                </div>
+
+                <div class="relative">
+                    <button onclick="toggleNotifications()" class="w-10 h-10 text-slate-500 hover:bg-slate-100 rounded-full transition relative flex items-center justify-center">
+                        <i class="fas fa-bell"></i>
+                        <span id="notification-dot" class="hidden"></span>
+                    </button>
+                    <div id="notification-dropdown" class="hidden absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden">
+                        <div class="p-3 border-b bg-slate-50 font-bold text-xs uppercase text-slate-400">Notifications</div>
+                        <div id="notification-list" class="max-h-64 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <button onclick="toggleProfile()" class="flex items-center gap-2 pl-2 border-l ml-1 hover:bg-slate-50 p-1 rounded-lg transition">
+                    <img id="navbar-avatar" src="" class="w-8 h-8 rounded-full bg-slate-200 object-cover border border-slate-200" />
+                    <span id="user-name-display" class="text-sm font-semibold hidden sm:block text-slate-700">Loading...</span>
+                    <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Profile Panel -->
+        <div id="profile-panel" class="max-w-4xl mx-auto overflow-hidden max-h-0 opacity-0 profile-transition bg-white border-x border-b rounded-b-2xl shadow-xl">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="flex flex-col items-center border-b md:border-b-0 md:border-r border-slate-100 pb-6 md:pb-0">
+                    <div class="relative group">
+                        <img id="profile-preview-img" src="" class="w-32 h-32 rounded-full border-4 border-indigo-50 shadow-lg object-cover bg-slate-100" />
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">Profile Picture</p>
+                    <button onclick="openAvatarGallery()" class="mt-4 text-[11px] font-bold text-indigo-600 bg-indigo-50 px-6 py-2 rounded-full hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                        <i class="fas fa-user-plus mr-1"></i> BSpace Avatar (1000+)
+                    </button>
+                </div>
+
+                <div class="md:col-span-2 space-y-4">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-id-card text-indigo-500"></i> Personal Info</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Full Name</label>
+                            <input id="edit-name" type="text" class="w-full p-2 bg-slate-50 border rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-100">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">College / University</label>
+                            <input id="edit-college" type="text" class="w-full p-2 bg-slate-50 border rounded-md text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Position</label>
+                            <input id="edit-position" type="text" class="w-full p-2 bg-slate-50 border rounded-md text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase">Experience (Yrs)</label>
+                            <input id="edit-experience" type="number" class="w-full p-2 bg-slate-50 border rounded-md text-sm outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase">Skills</label>
+                        <textarea id="edit-skills" class="w-full p-2 bg-slate-50 border rounded-md text-sm outline-none h-16 resize-none"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button onclick="toggleProfile()" class="text-xs font-bold text-slate-500 px-4 py-2">Cancel</button>
+                        <button onclick="saveProfile()" class="text-xs font-bold bg-indigo-600 text-white px-6 py-2 rounded-md shadow-md">Update Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Avatar Gallery Modal -->
+    <div id="avatar-gallery" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div class="p-6 border-b flex justify-between items-center bg-indigo-600 text-white">
+                <div>
+                    <h2 class="font-bold text-lg flex items-center gap-2">
+                        <i class="fas fa-th"></i> Choose Your BSpace Avatar
+                    </h2>
+                    <p class="text-[11px] opacity-80">1000+ unique variations available</p>
+                </div>
+                <button onclick="closeAvatarGallery()" class="text-white/60 hover:text-white transition text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="avatar-grid" class="p-6 grid grid-cols-4 sm:grid-cols-6 gap-3 max-h-[450px] overflow-y-auto no-scrollbar bg-slate-50"></div>
+            <div class="p-4 border-t bg-white flex justify-end px-8">
+                <button onclick="closeAvatarGallery()" class="text-xs font-bold bg-slate-100 px-6 py-2 rounded-full hover:bg-slate-200 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto py-8 px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-user-plus text-indigo-500"></i>
+                        Add People
+                    </h2>
+                    <button onclick="generateSuggestions()" class="text-[10px] text-indigo-600 font-bold hover:underline">
+                        Refresh
+                    </button>
+                </div>
+                <div id="suggestions-list" class="space-y-5"></div>
+            </div>
+        </div>
+
+        <!-- Center Feed -->
+        <div class="md:col-span-2 space-y-6">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <div class="flex gap-4">
+                    <div class="w-10 h-10 bg-slate-100 rounded-full flex-shrink-0 flex items-center justify-center text-slate-400 overflow-hidden">
+                        <i class="fas fa-pen-nib"></i>
+                    </div>
+                    <textarea id="postContent" rows="2" class="w-full p-2 bg-transparent text-sm focus:outline-none placeholder-slate-400 mt-2" placeholder="What's happening in your space?"></textarea>
+                </div>
+                <div class="mt-4 flex justify-end items-center border-t pt-3">
+                    <button onclick="handlePost()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg shadow-indigo-100 active:scale-95 transition-all">
+                        Post
+                    </button>
+                </div>
+            </div>
+            <div id="community-posts" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl z-[100] transition-all text-sm font-bold flex items-center gap-2">
+        <i class="fas fa-check-circle text-emerald-400"></i> 
+        <span>Action Complete</span>
+    </div>
+
+</body>
+</html>
