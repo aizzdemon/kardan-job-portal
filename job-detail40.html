@@ -11,9 +11,9 @@
 <!-- ================= FIREBASE v10 ================= -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, collection, setDoc, deleteDoc, addDoc, serverTimestamp
+  getFirestore, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -132,13 +132,11 @@ We built this website with Love ❤️ and hard work. In return, all we ask is y
     <p id="alertMsg" class="text-gray-600 mb-6"></p>
 
     <div id="authButtons" class="space-y-3 hidden">
-      <a href="login.html" class="block w-full bg-blue-600 text-white py-3 rounded-xl font-bold">
-        Sign In
-      </a>
-      <a href="signup.html" class="block w-full border border-gray-300 py-3 rounded-xl font-bold">
-        Sign Up
-      </a>
+      <a href="login.html" class="block w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Sign In</a>
+      <a href="signup.html" class="block w-full border border-gray-300 py-3 rounded-xl font-bold">Sign Up</a>
     </div>
+    
+    <button onclick="document.getElementById('alertModal').style.display='none'" class="mt-4 text-sm text-gray-400 font-medium">Close</button>
   </div>
 </div>
 
@@ -149,14 +147,10 @@ import { doc, getDoc, collection, setDoc, deleteDoc, addDoc } from "https://www.
 
 const auth = window.auth;
 const db = window.db;
-
 let currentUser=null;
 let currentJobId=null;
 
-onAuthStateChanged(auth,u=>{
-  currentUser=u;
-  if(currentJobId) checkSaved();
-});
+onAuthStateChanged(auth,u=>{ currentUser=u; });
 
 function getJobId(){
   return new URLSearchParams(window.location.search).get("id");
@@ -170,24 +164,58 @@ window.addEventListener("DOMContentLoaded",async()=>{
   if(!snap.exists()) return renderError("Job not found");
 
   renderJob(snap.data());
-  checkSaved();
 });
 
 function renderJob(job){
   document.getElementById("jobDetailsContent").innerHTML=`
-    <h1 class="text-3xl font-black mb-2">${job.title}</h1>
-    <p class="text-blue-600 font-semibold mb-4">${job.company}</p>
-    <p class="text-gray-600 whitespace-pre-line mb-6">${job.about||""}</p>
+    <h1 class="text-3xl font-black mb-1 leading-tight text-slate-900">${job.title}</h1>
+    <p class="text-blue-600 font-bold text-lg mb-6 flex items-center gap-2">
+      <i class="fa-solid fa-building text-sm opacity-50"></i> ${job.company}
+    </p>
 
-    <button onclick="applyJob('${job.applyLink||""}')"
-      class="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold">
-      Apply Now
-    </button>
+    <!-- REDESIGNED INFO BOXES -->
+    <div class="flex flex-wrap gap-4 mb-8">
+      <div class="flex items-center gap-3 bg-blue-50/50 border border-blue-100 px-4 py-3 rounded-2xl min-w-[160px]">
+        <div class="w-10 h-10 bg-white shadow-sm text-blue-600 rounded-xl flex items-center justify-center text-lg">
+          <i class="fa-solid fa-location-dot"></i>
+        </div>
+        <div>
+          <p class="text-[10px] uppercase tracking-wider text-blue-500 font-black leading-none mb-1">Location</p>
+          <p class="text-sm font-bold text-slate-700 leading-none">${job.location || "Remote / Global"}</p>
+        </div>
+      </div>
 
-    <button id="saveBtn" onclick="toggleSaveJob()"
-      class="ml-3 border px-6 py-3 rounded-xl font-bold">
-      Save
-    </button>
+      <div class="flex items-center gap-3 bg-emerald-50/50 border border-emerald-100 px-4 py-3 rounded-2xl min-w-[160px]">
+        <div class="w-10 h-10 bg-white shadow-sm text-emerald-600 rounded-xl flex items-center justify-center text-lg">
+          <i class="fa-solid fa-sack-dollar"></i>
+        </div>
+        <div>
+          <p class="text-[10px] uppercase tracking-wider text-emerald-600 font-black leading-none mb-1">Salary</p>
+          <p class="text-sm font-bold text-slate-700 leading-none">${job.salary || "Undisclosed"}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="prose max-w-none text-gray-600 whitespace-pre-line mb-10 leading-relaxed text-base">
+      ${job.about||""}
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 border-t pt-8">
+      <button onclick="applyJob('${job.applyLink||""}')"
+        class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold transition-all transform active:scale-95 shadow-lg shadow-blue-200 flex items-center gap-2">
+        Apply Now <i class="fa-solid fa-arrow-right text-xs"></i>
+      </button>
+
+      <button id="saveBtn" onclick="toggleSaveJob()"
+        class="border-2 border-gray-100 hover:border-gray-200 hover:bg-gray-50 px-6 py-4 rounded-2xl font-bold transition-all text-gray-700 flex items-center gap-2">
+        <i class="fa-regular fa-bookmark"></i> Save
+      </button>
+
+      <button onclick="shareJob('${job.title}')"
+        class="border-2 border-gray-100 hover:border-gray-200 hover:bg-gray-50 p-4 rounded-2xl font-bold transition-all text-gray-700" title="Share Job">
+        <i class="fa-solid fa-share-nodes"></i>
+      </button>
+    </div>
   `;
 }
 
@@ -200,46 +228,61 @@ window.toggleSaveJob=async()=>{
   if(!currentUser) return showLoginPopup();
   const ref=doc(db,"users",currentUser.uid,"savedJobs",currentJobId);
   const snap=await getDoc(ref);
-  snap.exists()?await deleteDoc(ref):await setDoc(ref,{jobId:currentJobId,savedAt:serverTimestamp()});
-  checkSaved();
+  if(snap.exists()){
+    await deleteDoc(ref);
+    showAlert("Removed","Job removed from your saved list");
+  } else {
+    await setDoc(ref,{savedAt:window.serverTimestamp()});
+    showAlert("Saved! ❤️","Job added to your saved list");
+  }
 };
 
-async function checkSaved(){
-  if(!currentUser) return;
-  const ref=doc(db,"users",currentUser.uid,"savedJobs",currentJobId);
-  if((await getDoc(ref)).exists())
-    document.getElementById("saveBtn").innerText="Saved";
-}
+window.shareJob=(title)=>{
+  if(navigator.share) {
+    navigator.share({
+      title: title,
+      url: window.location.href
+    });
+  } else {
+    document.execCommand('copy');
+    showAlert("Link Copied","Job link copied to clipboard");
+  }
+};
 
 window.toggleFeedback=()=>feedbackBox.classList.toggle("open");
 
 window.submitFeedback=async()=>{
+  if(!feedbackText.value.trim()) return;
   await addDoc(collection(db,"feedbacks"),{
     email:feedbackEmail.value,
     message:feedbackText.value,
     jobId:currentJobId,
-    createdAt:serverTimestamp()
+    createdAt:window.serverTimestamp()
   });
+  feedbackText.value = "";
   showAlert("Thank You ❤️","Your feedback has been submitted");
 };
 
 function showLoginPopup(){
   alertTitle.innerText="Login Required";
-  alertMsg.innerText="Please sign in or create an account to continue.";
-  document.getElementById("authButtons").classList.remove("hidden");
+  alertMsg.innerText="Please sign in or create an account to save jobs or apply.";
+  authButtons.classList.remove("hidden");
   alertModal.style.display="flex";
 }
 
 function showAlert(t,m){
   alertTitle.innerText=t;
   alertMsg.innerText=m;
-  document.getElementById("authButtons").classList.add("hidden");
+  authButtons.classList.add("hidden");
   alertModal.style.display="flex";
 }
 
 function renderError(msg){
   document.getElementById("jobDetailsContent").innerHTML=
-    `<p class="text-red-600 font-bold text-center">${msg}</p>`;
+    `<div class="text-center py-20">
+      <i class="fa-solid fa-circle-exclamation text-4xl text-red-100 mb-4"></i>
+      <p class="text-red-600 font-bold">${msg}</p>
+    </div>`;
 }
 </script>
 
