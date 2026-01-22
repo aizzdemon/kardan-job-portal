@@ -229,7 +229,7 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
 
   if (!valid) return;
 
-  const nameVal = document.getElementById("name").value.trim();
+  const fullName = document.getElementById("name").value.trim();
   const emailVal = document.getElementById("email").value.trim();
   const phoneVal = phoneEl.value.trim();
   const passwordVal = document.getElementById("password").value;
@@ -240,27 +240,38 @@ document.getElementById("signupForm").addEventListener("submit", async (e) => {
   const panVal = document.getElementById("pan").value.trim();
 
   try {
-    const cred = await auth.createUserWithEmailAndPassword(emailVal, passwordVal);
+  const cred = await auth.createUserWithEmailAndPassword(emailVal, passwordVal);
 
-    await db.collection("users").doc(cred.user.uid).set({
-      name: nameVal,
-      email: emailVal,
-      phone: phoneVal,
-      role: selectedRole,
-      jobPostAccess: false,
-      gender: selectedRole === "jobSeeker" ? genderVal : "",
-      company: selectedRole === "jobProvider" ? companyVal : "",
-      gstNumber: selectedRole === "jobProvider" ? gstVal : "",
-      companyPAN: selectedRole === "jobProvider" ? panVal : "",
-      photoURL: cred.user.photoURL || "",
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+  const fullName = document.getElementById("name").value.trim();
 
-    window.location.href = "index.html";
+  await db.collection("users").doc(cred.user.uid).set({
+    fullName: fullName,
+    fullNameLower: fullName.toLowerCase(),
 
-  } catch (err) {
-    alert(err.message);
-  }
+    email: emailVal,
+    emailLower: emailVal.toLowerCase(),
+
+    phone: phoneVal,
+    role: selectedRole,
+
+    jobPostAccess: selectedRole === "jobProvider" ? false : true,
+
+    gender: selectedRole === "jobSeeker" ? genderVal : "",
+
+    company: selectedRole === "jobProvider" ? companyVal : "",
+    gstNumber: selectedRole === "jobProvider" ? gstVal : "",
+    companyPAN: selectedRole === "jobProvider" ? panVal : "",
+
+    photoURL: cred.user.photoURL || "",
+
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+
+  window.location.href = "index.html";
+
+} catch (err) {
+  alert(err.message);
+}
 });
 </script>
 
