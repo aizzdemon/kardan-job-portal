@@ -30,16 +30,21 @@ let currentUser = null;
 
 // --- Auth Initialization (Rule 3) ---
 const initAuth = async () => {
-  if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-    await signInWithCustomToken(auth, __initial_auth_token);
-  } else {
-    await signInAnonymously(auth);
+  try {
+    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+      await signInWithCustomToken(auth, __initial_auth_token);
+    } else {
+      await signInAnonymously(auth);
+    }
+  } catch (err) {
+    console.error("Auth failed:", err);
   }
 };
 
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   if (user) {
+    // Ensuring the UI reacts to the user being ready
     loadPosts();
     loadSuggestions();
   }
@@ -78,12 +83,18 @@ async function loadPosts() {
   wrap.innerHTML = '<div class="p-10 text-center text-gray-400">Loading feeds...</div>';
 
   try {
-    const q = query(collection(db, 'artifacts', appId, 'public', 'data', "communityPosts"), orderBy("timestamp", "desc"));
+    // Fetching from the strict path mandated for public data
+    const postsRef = collection(db, 'artifacts', appId, 'public', 'data', "communityPosts");
+    const q = query(postsRef, orderBy("timestamp", "desc"));
     const snap = await getDocs(q);
     wrap.innerHTML = "";
 
     if (snap.empty) {
-      wrap.innerHTML = '<div class="bg-white p-8 rounded-xl text-center border">No posts yet. Be the first to share!</div>';
+      wrap.innerHTML = `
+        <div class="bg-white p-12 rounded-2xl text-center border border-dashed border-slate-300">
+          <div class="text-4xl mb-4">🚀</div>
+          <p class="text-slate-500 font-medium">No posts yet. Be the first to share your journey!</p>
+        </div>`;
       return;
     }
 
@@ -92,8 +103,10 @@ async function loadPosts() {
       const avatar = p.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.userName)}&background=random`;
 
       let reacted = null;
-      const rSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', "communityPosts", d.id, "reactions", currentUser.uid));
-      if (rSnap.exists()) reacted = rSnap.data().type;
+      try {
+        const rSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', "communityPosts", d.id, "reactions", currentUser.uid));
+        if (rSnap.exists()) reacted = rSnap.data().type;
+      } catch(e) {}
 
       const postEl = document.createElement('div');
       postEl.className = "bg-white p-4 rounded-xl shadow-sm border mb-4 animate-in fade-in duration-500";
@@ -141,11 +154,12 @@ async function loadPosts() {
       loadComments(d.id);
     }
   } catch (e) {
-    wrap.innerHTML = '<div class="p-10 text-center text-red-400 text-xs">Error loading posts.</div>';
+    console.error("Load posts error:", e);
+    wrap.innerHTML = '<div class="p-10 text-center text-red-400 text-xs">Could not load feed. Please try again.</div>';
   }
 }
 
-/* ---------- SUGGESTIONS LOGIC (DYNAMIC SHUFFLE) ---------- */
+/* ---------- SUGGESTIONS LOGIC ---------- */
 window.loadSuggestions = async () => {
     const list = document.getElementById("suggestionList");
     if (!currentUser) return;
@@ -172,7 +186,7 @@ window.loadSuggestions = async () => {
         const suggestions = allUsers.slice(0, 5);
 
         if (suggestions.length === 0) {
-            list.innerHTML = '<p class="text-[10px] text-gray-400">No new suggestions found.</p>';
+            list.innerHTML = '<p class="text-[10px] text-gray-400">No suggestions available at the moment.</p>';
             return;
         }
 
@@ -192,7 +206,7 @@ window.loadSuggestions = async () => {
             </div>
         `).join("");
     } catch (e) {
-        list.innerHTML = '<p class="text-[10px] text-gray-400 italic">Finding makers...</p>';
+        list.innerHTML = '<p class="text-[10px] text-gray-400 italic">No makers found nearby.</p>';
     }
 }
 
@@ -200,6 +214,8 @@ window.loadSuggestions = async () => {
 window.connectUser = async (targetUid) => {
     if (!currentUser) return;
     const btn = document.getElementById(`btn-${targetUid}`);
+    const originalHTML = btn.innerHTML;
+    
     btn.disabled = true;
     btn.innerHTML = `
       <svg class="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -208,11 +224,11 @@ window.connectUser = async (targetUid) => {
       </svg>`;
 
     try {
+        // Rule 1: Using strict path for private user data
         await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, "connections", targetUid), {
             connectedAt: serverTimestamp()
         });
         
-        // Update to green checkmark
         btn.classList.remove('bg-blue-50', 'text-blue-600', 'hover:bg-blue-600', 'hover:text-white', 'border-blue-100');
         btn.classList.add('bg-green-500', 'text-white', 'border-green-500');
         btn.innerHTML = `
@@ -220,11 +236,11 @@ window.connectUser = async (targetUid) => {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
           </svg>`;
           
-        setTimeout(() => loadSuggestions(), 1500);
+        setTimeout(() => loadSuggestions(), 2000);
     } catch (e) {
+        console.error("Connect error:", e);
         btn.disabled = false;
-        btn.className = "w-8 h-8 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-200 border border-blue-100 shadow-sm";
-        btn.innerHTML = '<span class="text-xl font-medium leading-none mb-0.5">+</span>';
+        btn.innerHTML = originalHTML;
     }
 }
 
@@ -233,10 +249,10 @@ window.react = async (postId, type) => {
   if (!currentUser) return;
 
   const ref = doc(db, 'artifacts', appId, 'public', 'data', "communityPosts", postId, "reactions", currentUser.uid);
-  const existing = await getDoc(ref);
-  if (existing.exists()) return;
-
   try {
+    const existing = await getDoc(ref);
+    if (existing.exists()) return;
+
     await setDoc(ref, { type });
     const update = {};
     update[type === "like" ? "likesCount" : "dislikesCount"] = increment(1);
