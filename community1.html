@@ -1,68 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Community – BooterSpace</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8" />
+<title>Community – BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 </head>
-<body class="bg-gray-100">
 
-<!-- ================= COMMUNITY LAYOUT ================= -->
+<body class="bg-gray-100 min-h-screen">
+
 <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
 
-  <!-- FEED -->
+  <!-- POSTS -->
   <div class="md:col-span-2 space-y-4" id="postFeed"></div>
 
   <!-- SUGGESTIONS -->
   <div class="bg-white rounded-lg shadow p-4">
     <h3 class="font-semibold mb-3">People you may know</h3>
-    <div id="suggestionList" class="space-y-3"></div>
+    <div id="suggestionList" class="space-y-3 text-sm text-gray-500">
+      Loading...
+    </div>
   </div>
 
 </div>
 
-<!-- ================= LOGIN MODAL ================= -->
-<div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+<!-- LOGIN MODAL -->
+<div id="loginModal"
+     class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
   <div class="bg-white p-6 rounded-lg w-80 text-center">
-    <h2 class="text-lg font-semibold mb-2">Login required</h2>
-    <p class="text-sm text-gray-500 mb-4">
-      Please login to connect with people
-    </p>
+    <h2 class="font-semibold mb-2">Login required</h2>
+    <p class="text-sm text-gray-500 mb-4">Login to connect with people</p>
     <a href="login.html"
-       class="bg-blue-600 text-white px-4 py-2 rounded inline-block">
-      Login
-    </a>
+       class="bg-blue-600 text-white px-4 py-2 rounded">Login</a>
   </div>
 </div>
 
-<!-- ================= FIREBASE ================= -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 import {
-  getFirestore,
-  collection,
-  doc,
-  getDocs,
-  getDoc,
-  setDoc,
-  query,
-  where,
-  onSnapshot
+  getFirestore, collection, getDocs, doc, getDoc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-/* 🔐 Firebase Config (unchanged) */
+/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  projectId: "kar-kardan"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -71,27 +57,27 @@ const db = getFirestore(app);
 
 let currentUser = null;
 
-/* ================= AUTH STATE ================= */
+/* AUTH */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
-
   loadPosts();
-
-  if (user) {
-    loadSuggestionsRealtime();
-  } else {
-    showGuestSuggestionMessage();
-  }
+  loadSuggestions();
 });
 
-/* ================= POSTS (READ ONLY FOR GUEST) ================= */
+/* LOAD POSTS (READ ONLY FOR GUEST) */
 async function loadPosts() {
   const feed = document.getElementById("postFeed");
   feed.innerHTML = "";
 
-  const snap = await getDocs(collection(db, "posts"));
-  snap.forEach(docu => {
-    const p = docu.data();
+  const snap = await getDocs(collection(db, "communityPosts"));
+
+  if (snap.empty) {
+    feed.innerHTML = `<p class="text-gray-400 text-sm">No posts yet</p>`;
+    return;
+  }
+
+  snap.forEach(d => {
+    const p = d.data();
     feed.innerHTML += `
       <div class="bg-white p-4 rounded shadow">
         <p class="font-semibold">${p.userName || "User"}</p>
@@ -101,55 +87,38 @@ async function loadPosts() {
   });
 }
 
-/* ================= GUEST MESSAGE ================= */
-function showGuestSuggestionMessage() {
-  document.getElementById("suggestionList").innerHTML = `
-    <p class="text-xs text-gray-400 text-center">
-      Login to see suggestions
-    </p>
-  `;
-}
+/* LOAD SUGGESTIONS */
+async function loadSuggestions() {
+  const box = document.getElementById("suggestionList");
+  box.innerHTML = "";
 
-/* ================= REALTIME SUGGESTIONS ================= */
-function loadSuggestionsRealtime() {
-  const list = document.getElementById("suggestionList");
+  if (!currentUser) {
+    box.innerHTML = `<p class="text-xs text-center">Login to see suggestions</p>`;
+    return;
+  }
 
-  const q = query(
-    collection(db, "users"),
-    where("uid", "!=", currentUser.uid)
-  );
+  const usersSnap = await getDocs(collection(db, "users"));
 
-  onSnapshot(q, async (snap) => {
-    list.innerHTML = "";
+  usersSnap.forEach(async d => {
+    if (d.id === currentUser.uid) return;
 
-    for (const docu of snap.docs) {
-      const u = docu.data();
+    const isConn = await getDoc(
+      doc(db, "users", currentUser.uid, "connections", d.id)
+    );
 
-      const connected = await isConnected(u.uid);
-      if (connected) continue;
+    if (isConn.exists()) return;
 
-      const mutual = await getMutualCount(u.uid);
-
-      list.innerHTML += `
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-sm font-medium">${u.fullName || "User"}</p>
-            <p class="text-xs text-gray-400">${mutual} mutual connections</p>
-          </div>
-
-          ${currentUser
-            ? `<button onclick="connectUser('${u.uid}')"
-                class="text-blue-600 text-sm font-semibold">+</button>`
-            : `<button onclick="showLoginModal()"
-                class="text-blue-600 text-sm font-semibold">+</button>`
-          }
-        </div>
-      `;
-    }
+    box.innerHTML += `
+      <div class="flex justify-between items-center">
+        <span>${d.data().fullName || "User"}</span>
+        <button onclick="connectUser('${d.id}')"
+          class="text-blue-600 font-semibold">+</button>
+      </div>
+    `;
   });
 }
 
-/* ================= CONNECT ================= */
+/* CONNECT */
 window.connectUser = async (uid) => {
   if (!currentUser) {
     showLoginModal();
@@ -158,45 +127,15 @@ window.connectUser = async (uid) => {
 
   await setDoc(
     doc(db, "users", currentUser.uid, "connections", uid),
-    { connectedAt: new Date() }
+    { at: Date.now() }
   );
 };
 
-/* ================= CHECK CONNECTION ================= */
-async function isConnected(uid) {
-  if (!currentUser) return true;
-
-  const ref = doc(db, "users", currentUser.uid, "connections", uid);
-  const snap = await getDoc(ref);
-  return snap.exists();
-}
-
-/* ================= MUTUAL CONNECTIONS ================= */
-async function getMutualCount(otherUid) {
-  if (!currentUser) return 0;
-
-  const myConns = await getDocs(
-    collection(db, "users", currentUser.uid, "connections")
-  );
-  const otherConns = await getDocs(
-    collection(db, "users", otherUid, "connections")
-  );
-
-  const mySet = new Set(myConns.docs.map(d => d.id));
-  let count = 0;
-
-  otherConns.docs.forEach(d => {
-    if (mySet.has(d.id)) count++;
-  });
-
-  return count;
-}
-
-/* ================= MODAL ================= */
+/* MODAL */
 window.showLoginModal = () => {
   document.getElementById("loginModal").classList.remove("hidden");
 };
-
 </script>
+
 </body>
 </html>
