@@ -46,7 +46,7 @@ window.postContent = async () => {
   await addDoc(collection(db, "communityPosts"), {
     content: text,
     userId: currentUser.uid,
-    userName: currentUser.fullName || "User",
+    userName: currentUser.displayName || "User",
     userPhoto: currentUser.photoURL || "",
     likesCount: 0,
     dislikesCount: 0,
@@ -72,7 +72,7 @@ async function loadPosts() {
 
   for (const d of snap.docs) {
     const p = d.data();
-    const avatar = p.userphotoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.userName)}&background=random`;
+    const avatar = p.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.userName)}&background=random`;
 
     let reacted = null;
     if (currentUser) {
@@ -130,26 +130,23 @@ async function loadPosts() {
   }
 }
 
-/* ---------- SUGGESTIONS ---------- */
+/* ---------- SUGGESTIONS FIXED ---------- */
 async function loadSuggestions() {
     const list = document.getElementById("suggestionList");
     if (!currentUser) return;
 
     try {
-        // 1. Get IDs of users already connected
         const connectionsSnap = await getDocs(collection(db, "users", currentUser.uid, "connections"));
         const connectedIds = connectionsSnap.docs.map(doc => doc.id);
-        connectedIds.push(currentUser.uid); // Don't suggest self
+        connectedIds.push(currentUser.uid);
 
-        // 2. Fetch all users (simple implementation for demo - in production use a better algorithm)
         const usersSnap = await getDocs(collection(db, "users"));
         
-        // 3. Filter and Shuffle
         let suggestions = usersSnap.docs
             .map(doc => ({ id: doc.id, ...doc.data() }))
             .filter(user => !connectedIds.includes(user.id));
 
-        // Shuffle
+        // Shuffle and pick 5
         suggestions = suggestions.sort(() => 0.5 - Math.random()).slice(0, 5);
 
         if (suggestions.length === 0) {
@@ -185,17 +182,15 @@ window.connectUser = async (targetUid) => {
     btn.innerHTML = "⏳";
 
     try {
-        // Add to current user's connections
         await setDoc(doc(db, "users", currentUser.uid, "connections", targetUid), {
             connectedAt: serverTimestamp()
         });
-        // Add current user to target's connections (reciprocal)
         await setDoc(doc(db, "users", targetUid, "connections", currentUser.uid), {
             connectedAt: serverTimestamp()
         });
         
         btn.innerHTML = "✅";
-        setTimeout(() => loadSuggestions(), 1000); // Reload to show new suggestion
+        setTimeout(() => loadSuggestions(), 1000);
     } catch (e) {
         console.error("Connection failed", e);
         btn.disabled = false;
@@ -308,7 +303,7 @@ fetch("navbar.html")
 
 <main class="max-w-6xl mx-auto mt-8 px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
   
-  <!-- LEFT SIDEBAR: Suggestions (Now on the left) -->
+  <!-- LEFT SIDEBAR: Suggestions -->
   <aside class="lg:col-span-3 hidden lg:block sticky top-24 h-fit">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
           <h2 class="font-black text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
@@ -347,9 +342,8 @@ fetch("navbar.html")
       </div>
   </aside>
 
-  <!-- CENTER: MAIN FEED (Adjusted columns) -->
+  <!-- CENTER: MAIN FEED -->
   <div class="lg:col-span-9 xl:col-span-7">
-    <!-- NEW POST BOX -->
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 transition-all focus-within:ring-2 focus-within:ring-blue-100">
       <div class="flex gap-4">
           <div class="h-10 w-10 bg-slate-100 rounded-full flex-shrink-0 flex items-center justify-center border border-slate-200">
@@ -370,14 +364,11 @@ fetch("navbar.html")
       </div>
     </div>
 
-    <!-- POSTS LIST -->
     <div id="posts" class="space-y-4"></div>
   </div>
 
-  <!-- RIGHT SIDEBAR: Optional (Currently empty space for layout balance on extra large screens) -->
-  <aside class="hidden xl:block xl:col-span-2">
-      <!-- Future ad space or trending topics -->
-  </aside>
+  <!-- RIGHT SIDEBAR -->
+  <aside class="hidden xl:block xl:col-span-2"></aside>
 
 </main>
 
