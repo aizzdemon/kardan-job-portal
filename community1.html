@@ -1,54 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Community – BooterSpace</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<meta charset="UTF-8">
+<title>Community - BooterSpace</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-</head>
 
-<body class="bg-gray-100 min-h-screen">
-
-<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
-
-  <!-- POSTS -->
-  <div class="md:col-span-2 space-y-4" id="postFeed"></div>
-
-  <!-- SUGGESTIONS -->
-  <div class="bg-white rounded-lg shadow p-4">
-    <h3 class="font-semibold mb-3">People you may know</h3>
-    <div id="suggestionList" class="space-y-3 text-sm text-gray-500">
-      Loading...
-    </div>
-  </div>
-
-</div>
-
-<!-- LOGIN MODAL -->
-<div id="loginModal"
-     class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white p-6 rounded-lg w-80 text-center">
-    <h2 class="font-semibold mb-2">Login required</h2>
-    <p class="text-sm text-gray-500 mb-4">Login to connect with people</p>
-    <a href="login.html"
-       class="bg-blue-600 text-white px-4 py-2 rounded">Login</a>
-  </div>
-</div>
-
+<!-- 🔥 Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 import {
-  getFirestore, collection, getDocs, doc, getDoc, setDoc
+  getFirestore, collection, addDoc, query, orderBy, getDocs,
+  doc, setDoc, getDoc, updateDoc, increment, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-/* FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan"
+  projectId: "kar-kardan",
+  storageBucket: "kar-kardan.firebasestorage.app",
+  messagingSenderId: "554147696994",
+  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -57,85 +30,144 @@ const db = getFirestore(app);
 
 let currentUser = null;
 
-/* AUTH */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   loadPosts();
   loadSuggestions();
 });
 
-/* LOAD POSTS (READ ONLY FOR GUEST) */
-async function loadPosts() {
-  const feed = document.getElementById("postFeed");
-  feed.innerHTML = "";
+/* ---------- POST ---------- */
+window.postContent = async () => {
+  if (!currentUser) return alert("Login required");
 
-  const snap = await getDocs(collection(db, "communityPosts"));
+  const text = document.getElementById("postText").value.trim();
+  if (!text) return;
+
+  await addDoc(collection(db, "communityPosts"), {
+    content: text,
+    userId: currentUser.uid,
+    userName: currentUser.displayName || "User",
+    userPhoto: currentUser.photoURL || "",
+    likesCount: 0,
+    dislikesCount: 0,
+    timestamp: serverTimestamp()
+  });
+
+  document.getElementById("postText").value = "";
+  loadPosts();
+};
+
+/* ---------- LOAD POSTS ---------- */
+async function loadPosts() {
+  const wrap = document.getElementById("posts");
+  wrap.innerHTML = '<div class="p-10 text-center text-gray-400">Loading feeds...</div>';
+
+  const q = query(collection(db, "communityPosts"), orderBy("timestamp", "desc"));
+  const snap = await getDocs(q);
+  wrap.innerHTML = "";
 
   if (snap.empty) {
-    feed.innerHTML = `<p class="text-gray-400 text-sm">No posts yet</p>`;
-    return;
+    wrap.innerHTML = '<div class="bg-white p-8 rounded-xl text-center border">No posts yet.</div>';
   }
 
-  snap.forEach(d => {
+  for (const d of snap.docs) {
     const p = d.data();
-    feed.innerHTML += `
-      <div class="bg-white p-4 rounded shadow">
-        <p class="font-semibold">${p.userName || "User"}</p>
-        <p class="text-sm text-gray-600">${p.text || ""}</p>
+    const avatar = p.userPhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.userName)}&background=random`;
+
+    const postEl = document.createElement("div");
+    postEl.className = "bg-white p-4 rounded-xl shadow-sm border mb-4";
+    postEl.innerHTML = `
+      <div class="flex items-center gap-3 mb-3">
+        <img src="${avatar}" class="w-10 h-10 rounded-full object-cover border" />
+        <div>
+          <p class="font-bold text-sm">${p.userName}</p>
+        </div>
       </div>
+      <p class="text-sm">${p.content}</p>
     `;
-  });
+    wrap.appendChild(postEl);
+  }
 }
 
-/* LOAD SUGGESTIONS */
+/* ---------- ✅ FIXED SUGGESTIONS ---------- */
 async function loadSuggestions() {
-  const box = document.getElementById("suggestionList");
-  box.innerHTML = "";
+  const list = document.getElementById("suggestionList");
+  if (!currentUser) return;
 
-  if (!currentUser) {
-    box.innerHTML = `<p class="text-xs text-center">Login to see suggestions</p>`;
-    return;
-  }
-
-  const usersSnap = await getDocs(collection(db, "users"));
-
-  usersSnap.forEach(async d => {
-    if (d.id === currentUser.uid) return;
-
-    const isConn = await getDoc(
-      doc(db, "users", currentUser.uid, "connections", d.id)
+  try {
+    const connectionsSnap = await getDocs(
+      collection(db, "users", currentUser.uid, "connections")
     );
 
-    if (isConn.exists()) return;
+    const connectedIds = connectionsSnap.docs.map(d => d.id);
+    connectedIds.push(currentUser.uid);
 
-    box.innerHTML += `
-      <div class="flex justify-between items-center">
-        <span>${d.data().fullName || "User"}</span>
-        <button onclick="connectUser('${d.id}')"
-          class="text-blue-600 font-semibold">+</button>
+    const usersSnap = await getDocs(collection(db, "users"));
+
+    let suggestions = usersSnap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(user => !connectedIds.includes(user.id))
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 5);
+
+    if (suggestions.length === 0) {
+      list.innerHTML = `<p class="text-xs text-gray-400">No suggestions found</p>`;
+      return;
+    }
+
+    list.innerHTML = suggestions.map(user => `
+      <div class="flex items-center gap-3">
+        <img
+          src="${
+            user.profilePhoto ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName || "User")}&background=random`
+          }"
+          class="w-8 h-8 rounded-full border object-cover"
+        />
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-bold truncate cursor-pointer"
+             onclick="openProfile('${user.id}')">
+            ${user.fullName || "Anonymous"}
+          </p>
+          <p class="text-[9px] text-gray-400 uppercase">
+            ${user.role || "Member"}
+          </p>
+        </div>
+        <button onclick="connectUser('${user.id}')"
+          id="btn-${user.id}"
+          class="text-xs font-bold text-blue-600">+</button>
       </div>
-    `;
-  });
+    `).join("");
+
+  } catch (e) {
+    console.error(e);
+    list.innerHTML = `<p class="text-xs text-gray-400">Error loading</p>`;
+  }
 }
 
-/* CONNECT */
-window.connectUser = async (uid) => {
-  if (!currentUser) {
-    showLoginModal();
-    return;
-  }
-
-  await setDoc(
-    doc(db, "users", currentUser.uid, "connections", uid),
-    { at: Date.now() }
-  );
+/* ---------- CONNECT ---------- */
+window.connectUser = async (targetUid) => {
+  await setDoc(doc(db, "users", currentUser.uid, "connections", targetUid), {
+    connectedAt: serverTimestamp()
+  });
+  await setDoc(doc(db, "users", targetUid, "connections", currentUser.uid), {
+    connectedAt: serverTimestamp()
+  });
+  loadSuggestions();
 };
 
-/* MODAL */
-window.showLoginModal = () => {
-  document.getElementById("loginModal").classList.remove("hidden");
+/* ---------- PROFILE ---------- */
+window.openProfile = (uid) => {
+  window.location.href = `profile.html?uid=${uid}`;
 };
 </script>
+</head>
+
+<body class="bg-slate-50">
+
+<aside>
+  <div id="suggestionList" class="p-4 space-y-4"></div>
+</aside>
 
 </body>
 </html>
