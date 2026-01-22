@@ -1,27 +1,54 @@
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const auth = window.auth;
 const db = getFirestore(window.app);
 
-// Desktop elements
+// =======================
+// NAV ELEMENTS
+// =======================
+
+// Desktop
 const profileBtn = document.getElementById("profileBtn");
 const profilePic = document.getElementById("profilePic");
 const profileName = document.getElementById("profileName");
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Mobile elements
+// Mobile
 const mProfileBtn = document.getElementById("mProfileBtn");
 const mProfilePic = document.getElementById("mProfilePic");
 const mProfileName = document.getElementById("mProfileName");
 const mLoginBtn = document.getElementById("mLoginBtn");
 const mLogoutBtn = document.getElementById("mLogoutBtn");
 
-// Auth listener
+// Notifications
+const notificationBtn = document.getElementById("notificationBtn");
+const notificationDropdown = document.getElementById("notificationDropdown");
+const notificationList = document.getElementById("notificationList");
+const notificationCount = document.getElementById("notificationCount");
+
+const mNotificationBtn = document.getElementById("mNotificationBtn");
+const mNotificationCount = document.getElementById("mNotificationCount");
+
+let unsubscribeNotifications = null;
+
+// =======================
+// AUTH LISTENER
+// =======================
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // Hide login, show profile + logout
+    // UI
     loginBtn.classList.add("hidden");
     logoutBtn.classList.remove("hidden");
     profileBtn.classList.remove("hidden");
@@ -30,7 +57,7 @@ onAuthStateChanged(auth, async (user) => {
     mLogoutBtn.classList.remove("hidden");
     mProfileBtn.classList.remove("hidden");
 
-    // Fetch user profile
+    // Profile
     const snap = await getDoc(doc(db, "users", user.uid));
 
     let name = "User";
@@ -42,13 +69,14 @@ onAuthStateChanged(auth, async (user) => {
       photo = data.photoURL || photo;
     }
 
-    // Desktop
     profileName.textContent = name;
     profilePic.src = photo;
 
-    // Mobile
     mProfileName.textContent = name;
     mProfilePic.src = photo;
+
+    // 🔥 Start notifications listener
+    startNotificationListener(user.uid);
 
   } else {
     // Logged out
@@ -59,10 +87,117 @@ onAuthStateChanged(auth, async (user) => {
     mLoginBtn.classList.remove("hidden");
     mLogoutBtn.classList.add("hidden");
     mProfileBtn.classList.add("hidden");
+
+    notificationCount.classList.add("hidden");
+    mNotificationCount.classList.add("hidden");
+
+    if (unsubscribeNotifications) unsubscribeNotifications();
   }
 });
 
-// Logout
+// =======================
+// REAL-TIME NOTIFICATIONS
+// =======================
+
+function startNotificationListener(uid) {
+  const q = query(
+    collection(db, "users", uid, "notifications"),
+    orderBy("createdAt", "desc")
+  );
+
+  unsubscribeNotifications = onSnapshot(q, (snap) => {
+    let unread = 0;
+    notificationList.innerHTML = "";
+
+    if (snap.empty) {
+      notificationList.innerHTML = `
+        <p class="text-center text-sm text-gray-400 py-6">
+          No notifications yet
+        </p>`;
+      return;
+    }
+
+    snap.forEach((docSnap) => {
+      const n = docSnap.data();
+
+      if (!n.read) unread++;
+
+      notificationList.innerHTML += `
+        <div class="px-4 py-3 border-b hover:bg-gray-50 ${n.read ? "" : "bg-blue-50"}">
+          <p class="text-sm text-gray-800">${n.text}</p>
+          <span class="text-xs text-gray-400">
+            ${new Date(n.createdAt?.seconds * 1000).toLocaleString()}
+          </span>
+        </div>
+      `;
+    });
+
+    // Badge update
+    if (unread > 0) {
+      notificationCount.textContent = unread;
+      notificationCount.classList.remove("hidden");
+
+      mNotificationCount.textContent = unread;
+      mNotificationCount.classList.remove("hidden");
+    } else {
+      notificationCount.classList.add("hidden");
+      mNotificationCount.classList.add("hidden");
+    }
+  });
+}
+
+// =======================
+// DROPDOWN TOGGLE + MARK READ
+// =======================
+
+notificationBtn?.addEventListener("click", async () => {
+  notificationDropdown.classList.toggle("hidden");
+
+  if (!notificationDropdown.classList.contains("hidden")) {
+    markAllNotificationsRead();
+  }
+});
+
+document.addEventListener("click", (e) => {
+  if (
+    notificationDropdown &&
+    !notificationDropdown.contains(e.target) &&
+    !notificationBtn.contains(e.target)
+  ) {
+    notificationDropdown.classList.add("hidden");
+  }
+});
+
+// Mobile redirect
+mNotificationBtn?.addEventListener("click", () => {
+  window.location.href = "notifications.html";
+});
+
+// =======================
+// MARK ALL READ
+// =======================
+
+async function markAllNotificationsRead() {
+  if (!auth.currentUser) return;
+
+  const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+  if (!snap.exists()) return;
+
+  const notifSnap = await getDocs(
+    collection(db, "users", auth.currentUser.uid, "notifications")
+  );
+
+  notifSnap.forEach(async (d) => {
+    if (!d.data().read) {
+      await updateDoc(d.ref, { read: true });
+    }
+  });
+}
+
+// =======================
+// LOGOUT
+// =======================
+
 logoutBtn.addEventListener("click", async () => {
   await signOut(auth);
   window.location.href = "login.html";
@@ -73,7 +208,10 @@ mLogoutBtn.addEventListener("click", async () => {
   window.location.href = "login.html";
 });
 
-// Mobile menu toggle
+// =======================
+// MOBILE MENU
+// =======================
+
 document.getElementById("menuBtn").addEventListener("click", () => {
   document.getElementById("mobileMenu").classList.toggle("hidden");
 });
