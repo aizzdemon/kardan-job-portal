@@ -1,17 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Community - BooterSpace</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <title>Community – BooterSpace</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- Firebase Init -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+</head>
+<body class="bg-gray-100">
+
+<!-- ================= COMMUNITY LAYOUT ================= -->
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
+
+  <!-- FEED -->
+  <div class="md:col-span-2 space-y-4" id="postFeed"></div>
+
+  <!-- SUGGESTIONS -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h3 class="font-semibold mb-3">People you may know</h3>
+    <div id="suggestionList" class="space-y-3"></div>
+  </div>
+
+</div>
+
+<!-- ================= LOGIN MODAL ================= -->
+<div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg w-80 text-center">
+    <h2 class="text-lg font-semibold mb-2">Login required</h2>
+    <p class="text-sm text-gray-500 mb-4">
+      Please login to connect with people
+    </p>
+    <a href="login.html"
+       class="bg-blue-600 text-white px-4 py-2 rounded inline-block">
+      Login
+    </a>
+  </div>
+</div>
+
+<!-- ================= FIREBASE ================= -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  setDoc,
+  query,
+  where,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
+/* 🔐 Firebase Config (unchanged) */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
   authDomain: "kar-kardan.firebaseapp.com",
@@ -22,121 +66,137 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-window.auth = getAuth(app);
-window.db = getFirestore(app);
-</script>
-
-<!-- Community Logic -->
-<script type="module">
-import {
-  collection, addDoc, query, orderBy, getDocs, doc, updateDoc, increment
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-const auth = window.auth;
-const db = window.db;
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 let currentUser = null;
 
+/* ================= AUTH STATE ================= */
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
+
   loadPosts();
+
+  if (user) {
+    loadSuggestionsRealtime();
+  } else {
+    showGuestSuggestionMessage();
+  }
 });
 
-const postBtn = document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("postBtn").addEventListener("click", async () => {
-    if (!currentUser) {
-      alert("Please login to post");
-      return;
-    }
-
-    const content = document.getElementById("postContent").value.trim();
-    if (!content) return alert("Write something!");
-
-    await addDoc(collection(db, "communityPosts"), {
-      content,
-      userName: currentUser.displayName || "User",
-      userId: currentUser.uid,
-      timestamp: new Date(),
-      likes: 0,
-      dislikes: 0
-    });
-
-    document.getElementById("postContent").value = "";
-    loadPosts();
-  });
-});
-
+/* ================= POSTS (READ ONLY FOR GUEST) ================= */
 async function loadPosts() {
-  const container = document.getElementById("community-posts");
-  container.innerHTML = "Loading...";
+  const feed = document.getElementById("postFeed");
+  feed.innerHTML = "";
 
-  const q = query(collection(db, "communityPosts"), orderBy("timestamp", "desc"));
-  const snap = await getDocs(q);
-  container.innerHTML = "";
-
-  snap.forEach(d => {
-    const p = d.data();
-    const date = p.timestamp?.toDate().toLocaleString() || "";
-
-    container.innerHTML += `
-      <div class="bg-white p-4 rounded-xl shadow border">
-        <div class="flex justify-between text-xs mb-1">
-          <b>${p.userName}</b>
-          <span>${date}</span>
-        </div>
-        <p class="text-sm mb-2">${p.content}</p>
-        <div class="flex gap-4 text-xs">
-          <button onclick="likePost('${d.id}')">👍 ${p.likes || 0}</button>
-          <button onclick="dislikePost('${d.id}')">👎 ${p.dislikes || 0}</button>
-        </div>
+  const snap = await getDocs(collection(db, "posts"));
+  snap.forEach(docu => {
+    const p = docu.data();
+    feed.innerHTML += `
+      <div class="bg-white p-4 rounded shadow">
+        <p class="font-semibold">${p.userName || "User"}</p>
+        <p class="text-sm text-gray-600">${p.text || ""}</p>
       </div>
     `;
   });
 }
 
-window.likePost = async (id) => {
-  if (!currentUser) return alert("Login required");
-  await updateDoc(doc(db, "communityPosts", id), { likes: increment(1) });
-  loadPosts();
-};
+/* ================= GUEST MESSAGE ================= */
+function showGuestSuggestionMessage() {
+  document.getElementById("suggestionList").innerHTML = `
+    <p class="text-xs text-gray-400 text-center">
+      Login to see suggestions
+    </p>
+  `;
+}
 
-window.dislikePost = async (id) => {
-  if (!currentUser) return alert("Login required");
-  await updateDoc(doc(db, "communityPosts", id), { dislikes: increment(1) });
-  loadPosts();
-};
-</script>
+/* ================= REALTIME SUGGESTIONS ================= */
+function loadSuggestionsRealtime() {
+  const list = document.getElementById("suggestionList");
 
-</head>
-<body class="bg-gray-100">
+  const q = query(
+    collection(db, "users"),
+    where("uid", "!=", currentUser.uid)
+  );
 
-<!-- Navbar -->
-<div id="navbar"></div>
-<script>
-fetch("navbar.html")
-  .then(res => res.text())
-  .then(html => {
-    document.getElementById("navbar").innerHTML = html;
-    const s = document.createElement("script");
-    s.type = "module";
-    s.src = "navbar.js";
-    document.body.appendChild(s);
+  onSnapshot(q, async (snap) => {
+    list.innerHTML = "";
+
+    for (const docu of snap.docs) {
+      const u = docu.data();
+
+      const connected = await isConnected(u.uid);
+      if (connected) continue;
+
+      const mutual = await getMutualCount(u.uid);
+
+      list.innerHTML += `
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-sm font-medium">${u.fullName || "User"}</p>
+            <p class="text-xs text-gray-400">${mutual} mutual connections</p>
+          </div>
+
+          ${currentUser
+            ? `<button onclick="connectUser('${u.uid}')"
+                class="text-blue-600 text-sm font-semibold">+</button>`
+            : `<button onclick="showLoginModal()"
+                class="text-blue-600 text-sm font-semibold">+</button>`
+          }
+        </div>
+      `;
+    }
   });
+}
+
+/* ================= CONNECT ================= */
+window.connectUser = async (uid) => {
+  if (!currentUser) {
+    showLoginModal();
+    return;
+  }
+
+  await setDoc(
+    doc(db, "users", currentUser.uid, "connections", uid),
+    { connectedAt: new Date() }
+  );
+};
+
+/* ================= CHECK CONNECTION ================= */
+async function isConnected(uid) {
+  if (!currentUser) return true;
+
+  const ref = doc(db, "users", currentUser.uid, "connections", uid);
+  const snap = await getDoc(ref);
+  return snap.exists();
+}
+
+/* ================= MUTUAL CONNECTIONS ================= */
+async function getMutualCount(otherUid) {
+  if (!currentUser) return 0;
+
+  const myConns = await getDocs(
+    collection(db, "users", currentUser.uid, "connections")
+  );
+  const otherConns = await getDocs(
+    collection(db, "users", otherUid, "connections")
+  );
+
+  const mySet = new Set(myConns.docs.map(d => d.id));
+  let count = 0;
+
+  otherConns.docs.forEach(d => {
+    if (mySet.has(d.id)) count++;
+  });
+
+  return count;
+}
+
+/* ================= MODAL ================= */
+window.showLoginModal = () => {
+  document.getElementById("loginModal").classList.remove("hidden");
+};
+
 </script>
-
-<div class="max-w-4xl mx-auto mt-10 px-4">
-
-<h1 class="text-3xl font-bold mb-4 text-center">Community</h1>
-
-<div class="bg-white p-4 rounded-xl shadow mb-4">
-  <textarea id="postContent" class="w-full p-3 border rounded" placeholder="Share something..."></textarea>
-  <button id="postBtn" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded">Post</button>
-</div>
-
-<div id="community-posts" class="space-y-3"></div>
-
-</div>
-
 </body>
 </html>
