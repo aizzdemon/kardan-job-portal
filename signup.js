@@ -49,7 +49,7 @@ window.onload = () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
+    const fullName = document.getElementById("name").value.trim();
     const gender = document.getElementById("gender").value;
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -74,7 +74,7 @@ window.onload = () => {
 
       /* 💾 SAVE USER (SEARCH READY) */
       await setDoc(doc(db, "users", uid), {
-        name,
+        fullName,
         username,
         email,
         mobile,
@@ -82,7 +82,7 @@ window.onload = () => {
         photoURL,
 
         /* 🔑 SEARCH FIELDS */
-        nameLower: name.toLowerCase(),
+        fullNameLower: fullName.toLowerCase(),
         usernameLower: username,
         emailLower: email.toLowerCase(),
 
@@ -129,3 +129,4 @@ window.onload = () => {
     }
   });
 };
+
