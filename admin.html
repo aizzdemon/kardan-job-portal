@@ -25,8 +25,14 @@
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     
-    .stats-card { transition: transform 0.2s; }
+    .stats-card { transition: all 0.2s ease; }
     .stats-card:hover { transform: translateY(-2px); }
+    .stats-highlight { animation: pulse-indigo 2s infinite; }
+
+    @keyframes pulse-indigo {
+      0%, 100% { outline: 2px solid transparent; }
+      50% { outline: 2px solid #4f46e5; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
@@ -92,10 +98,10 @@
   <main class="max-w-7xl mx-auto px-4 py-8">
     <!-- Quick Statistics Summary -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <div class="stats-card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+      <div id="card-users" class="stats-card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center gap-4">
         <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-sm">👥</div>
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
+          <p id="stat-user-label" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
           <h3 id="stat-totalUsers" class="text-2xl font-black text-slate-800">--</h3>
         </div>
       </div>
@@ -109,7 +115,7 @@
       <div class="stats-card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center gap-4">
         <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl shadow-sm">⏳</div>
         <div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Tasks</p>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Review</p>
           <h3 id="stat-pendingJobs" class="text-2xl font-black text-slate-800">--</h3>
         </div>
       </div>
@@ -123,7 +129,7 @@
       </button>
       <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
         <span class="text-2xl">⏳</span>
-        <span class="text-sm font-bold mt-2">Pending Review</span>
+        <span class="text-sm font-bold mt-2">Pending Jobs</span>
       </button>
       <button onclick="setActiveTab('users')" id="btn-users" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
         <span class="text-2xl">👥</span>
@@ -215,17 +221,22 @@ auth.onAuthStateChanged(user => {
 /* ============================
    Global Stats Function
 ============================ */
-async function refreshDashboardStats() {
+async function refreshDashboardStats(specificUserCount = null, isFiltered = false) {
     try {
-        // Fetch Users Count
-        const usersSnap = await db.collection("users").get();
-        document.getElementById("stat-totalUsers").innerText = usersSnap.size;
+        if (!isFiltered) {
+            const usersSnap = await db.collection("users").get();
+            document.getElementById("stat-totalUsers").innerText = usersSnap.size;
+            document.getElementById("stat-user-label").innerText = "Total Users";
+            document.getElementById("card-users").classList.remove("stats-highlight");
+        } else {
+            document.getElementById("stat-totalUsers").innerText = specificUserCount;
+            document.getElementById("stat-user-label").innerText = "Users on Date";
+            document.getElementById("card-users").classList.add("stats-highlight");
+        }
 
-        // Fetch Approved Jobs
         const approvedJobsSnap = await db.collection("jobs").where("status", "==", "approved").get();
         document.getElementById("stat-totalJobs").innerText = approvedJobsSnap.size;
 
-        // Fetch Pending Jobs
         const pendingJobsSnap = await db.collection("jobs").where("status", "==", "pending").get();
         document.getElementById("stat-pendingJobs").innerText = pendingJobsSnap.size;
     } catch (e) {
@@ -430,7 +441,11 @@ function filterUsers(type) {
     loadUsersData();
 }
 
-function resetUserFilters() { document.getElementById('dateFilter').value = ''; filterUsers('all'); }
+function resetUserFilters() { 
+    document.getElementById('dateFilter').value = ''; 
+    filterUsers('all'); 
+    refreshDashboardStats(); 
+}
 
 async function loadUsersData() {
     const list = document.getElementById("usersList");
@@ -447,6 +462,7 @@ async function loadUsersData() {
 
         let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+        // Apply filters
         if (currentFilter === 'new') {
             users = users.filter(u => {
                 const regDate = u.createdAt?.toDate ? u.createdAt.toDate() : (u.timestamp?.toDate ? u.timestamp.toDate() : null);
@@ -455,14 +471,21 @@ async function loadUsersData() {
         }
 
         if (dateLimit) {
-            const filterDate = new Date(dateLimit);
+            const filterDateStr = dateLimit; // YYYY-MM-DD
             users = users.filter(u => {
                 const regDate = u.createdAt?.toDate ? u.createdAt.toDate() : (u.timestamp?.toDate ? u.timestamp.toDate() : null);
-                return regDate && regDate >= filterDate;
+                if (!regDate) return false;
+                const dStr = regDate.toISOString().split('T')[0];
+                return dStr === filterDateStr;
             });
+            // Update the top stats counter for the specific date
+            refreshDashboardStats(users.length, true);
+        } else {
+            // If no date filter, restore original total count (or current general filter count)
+            refreshDashboardStats();
         }
 
-        if(users.length === 0) { list.innerHTML = `<div class="text-center py-20 text-slate-400">No users match criteria.</div>`; return; }
+        if(users.length === 0) { list.innerHTML = `<div class="text-center py-20 text-slate-400">No users found for this selection.</div>`; return; }
 
         list.innerHTML = users.map(u => {
             const isThisAdmin = u.id === ADMIN_UID;
@@ -473,8 +496,8 @@ async function loadUsersData() {
             return `<div class="user-card p-4 border rounded-xl bg-white flex justify-between items-center transition-all hover:shadow-md ${isNew ? 'new-user border-green-200 bg-green-50/10' : ''} ${isThisAdmin ? 'border-indigo-200 bg-indigo-50/30' : ''}">
                 <div>
                   <h4 class="font-bold flex items-center gap-2">${u.name || "Anonymous"} 
-                    ${isThisAdmin ? '<span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded uppercase">Admin</span>' : ''}
-                    ${isNew ? '<span class="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded uppercase">New</span>' : ''}
+                    ${isThisAdmin ? '<span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded uppercase font-bold">Admin</span>' : ''}
+                    ${isNew ? '<span class="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded uppercase font-bold">New</span>' : ''}
                   </h4>
                   <p class="text-sm text-slate-500 font-medium">${u.email || 'No email provided'}</p>
                   <p class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">Joined: ${dateStr}</p>
