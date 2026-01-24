@@ -170,7 +170,12 @@ async function init() {
       }
       snap.forEach(docSnap => {
         const job = docSnap.data();
-        const logo = job.companyImageUrl || job.icon || job.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
+        const logo =
+  job.logoUrl ||
+  job.companyImageUrl ||
+  job.icon ||
+  job.logo ||
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company || 'C')}&background=random`;
         containers.featured.innerHTML += `
           <a href="job-detail.html?id=${docSnap.id}" class="group block p-4 hover:bg-blue-50/50 transition-all border-b border-gray-50 last:border-0 relative">
             <div class="flex items-center gap-3">
