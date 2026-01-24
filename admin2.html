@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KARDAN | Professional Admin Console</title>
+  <title>Admin Dashboard – KARDAN</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Firebase (Compat SDKs) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -13,163 +12,147 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
-    .nav-link.active { background: #f1f5f9; color: #4f46e5; border-right: 4px solid #4f46e5; }
-    .modal-overlay { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); transition: all 0.3s ease; }
-    .stats-glow { box-shadow: 0 0 20px rgba(79, 70, 229, 0.15); border-color: #4f46e5 !important; }
-    .custom-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+    .sidebar-transition { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .nav-btn.active { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; }
+    .user-card.new-user { border-left: 4px solid #10b981; }
     
-    /* Animation for filtered state */
-    @keyframes pulse-soft {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
+    /* Modal Styles */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 50; align-items: center; justify-content: center; padding: 1rem; }
+    .modal.active { display: flex; }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .stats-card { transition: all 0.2s ease; }
+    .stats-card:hover { transform: translateY(-2px); }
+    .stats-highlight { animation: pulse-indigo 2s infinite; }
+
+    @keyframes pulse-indigo {
+      0%, 100% { outline: 2px solid transparent; }
+      50% { outline: 2px solid #4f46e5; }
     }
-    .filter-active { animation: pulse-soft 2s infinite ease-in-out; }
   </style>
 </head>
-<body class="bg-[#f8fafc] min-h-screen text-slate-800">
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900">
 
-<!-- GLOBAL MODAL -->
-<div id="editUserModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-  <div class="modal-overlay absolute inset-0" onclick="closeUserModal()"></div>
-  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]">
-    <div class="px-8 py-6 border-b flex justify-between items-center bg-white">
-      <div>
-        <h3 class="text-xl font-bold text-slate-900">User Intelligence Profile</h3>
-        <p class="text-sm text-slate-500">Review and modify administrative data fields</p>
-      </div>
-      <button onclick="closeUserModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition text-slate-400">&times;</button>
+<!-- USER EDIT MODAL -->
+<div id="editUserModal" class="modal">
+  <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+      <h3 class="font-black text-slate-800">User Profile Details</h3>
+      <button onclick="closeUserModal()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
     </div>
-    <div class="p-8 overflow-y-auto bg-slate-50/50">
-      <form id="editUserForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="p-6 max-h-[70vh] overflow-y-auto">
+      <form id="editUserForm" class="space-y-4">
         <input type="hidden" id="editUserId">
-        <div id="dynamicFields" class="contents">
-          <!-- Populated by JS -->
+        <div id="dynamicFields" class="space-y-4">
+          <!-- Form fields will be injected here -->
         </div>
       </form>
     </div>
-    <div class="px-8 py-5 border-t bg-white flex justify-end gap-3">
-      <button onclick="closeUserModal()" class="px-5 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition">Dismiss</button>
-      <button onclick="saveUserDetails()" id="saveUserBtn" class="bg-indigo-600 text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition">Commit Changes</button>
+    <div class="p-6 border-t bg-slate-50 flex gap-3 justify-end">
+      <button onclick="closeUserModal()" class="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg">Cancel</button>
+      <button onclick="saveUserDetails()" id="saveUserBtn" class="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition">Save Changes</button>
     </div>
   </div>
 </div>
 
-<!-- AUTHENTICATION -->
-<div id="loginDiv" class="flex items-center justify-center min-h-screen p-6 bg-[#f1f5f9]">
-  <div class="w-full max-w-md">
-    <div class="text-center mb-10">
-      <div class="w-16 h-16 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-200 mx-auto flex items-center justify-center mb-4">
-        <span class="text-3xl">K</span>
-      </div>
-      <h1 class="text-2xl font-black tracking-tight text-slate-900 uppercase">Kardan Admin</h1>
-      <p class="text-slate-500 mt-2">Centralized Operational Management</p>
+<!-- LOGIN SCREEN -->
+<div id="loginDiv" class="flex items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-slate-200">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-black text-indigo-600">KARDAN</h1>
+      <p class="text-slate-500 font-medium">Administrative Gateway</p>
     </div>
-    <div class="bg-white p-10 rounded-3xl shadow-xl border border-white">
-      <div class="space-y-6">
-        <div>
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Security ID</label>
-          <input id="email" type="email" placeholder="admin@kardan.com" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition text-sm"/>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Access Key</label>
-          <input id="password" type="password" placeholder="••••••••" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition text-sm"/>
-        </div>
-        <button onclick="login()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 active:scale-[0.98] transition-all shadow-xl shadow-slate-200">Authenticate Access</button>
-        <p id="loginError" class="text-red-500 text-xs text-center font-semibold mt-4"></p>
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold mb-1">Admin Email</label>
+        <input id="email" type="email" placeholder="admin@kardan.com" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"/>
       </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Password</label>
+        <input id="password" type="password" placeholder="••••••••" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"/>
+      </div>
+      <button onclick="login()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200">Authorize Access</button>
+      <p id="loginError" class="text-red-500 text-sm text-center mt-2 font-medium"></p>
     </div>
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="adminDiv" class="hidden min-h-screen flex flex-col">
-  <!-- Top Navigation Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
-    <div class="max-w-[1440px] mx-auto px-6 h-20 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xl">K</div>
-        <div>
-          <h2 class="text-sm font-bold text-slate-900 leading-tight">Operational HQ</h2>
-          <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Kardan Enterprise</p>
-        </div>
+<!-- ADMIN INTERFACE -->
+<div id="adminDiv" class="hidden pb-20">
+  <header class="bg-white border-b sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl font-black text-indigo-600">KARDAN</span>
+        <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold">ADMIN</span>
       </div>
-      <div class="flex items-center gap-6">
-        <div class="h-8 w-[1px] bg-slate-200"></div>
-        <button onclick="logout()" class="flex items-center gap-2 group">
-          <span class="text-xs font-bold text-slate-500 group-hover:text-red-600 transition">Terminate Session</span>
-          <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-red-50 group-hover:text-red-600 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          </div>
-        </button>
-      </div>
+      <button onclick="logout()" class="text-sm font-bold text-slate-500 hover:text-red-600 transition flex items-center gap-1">
+        Logout
+      </button>
     </div>
   </header>
 
-  <div class="flex flex-1 max-w-[1440px] mx-auto w-full">
-    <!-- Sidebar Navigation -->
-    <aside class="w-72 border-r border-slate-200 p-6 hidden lg:block bg-white">
-      <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Main Command</p>
-      <nav class="space-y-1">
-        <button onclick="setActiveTab('users')" id="btn-users" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
-          <span class="text-lg">👥</span> User Directory
-        </button>
-        <button onclick="setActiveTab('jobs')" id="btn-jobs" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
-          <span class="text-lg">💼</span> Active Positions
-        </button>
-        <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
-          <span class="text-lg">⏳</span> Awaiting Review
-        </button>
-        <button onclick="setActiveTab('posts')" id="btn-posts" class="nav-link w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
-          <span class="text-lg">💬</span> Feed Activity
-        </button>
-      </nav>
-    </aside>
-
-    <!-- Content Area -->
-    <main class="flex-1 p-8">
-      <!-- High-Level Metrics -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <div id="card-users" class="glass-card p-6 rounded-2xl shadow-sm transition-all duration-500">
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">👥</div>
-            <div id="filter-badge" class="hidden px-2 py-1 bg-indigo-600 text-white text-[9px] font-black uppercase rounded tracking-tighter">Dated Filter</div>
-          </div>
-          <p id="stat-user-label" class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Userbase</p>
-          <h3 id="stat-totalUsers" class="text-3xl font-black text-slate-900 mt-1">--</h3>
-        </div>
-        
-        <div class="glass-card p-6 rounded-2xl shadow-sm">
-          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl mb-4">💼</div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Verified Vacancies</p>
-          <h3 id="stat-totalJobs" class="text-3xl font-black text-slate-900 mt-1">--</h3>
-        </div>
-
-        <div class="glass-card p-6 rounded-2xl shadow-sm">
-          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl mb-4">⏳</div>
-          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pending Verification</p>
-          <h3 id="stat-pendingJobs" class="text-3xl font-black text-slate-900 mt-1">--</h3>
+  <main class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Quick Statistics Summary -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div id="card-users" class="stats-card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-sm">👥</div>
+        <div>
+          <p id="stat-user-label" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
+          <h3 id="stat-totalUsers" class="text-2xl font-black text-slate-800">--</h3>
         </div>
       </div>
-
-      <!-- Dynamic View Container -->
-      <div id="content" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 min-h-[500px]">
-        <div class="flex flex-col items-center justify-center h-[400px] text-slate-300">
-          <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-          </div>
-          <p class="font-bold text-slate-400 uppercase tracking-widest text-xs">Initialization Complete</p>
-          <p class="text-sm">Select a category from the sidebar to begin management.</p>
+      <div id="card-jobs" class="stats-card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-2xl shadow-sm">💼</div>
+        <div>
+          <p id="stat-jobs-label" class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Jobs</p>
+          <h3 id="stat-totalJobs" class="text-2xl font-black text-slate-800">--</h3>
         </div>
       </div>
-    </main>
-  </div>
+      <div class="stats-card bg-white border border-slate-200 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl shadow-sm">⏳</div>
+        <div>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pending Review</p>
+          <h3 id="stat-pendingJobs" class="text-2xl font-black text-slate-800">--</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <button onclick="setActiveTab('jobs')" id="btn-jobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">💼</span>
+        <span class="text-sm font-bold mt-2">Approved Jobs</span>
+      </button>
+      <button onclick="setActiveTab('pendingJobs')" id="btn-pendingJobs" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">⏳</span>
+        <span class="text-sm font-bold mt-2">Pending Jobs</span>
+      </button>
+      <button onclick="setActiveTab('users')" id="btn-users" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">👥</span>
+        <span class="text-sm font-bold mt-2">Manage Users</span>
+      </button>
+      <button onclick="setActiveTab('posts')" id="btn-posts" class="nav-btn bg-white border border-slate-200 p-4 rounded-xl shadow-sm hover:shadow-md transition flex flex-col items-center">
+        <span class="text-2xl">💬</span>
+        <span class="text-sm font-bold mt-2">Community Posts</span>
+      </button>
+    </div>
+
+    <div id="content" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 min-h-[400px]">
+      <div class="flex flex-col items-center justify-center h-64 text-slate-400">
+        <span class="text-5xl mb-4">🖥️</span>
+        <p>Verified Administrative Session Active.</p>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
 /* ============================
-   Core Logic & Firebase
+   Firebase Configuration
 ============================ */
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -184,74 +167,19 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
 const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
+/* ============================
+   UI & Auth Functions
+============================ */
 let activeTab = null;
-let currentFilter = 'all';
 
-auth.onAuthStateChanged(user => {
-  if (user && user.uid === ADMIN_UID) {
-    document.getElementById("loginDiv").classList.add("hidden");
-    document.getElementById("adminDiv").classList.remove("hidden");
-    refreshDashboardStats();
-    setActiveTab('users'); // Default view
-  } else {
-    document.getElementById("loginDiv").classList.remove("hidden");
-    document.getElementById("adminDiv").classList.add("hidden");
-  }
-});
-
-async function login() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const errorDiv = document.getElementById("loginError");
-  try {
-    const userCred = await auth.signInWithEmailAndPassword(email, password);
-    if (userCred.user.uid !== ADMIN_UID) {
-      errorDiv.textContent = "ACCESS DENIED: Administrative Privileges Required.";
-      await auth.signOut();
-    }
-  } catch (err) { errorDiv.textContent = err.message.toUpperCase(); }
-}
-
-async function logout() { await auth.signOut(); }
-
-/* ============================
-   Statistics Management
-============================ */
-async function refreshDashboardStats(specificUserCount = null, isFiltered = false) {
-    try {
-        const userCard = document.getElementById("card-users");
-        const filterBadge = document.getElementById("filter-badge");
-        
-        if (!isFiltered) {
-            const usersSnap = await db.collection("users").get();
-            document.getElementById("stat-totalUsers").innerText = usersSnap.size.toLocaleString();
-            document.getElementById("stat-user-label").innerText = "Total Userbase";
-            userCard.classList.remove("stats-glow", "filter-active");
-            filterBadge.classList.add("hidden");
-        } else {
-            document.getElementById("stat-totalUsers").innerText = specificUserCount.toLocaleString();
-            document.getElementById("stat-user-label").innerText = "Users on Date";
-            userCard.classList.add("stats-glow", "filter-active");
-            filterBadge.classList.remove("hidden");
-        }
-
-        const approvedJobsSnap = await db.collection("jobs").where("status", "==", "approved").get();
-        document.getElementById("stat-totalJobs").innerText = approvedJobsSnap.size.toLocaleString();
-
-        const pendingJobsSnap = await db.collection("jobs").where("status", "==", "pending").get();
-        document.getElementById("stat-pendingJobs").innerText = pendingJobsSnap.size.toLocaleString();
-    } catch (e) { console.error("Stats Error:", e); }
-}
-
-/* ============================
-   Tab System
-============================ */
 function setActiveTab(tab) {
     activeTab = tab;
-    document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`btn-${tab}`)?.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    const activeBtn = document.getElementById(`btn-${tab}`);
+    if(activeBtn) activeBtn.classList.add('active');
 
     switch(tab) {
         case 'jobs': showJobs(); break;
@@ -261,48 +189,293 @@ function setActiveTab(tab) {
     }
 }
 
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const errorDiv = document.getElementById("loginError");
+  try {
+    const userCred = await auth.signInWithEmailAndPassword(email, password);
+    if (userCred.user.uid !== ADMIN_UID) {
+      errorDiv.textContent = "Access Denied: Non-Administrative Account.";
+      await auth.signOut();
+    }
+  } catch (err) {
+    errorDiv.textContent = "Auth Error: " + err.message;
+  }
+}
+
+async function logout() { await auth.signOut(); }
+
+auth.onAuthStateChanged(user => {
+  if (user && user.uid === ADMIN_UID) {
+    document.getElementById("loginDiv").classList.add("hidden");
+    document.getElementById("adminDiv").classList.remove("hidden");
+    refreshDashboardStats();
+  } else {
+    document.getElementById("loginDiv").classList.remove("hidden");
+    document.getElementById("adminDiv").classList.add("hidden");
+    document.getElementById("content").innerHTML = ""; 
+  }
+});
+
 /* ============================
-   User Module (Logic Kept Same)
+   Global Stats Function
 ============================ */
+async function refreshDashboardStats(specificUserCount = null, isFiltered = false, specificJobCount = null) {
+    try {
+        if (!isFiltered) {
+            // Default Counts
+            const usersSnap = await db.collection("users").get();
+            document.getElementById("stat-totalUsers").innerText = usersSnap.size;
+            document.getElementById("stat-user-label").innerText = "Total Users";
+            document.getElementById("card-users").classList.remove("stats-highlight");
+
+            const approvedJobsSnap = await db.collection("jobs").where("status", "==", "approved").get();
+            document.getElementById("stat-totalJobs").innerText = approvedJobsSnap.size;
+            document.getElementById("stat-jobs-label").innerText = "Active Jobs";
+            document.getElementById("card-jobs").classList.remove("stats-highlight");
+        } else {
+            // Filtered Counts
+            document.getElementById("stat-totalUsers").innerText = specificUserCount ?? '--';
+            document.getElementById("stat-user-label").innerText = "Users on Date";
+            document.getElementById("card-users").classList.add("stats-highlight");
+
+            document.getElementById("stat-totalJobs").innerText = specificJobCount ?? '--';
+            document.getElementById("stat-jobs-label").innerText = "Jobs on Date";
+            document.getElementById("card-jobs").classList.add("stats-highlight");
+        }
+
+        const pendingJobsSnap = await db.collection("jobs").where("status", "==", "pending").get();
+        document.getElementById("stat-pendingJobs").innerText = pendingJobsSnap.size;
+    } catch (e) {
+        console.error("Stats Error:", e);
+    }
+}
+
+async function fetchUserName(uid) {
+    if(!uid) return "System";
+    try {
+        const uDoc = await db.collection("users").doc(uid).get();
+        if(uDoc.exists) {
+            const data = uDoc.data();
+            return data.name || data.fullName || data.displayName || "Kardan User";
+        }
+        return "Guest User";
+    } catch { return "Unknown"; }
+}
+
+/* ============================
+   Jobs Module
+============================ */
+async function showJobs() {
+    const content = document.getElementById("content");
+    content.innerHTML = `
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Approved Job Listings</h2>
+        <div class="flex gap-2">
+          <input id="jobSearch" type="text" placeholder="Search title..." class="text-sm p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" onkeyup="if(event.key==='Enter') loadJobs()"/>
+          <button onclick="loadJobs()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Search</button>
+        </div>
+      </div>
+      <div id="jobsList" class="space-y-3">Loading records...</div>
+    `;
+    loadJobs();
+}
+
+async function loadJobs() {
+    const searchVal = document.getElementById("jobSearch")?.value.toLowerCase() || "";
+    const list = document.getElementById("jobsList");
+    list.innerHTML = "Searching...";
+    try {
+        const snap = await db.collection("jobs").where("status", "==", "approved").orderBy("timestamp", "desc").get();
+        if(snap.empty) {
+            list.innerHTML = `<div class="text-center py-10 text-slate-400">No approved jobs found.</div>`;
+            return;
+        }
+        const items = await Promise.all(snap.docs.map(async doc => {
+            const j = doc.data();
+            if(searchVal && !j.title?.toLowerCase().includes(searchVal)) return null;
+            const poster = await fetchUserName(j.userId);
+            const displayDate = j.timestamp?.toDate ? j.timestamp.toDate().toLocaleDateString() : "N/A";
+            return `<div class="p-4 rounded-xl border border-slate-200 bg-white flex justify-between items-center hover:bg-slate-50 transition">
+                <div class="min-w-0"><h3 class="font-bold text-slate-800 truncate">${j.title}</h3><p class="text-xs text-slate-500">${j.company} • ${displayDate}</p><p class="text-[10px] text-indigo-500 font-bold mt-1 uppercase">Post ID: ${doc.id.substring(0,8)} | Poster: ${poster}</p></div>
+                <div class="flex items-center gap-2"><button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 p-2 px-4 rounded-lg text-xs font-bold hover:bg-red-100">Delete</button></div>
+              </div>`;
+        }));
+        const filtered = items.filter(x => x !== null);
+        list.innerHTML = filtered.length > 0 ? filtered.join("") : `<div class="text-center py-10 text-slate-400">No results for "${searchVal}"</div>`;
+    } catch(e) { list.innerHTML = `<p class="text-red-500">Query Error: ${e.message}</p>`; }
+}
+
+async function showPendingJobs() {
+    const content = document.getElementById("content");
+    content.innerHTML = `<h2 class="text-xl font-bold mb-6 text-amber-600">Pending Review</h2><div id="pendingList" class="space-y-3">Loading...</div>`;
+    const list = document.getElementById("pendingList");
+    try {
+        const snap = await db.collection("jobs").where("status", "==", "pending").get();
+        if(snap.empty) { list.innerHTML = `<div class="text-center py-20 text-slate-400 italic">Clear queue! No pending jobs.</div>`; return; }
+        const htmlArr = await Promise.all(snap.docs.map(async doc => {
+            const j = doc.data();
+            const poster = await fetchUserName(j.userId);
+            const displayDate = j.timestamp?.toDate ? j.timestamp.toDate().toLocaleDateString() : "N/A";
+            return `<div class="bg-amber-50/50 p-4 rounded-xl border border-amber-200 flex justify-between items-center shadow-sm">
+                <div class="min-w-0 pr-4"><h4 class="font-bold text-slate-800 truncate">${j.title}</h4><p class="text-sm text-slate-600">${j.company} • ${j.postedBy || 'No Email'}</p>
+                  <div class="flex gap-3 mt-1"><p class="text-[10px] text-slate-400 font-bold uppercase">By: ${poster}</p><p class="text-[10px] text-slate-400 font-bold uppercase">${displayDate}</p></div>
+                </div>
+                <div class="flex gap-2 shrink-0"><button onclick="updateJobStatus('${doc.id}','approved')" class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold text-sm hover:shadow-lg transition-all active:scale-95">Approve</button>
+                  <button onclick="deleteJob('${doc.id}')" class="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-100 transition-all">Reject</button>
+                </div>
+              </div>`;
+        }));
+        list.innerHTML = htmlArr.join("");
+    } catch(e) { list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`; }
+}
+
+async function updateJobStatus(id, status) {
+    try { 
+        await db.collection("jobs").doc(id).update({ status: status }); 
+        refreshDashboardStats();
+        if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs(); 
+    }
+    catch(e) { alert("Update failed: " + e.message); }
+}
+
+async function deleteJob(id) {
+    if(confirm("Permanently delete this record?")) {
+        try { 
+            await db.collection("jobs").doc(id).delete(); 
+            refreshDashboardStats();
+            if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs(); 
+        }
+        catch(e) { alert("Delete failed: " + e.message); }
+    }
+}
+
+/* ============================
+   Community Posts Module
+============================ */
+async function showPosts() {
+    const content = document.getElementById("content");
+    content.innerHTML = `
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold">Community Activity Feed</h2>
+        <button onclick="loadPostsData()" class="text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded font-bold transition">Refresh Feed</button>
+      </div>
+      <div id="postsList" class="space-y-4">Loading community posts...</div>
+    `;
+    loadPostsData();
+}
+
+async function loadPostsData() {
+    const list = document.getElementById("postsList");
+    try {
+        const snap = await db.collection("posts").orderBy("timestamp", "desc").get();
+        if(snap.empty) {
+            list.innerHTML = `<div class="text-center py-20 text-slate-400 italic">The community is quiet... No posts yet.</div>`;
+            return;
+        }
+
+        const htmlArr = await Promise.all(snap.docs.map(async doc => {
+            const p = doc.data();
+            const author = await fetchUserName(p.userId);
+            const date = p.timestamp?.toDate ? p.timestamp.toDate().toLocaleString() : "Recently";
+            
+            return `
+              <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600">
+                      ${author.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-800 text-sm">${author}</p>
+                      <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">${date}</p>
+                    </div>
+                  </div>
+                  <button onclick="deletePost('${doc.id}')" class="text-red-500 hover:text-red-700 p-2 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">${p.content || p.text || 'No content'}</div>
+                ${p.imageUrl ? `<img src="${p.imageUrl}" class="mt-3 rounded-lg max-h-64 w-full object-cover border" onerror="this.style.display='none'">` : ''}
+              </div>
+            `;
+        }));
+        list.innerHTML = htmlArr.join("");
+    } catch(e) {
+        list.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-lg text-sm font-medium">Query Error: ${e.message}</div>`;
+    }
+}
+
+async function deletePost(postId) {
+    if(confirm("This will permanently remove the post from the community feed. Proceed?")) {
+        try {
+            await db.collection("posts").doc(postId).delete();
+            loadPostsData();
+        } catch(e) {
+            alert("Delete failed: " + e.message);
+        }
+    }
+}
+
+/* ============================
+   Users Module (With Filters & Editing)
+============================ */
+let currentFilter = 'all';
+
 async function showUsers() {
     const content = document.getElementById("content");
     content.innerHTML = `
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b pb-6">
-        <div>
-          <h2 class="text-2xl font-black text-slate-900">User Intelligence</h2>
-          <p class="text-sm text-slate-500">Cross-reference and filter the entire platform registry</p>
-        </div>
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 class="text-xl font-bold">Registered Users</h2>
         <div class="flex flex-wrap items-center gap-3">
-            <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
-                <button onclick="filterUsers('all')" id="u-all" class="px-4 py-2 text-xs font-bold rounded-lg ${currentFilter==='all'?'bg-white shadow-sm text-indigo-600':'text-slate-500'}">Full Directory</button>
-                <button onclick="filterUsers('new')" id="u-new" class="px-4 py-2 text-xs font-bold rounded-lg ${currentFilter==='new'?'bg-white shadow-sm text-indigo-600':'text-slate-500'}">Recently Joined</button>
+            <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border">
+                <button onclick="filterUsers('all')" id="u-all" class="px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm border border-slate-300">All</button>
+                <button onclick="filterUsers('new')" id="u-new" class="px-3 py-1 text-xs font-bold rounded-md hover:bg-white transition-all">New (15d)</button>
             </div>
             <div class="flex items-center gap-2">
-                <input type="date" id="dateFilter" class="text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold" onchange="loadUsersData()"/>
-                <button onclick="resetUserFilters()" class="text-xs text-indigo-600 font-black uppercase tracking-tighter hover:underline px-2">Clear</button>
+                <input type="date" id="dateFilter" class="text-xs p-2 border rounded-lg outline-none focus:ring-2 focus:ring-indigo-500" onchange="loadUsersData()"/>
+                <button onclick="resetUserFilters()" class="text-xs text-indigo-600 font-bold hover:underline">Reset</button>
             </div>
         </div>
       </div>
-      <div id="usersList" class="grid grid-cols-1 gap-4">Loading community matrix...</div>
+      <div id="usersList" class="space-y-3">Loading...</div>
     `;
     loadUsersData();
+}
+
+function filterUsers(type) {
+    currentFilter = type;
+    document.getElementById('u-all').className = type === 'all' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm border border-slate-300' : 'px-3 py-1 text-xs font-bold rounded-md hover:bg-white';
+    document.getElementById('u-new').className = type === 'new' ? 'px-3 py-1 text-xs font-bold rounded-md bg-white shadow-sm border border-slate-300' : 'px-3 py-1 text-xs font-bold rounded-md hover:bg-white';
+    loadUsersData();
+}
+
+function resetUserFilters() { 
+    document.getElementById('dateFilter').value = ''; 
+    filterUsers('all'); 
+    refreshDashboardStats(); 
 }
 
 async function loadUsersData() {
     const list = document.getElementById("usersList");
     const dateLimit = document.getElementById("dateFilter").value;
-    list.innerHTML = '<div class="py-20 flex justify-center"><div class="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div></div>';
+    list.innerHTML = '<div class="text-center py-10 text-slate-400">Fetching community...</div>';
     
     try {
-        const snap = await db.collection("users").get();
-        if(snap.empty) { list.innerHTML = `<p class="text-center text-slate-400 py-20 font-bold">Registry Empty</p>`; return; }
+        // Fetch users
+        const userSnap = await db.collection("users").get();
+        if(userSnap.empty) { list.innerHTML = `<p class="text-center text-slate-400">No user profiles found.</p>`; return; }
 
         const now = new Date();
         const fifteenDaysAgo = new Date();
         fifteenDaysAgo.setDate(now.getDate() - 15);
 
-        let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+        // Apply filters for users
         if (currentFilter === 'new') {
             users = users.filter(u => {
                 const regDate = u.createdAt?.toDate ? u.createdAt.toDate() : (u.timestamp?.toDate ? u.timestamp.toDate() : null);
@@ -311,78 +484,98 @@ async function loadUsersData() {
         }
 
         if (dateLimit) {
+            const filterDateStr = dateLimit; // YYYY-MM-DD
+            
+            // Filter users list by date
             users = users.filter(u => {
                 const regDate = u.createdAt?.toDate ? u.createdAt.toDate() : (u.timestamp?.toDate ? u.timestamp.toDate() : null);
                 if (!regDate) return false;
-                return regDate.toISOString().split('T')[0] === dateLimit;
+                const dStr = regDate.toISOString().split('T')[0];
+                return dStr === filterDateStr;
             });
-            refreshDashboardStats(users.length, true);
-        } else { refreshDashboardStats(); }
 
-        if(users.length === 0) { list.innerHTML = `<div class="text-center py-20 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 text-slate-400 font-bold">NO RECORDS FOUND</div>`; return; }
+            // ALSO Fetch Jobs count for this specific date
+            const jobSnap = await db.collection("jobs").where("status", "==", "approved").get();
+            const jobsOnDate = jobSnap.docs.filter(doc => {
+                const jobData = doc.data();
+                const jobDate = jobData.timestamp?.toDate ? jobData.timestamp.toDate() : null;
+                return jobDate && jobDate.toISOString().split('T')[0] === filterDateStr;
+            });
+
+            // Update the top stats counter for both
+            refreshDashboardStats(users.length, true, jobsOnDate.length);
+        } else {
+            // Restore default stats
+            refreshDashboardStats();
+        }
+
+        if(users.length === 0) { list.innerHTML = `<div class="text-center py-20 text-slate-400">No users found for this selection.</div>`; return; }
 
         list.innerHTML = users.map(u => {
             const isThisAdmin = u.id === ADMIN_UID;
             const regDate = u.createdAt?.toDate ? u.createdAt.toDate() : (u.timestamp?.toDate ? u.timestamp.toDate() : null);
-            const dateStr = regDate ? regDate.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) : 'N/A';
+            const isNew = regDate && regDate >= fifteenDaysAgo;
+            const dateStr = regDate ? regDate.toLocaleDateString() : 'Unknown Date';
+            
+            // Fix Name display
+            const displayName = u.name || u.fullName || u.displayName || "Kardan User";
 
-            return `<div class="p-5 border border-slate-100 rounded-2xl bg-white flex flex-col sm:flex-row justify-between items-center transition-all hover:border-indigo-100 hover:shadow-lg hover:shadow-indigo-50/50 group">
-                <div class="flex items-center gap-4 w-full sm:w-auto">
-                  <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition font-black">
-                    ${(u.name || "A").charAt(0)}
-                  </div>
-                  <div class="truncate">
-                    <h4 class="font-bold text-slate-900 truncate">${u.name || "Anonymous User"} ${isThisAdmin ? '<span class="ml-2 px-2 py-0.5 bg-indigo-600 text-[8px] text-white rounded font-black uppercase">System Admin</span>' : ''}</h4>
-                    <p class="text-xs text-slate-500 font-medium">${u.email || 'No email attached'}</p>
-                    <div class="flex gap-4 mt-2">
-                        <span class="text-[9px] text-slate-400 uppercase font-black">Joined ${dateStr}</span>
-                        <span class="text-[9px] text-indigo-400 font-mono select-all">UID: ${u.id.substring(0,10)}...</span>
-                    </div>
-                  </div>
+            return `<div class="user-card p-4 border rounded-xl bg-white flex justify-between items-center transition-all hover:shadow-md ${isNew ? 'new-user border-green-200 bg-green-50/10' : ''} ${isThisAdmin ? 'border-indigo-200 bg-indigo-50/30' : ''}">
+                <div>
+                  <h4 class="font-bold flex items-center gap-2">${displayName} 
+                    ${isThisAdmin ? '<span class="text-[10px] bg-indigo-600 text-white px-1.5 py-0.5 rounded uppercase font-bold">Admin</span>' : ''}
+                    ${isNew ? '<span class="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded uppercase font-bold">New</span>' : ''}
+                  </h4>
+                  <p class="text-sm text-slate-500 font-medium">${u.email || 'No email provided'}</p>
+                  <p class="text-[10px] text-slate-400 mt-1 uppercase font-semibold">Joined: ${dateStr}</p>
                 </div>
-                <div class="flex items-center gap-3 mt-4 sm:mt-0 w-full sm:w-auto">
-                  <button onclick="openEditUser('${u.id}')" class="w-full sm:w-auto px-6 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-700 transition shadow-sm">Inspect Profile</button>
+                <div class="flex items-center gap-3">
+                  <div class="text-[10px] font-mono text-slate-300 hidden md:block select-all">${u.id}</div>
+                  <button onclick="openEditUser('${u.id}')" class="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">Details</button>
                 </div>
               </div>`;
         }).join("");
-    } catch(e) { list.innerHTML = `<p class="text-red-500">System Error: ${e.message}</p>`; }
+    } catch(e) { 
+        console.error(e);
+        list.innerHTML = `<p class="text-red-500">Error: ${e.message}</p>`; 
+    }
 }
 
-function filterUsers(type) { currentFilter = type; showUsers(); }
-function resetUserFilters() { document.getElementById('dateFilter').value = ''; filterUsers('all'); }
-
-/* ============================
-   Profile Editing
-============================ */
 async function openEditUser(userId) {
     const modal = document.getElementById("editUserModal");
     const container = document.getElementById("dynamicFields");
     document.getElementById("editUserId").value = userId;
-    container.innerHTML = `<div class="col-span-full py-10 flex justify-center"><div class="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div></div>`;
-    modal.classList.remove("hidden");
+    container.innerHTML = "Fetching full profile...";
+    modal.classList.add("active");
 
     try {
         const uDoc = await db.collection("users").doc(userId).get();
-        const data = uDoc.data() || {};
+        if(!uDoc.exists) throw new Error("User document not found");
+        
+        const data = uDoc.data();
         container.innerHTML = "";
         
-        const mainFields = ['name', 'email', 'phone', 'location', 'role', 'bio'];
-        const allKeys = [...new Set([...mainFields, ...Object.keys(data)])].filter(k => !['createdAt','timestamp','uid'].includes(k));
+        const skipFields = ['createdAt', 'timestamp', 'uid'];
+        const mainFields = ['name', 'fullName', 'email', 'phone', 'location', 'role', 'bio'];
+        const allKeys = [...new Set([...mainFields, ...Object.keys(data)])].filter(k => !skipFields.includes(k));
 
         allKeys.forEach(key => {
             const val = data[key] || "";
-            const isLong = typeof val === 'string' && val.length > 60;
-            container.insertAdjacentHTML('beforeend', `
-              <div class="${isLong ? 'col-span-full' : ''}">
-                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">${key}</label>
+            const isLong = typeof val === 'string' && val.length > 50;
+            
+            const fieldHtml = `
+              <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1 tracking-wider">${key.replace(/([A-Z])/g, ' $1')}</label>
                 ${isLong ? 
-                  `<textarea data-key="${key}" class="w-full p-4 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none h-32 transition shadow-sm">${val}</textarea>` :
-                  `<input type="text" data-key="${key}" value="${val}" class="w-full p-4 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition shadow-sm"/>`
+                  `<textarea data-key="${key}" class="w-full p-3 border rounded-lg text-sm bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-indigo-500 h-24 transition">${val}</textarea>` :
+                  `<input type="text" data-key="${key}" value="${val}" class="w-full p-3 border rounded-lg text-sm bg-slate-50 focus:bg-white outline-none focus:ring-2 focus:ring-indigo-500 transition"/>`
                 }
               </div>
-            `);
+            `;
+            container.insertAdjacentHTML('beforeend', fieldHtml);
         });
-    } catch(e) { container.innerHTML = `<p class="text-red-500 font-bold">Data corruption error</p>`; }
+
+    } catch(e) { container.innerHTML = `<p class="text-red-500 font-bold">Failed to load: ${e.message}</p>`; }
 }
 
 async function saveUserDetails() {
@@ -390,128 +583,26 @@ async function saveUserDetails() {
     const saveBtn = document.getElementById("saveUserBtn");
     const inputs = document.querySelectorAll("#dynamicFields [data-key]");
     const updatedData = {};
+
     inputs.forEach(el => { updatedData[el.dataset.key] = el.value; });
 
     try {
-        saveBtn.disabled = true; saveBtn.innerText = "Synchronizing...";
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Saving...";
         await db.collection("users").doc(userId).update(updatedData);
         closeUserModal();
         loadUsersData(); 
-    } catch(e) { alert("Sync Failure: " + e.message); } finally { saveBtn.disabled = false; saveBtn.innerText = "Commit Changes"; }
-}
-
-function closeUserModal() { document.getElementById("editUserModal").classList.add("hidden"); }
-
-/* ============================
-   Helper: User Fetching
-============================ */
-async function fetchUserName(uid) {
-    if(!uid) return "System";
-    try {
-        const uDoc = await db.collection("users").doc(uid).get();
-        return uDoc.exists ? (uDoc.data().name || "Registered User") : "External Entity";
-    } catch { return "Unknown"; }
-}
-
-/* ============================
-   Placeholder Modules (Logic Restored)
-============================ */
-async function showJobs() {
-    const content = document.getElementById("content");
-    content.innerHTML = `<div class="flex justify-between items-center mb-8 border-b pb-6"><div><h2 class="text-2xl font-black text-slate-900">Active Positions</h2><p class="text-sm text-slate-500">Verified live listings</p></div><input id="jobSearch" type="text" placeholder="Search matrix..." class="text-xs p-3 border border-slate-200 rounded-xl w-64 bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500" onkeyup="if(event.key==='Enter') loadJobs()"/></div><div id="jobsList" class="space-y-4"></div>`;
-    loadJobs();
-}
-
-async function loadJobs() {
-    const list = document.getElementById("jobsList");
-    const search = document.getElementById("jobSearch")?.value.toLowerCase() || "";
-    try {
-        const snap = await db.collection("jobs").where("status", "==", "approved").get();
-        const html = await Promise.all(snap.docs.map(async doc => {
-            const j = doc.data();
-            if(search && !j.title?.toLowerCase().includes(search)) return null;
-            return `<div class="p-5 border rounded-2xl flex justify-between items-center bg-white hover:bg-slate-50 transition border-slate-100">
-                <div class="truncate pr-4"><h4 class="font-bold text-slate-800 truncate">${j.title}</h4><p class="text-xs text-slate-500 font-medium">${j.company} • ${j.postedBy || 'Email Restricted'}</p></div>
-                <button onclick="deleteJob('${doc.id}')" class="shrink-0 text-red-500 hover:bg-red-50 px-4 py-2 rounded-xl text-xs font-bold transition">Delete Position</button>
-              </div>`;
-        }));
-        list.innerHTML = html.filter(x => x).join("") || `<p class="text-center py-20 text-slate-400 font-bold uppercase tracking-widest text-[10px]">Registry Empty</p>`;
-    } catch(e) { console.error(e); }
-}
-
-async function showPendingJobs() {
-    const content = document.getElementById("content");
-    content.innerHTML = `<div class="mb-8 border-b pb-6"><h2 class="text-2xl font-black text-amber-600 uppercase tracking-tighter">Awaiting Review</h2><p class="text-sm text-slate-500">Unverified listings pending administrative clearance</p></div><div id="pendingList" class="space-y-4"></div>`;
-    const list = document.getElementById("pendingList");
-    try {
-        const snap = await db.collection("jobs").where("status", "==", "pending").get();
-        if(snap.empty) { list.innerHTML = `<div class="py-20 text-center"><p class="text-slate-300 font-black uppercase text-xs">Clear Workspace</p></div>`; return; }
-        const html = await Promise.all(snap.docs.map(async doc => {
-            const j = doc.data();
-            return `<div class="p-6 bg-amber-50/30 border border-amber-100 rounded-2xl flex justify-between items-center">
-                <div class="truncate"><h4 class="font-bold text-slate-900">${j.title}</h4><p class="text-xs text-slate-500 mt-1">${j.company}</p></div>
-                <div class="flex gap-2">
-                    <button onclick="updateJobStatus('${doc.id}','approved')" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md hover:bg-indigo-700 transition">Authorize</button>
-                    <button onclick="deleteJob('${doc.id}')" class="bg-white text-red-500 border border-red-100 px-5 py-2 rounded-xl text-xs font-bold hover:bg-red-50 transition">Reject</button>
-                </div>
-              </div>`;
-        }));
-        list.innerHTML = html.join("");
-    } catch(e) { console.error(e); }
-}
-
-async function updateJobStatus(id, status) {
-    try { 
-        await db.collection("jobs").doc(id).update({ status: status }); 
-        refreshDashboardStats();
-        if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs(); 
-    } catch(e) { alert(e.message); }
-}
-
-async function deleteJob(id) {
-    if(confirm("Confirm deletion of this operational record?")) {
-        try { 
-            await db.collection("jobs").doc(id).delete(); 
-            refreshDashboardStats();
-            if(activeTab === 'pendingJobs') showPendingJobs(); else loadJobs(); 
-        } catch(e) { alert(e.message); }
+    } catch(e) {
+        alert("Save failed: " + e.message);
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Save Changes";
     }
 }
 
-async function showPosts() {
-    const content = document.getElementById("content");
-    content.innerHTML = `<div class="flex justify-between items-center mb-8 border-b pb-6"><div><h2 class="text-2xl font-black text-slate-900">Activity Feed</h2><p class="text-sm text-slate-500">Community generated content</p></div></div><div id="postsList" class="space-y-6"></div>`;
-    loadPostsData();
-}
+function closeUserModal() { document.getElementById("editUserModal").classList.remove("active"); }
 
-async function loadPostsData() {
-    const list = document.getElementById("postsList");
-    try {
-        const snap = await db.collection("posts").orderBy("timestamp", "desc").get();
-        const html = await Promise.all(snap.docs.map(async doc => {
-            const p = doc.data();
-            const user = await fetchUserName(p.userId);
-            return `<div class="bg-slate-50 border border-slate-100 p-6 rounded-3xl relative group">
-                <div class="flex justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-white border rounded-full flex items-center justify-center text-[10px] font-black">${user.charAt(0)}</div>
-                        <div><p class="text-xs font-bold text-slate-900">${user}</p><p class="text-[9px] text-slate-400 uppercase font-black">${p.timestamp?.toDate().toLocaleString() || 'Recent'}</p></div>
-                    </div>
-                    <button onclick="deletePost('${doc.id}')" class="text-slate-300 hover:text-red-500 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-                </div>
-                <p class="text-sm text-slate-700 leading-relaxed">${p.content || p.text || '...'}</p>
-                ${p.imageUrl ? `<img src="${p.imageUrl}" class="mt-4 rounded-2xl w-full object-cover max-h-80 border" onerror="this.style.display='none'">` : ''}
-              </div>`;
-        }));
-        list.innerHTML = html.join("") || `<p class="text-center py-20 text-slate-300">Quiet Feed</p>`;
-    } catch(e) { console.error(e); }
-}
-
-async function deletePost(id) {
-    if(confirm("Terminate community post?")) {
-        try { await db.collection("posts").doc(id).delete(); loadPostsData(); } catch(e) { alert(e.message); }
-    }
-}
+window.onclick = (e) => { if(e.target === document.getElementById("editUserModal")) closeUserModal(); };
 </script>
 </body>
 </html>
