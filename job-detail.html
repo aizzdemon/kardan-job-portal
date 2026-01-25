@@ -55,12 +55,14 @@
 
       const job = jobSnap.data();
 
+      // Update fields
       document.getElementById("jobTitle").textContent = job.title || "N/A";
       document.getElementById("company").textContent = job.company || "N/A";
       document.getElementById("location").textContent = job.location || "N/A";
       document.getElementById("salary").textContent = job.salary || "Not disclosed";
-      document.getElementById("description").textContent =
-        job.description || "No description provided";
+
+      // FIXED: Use 'about' field and innerHTML for rich content
+      document.getElementById("description").innerHTML = job.about || "No description provided";
 
       document.getElementById("applyBtn").onclick = () => {
         if (!currentUser) {
@@ -71,7 +73,7 @@
         }
       };
 
-      // 🔔 After job details are loaded, load ads
+      // After job details load, load ads
       loadAds();
 
     } catch (error) {
@@ -83,13 +85,11 @@
 
   // ===================== LOAD ADS =====================
   function loadAds() {
-    // Adcash Library
     const script = document.createElement("script");
     script.id = "aclib";
     script.type = "text/javascript";
     script.src = "//acscdn.com/script/aclib.js";
     script.onload = () => {
-      // AutoTag
       aclib.runAutoTag({
         zoneId: 'bp9eaek95x',
       });
@@ -135,7 +135,7 @@ body { background:#f8fafc; }
   <hr class="my-4" />
 
   <h2 class="text-lg font-semibold mb-2">Job Description</h2>
-  <p id="description" class="text-gray-700 whitespace-pre-line"></p>
+  <div id="description" class="text-gray-700 whitespace-pre-line"></div>
 
   <button id="applyBtn"
     class="mt-6 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700">
