@@ -8,148 +8,132 @@
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<!-- 🔔 Adcash Library -->
+<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-RRC3X485KQ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-RRC3X485KQ');
+<!-- 🔔 Adcash AutoTag -->
+<script type="text/javascript">
+    aclib.runAutoTag({
+        zoneId: 'bp9eaek95x',
+    });
 </script>
 
-<!-- ================= FIREBASE ================= -->
+<!-- Firebase v10 -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
-  authDomain: "kar-kardan.firebaseapp.com",
-  projectId: "kar-kardan",
-  storageBucket: "kar-kardan.firebasestorage.app",
-  messagingSenderId: "554147696994",
-  appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
+    authDomain: "kar-kardan.firebaseapp.com",
+    projectId: "kar-kardan",
+    storageBucket: "kar-kardan.firebasestorage.app",
+    messagingSenderId: "554147696994",
+    appId: "1:554147696994:web:221dcb883e3b65dcea5c3b"
+  };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-let currentUser = null;
-let applyLink = "";
+  let currentUser = null;
 
-onAuthStateChanged(auth, user => {
-  currentUser = user;
-});
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+  });
 
-const jobId = new URLSearchParams(window.location.search).get("id");
+  async function loadJob() {
+    const params = new URLSearchParams(window.location.search);
+    const jobId = params.get("id");
 
-async function loadJob() {
-  if (!jobId) {
-    document.getElementById("jobBox").innerHTML =
-      "<p class='text-red-500 font-bold'>Invalid Job ID</p>";
-    return;
+    if (!jobId) {
+      document.getElementById("jobContainer").innerHTML =
+        "<p class='text-red-500'>Invalid Job ID</p>";
+      return;
+    }
+
+    try {
+      const jobRef = doc(db, "jobs", jobId);
+      const jobSnap = await getDoc(jobRef);
+
+      if (!jobSnap.exists()) {
+        document.getElementById("jobContainer").innerHTML =
+          "<p class='text-red-500'>Job not found</p>";
+        return;
+      }
+
+      const job = jobSnap.data();
+
+      document.getElementById("jobTitle").textContent = job.title || "N/A";
+      document.getElementById("company").textContent = job.company || "N/A";
+      document.getElementById("location").textContent = job.location || "N/A";
+      document.getElementById("salary").textContent = job.salary || "Not disclosed";
+      document.getElementById("description").textContent =
+        job.description || "No description provided";
+
+      document.getElementById("applyBtn").onclick = () => {
+        if (!currentUser) {
+          alert("Please login or signup to apply for this job.");
+          window.location.href = "login.html";
+        } else {
+          window.open(job.applyLink, "_blank");
+        }
+      };
+
+    } catch (error) {
+      console.error(error);
+      document.getElementById("jobContainer").innerHTML =
+        "<p class='text-red-500'>Failed to load job</p>";
+    }
   }
 
-  const snap = await getDoc(doc(db, "jobs", jobId));
-
-  if (!snap.exists()) {
-    document.getElementById("jobBox").innerHTML =
-      "<p class='text-red-500 font-bold'>Job not found</p>";
-    return;
-  }
-
-  const job = snap.data();
-  document.getElementById("title").innerText = job.title;
-  document.getElementById("company").innerText = job.company;
-  document.getElementById("location").innerText = job.location || "Remote";
-  document.getElementById("salary").innerText = job.salary || "Not disclosed";
-  document.getElementById("about").innerText = job.about || "";
-  applyLink = job.applyLink || "#";
-}
-
-window.applyJob = () => {
-  if (!currentUser) {
-    document.getElementById("authModal").style.display = "flex";
-    return;
-  }
-  window.open(applyLink, "_blank");
-};
-
-loadJob();
+  window.addEventListener("DOMContentLoaded", loadJob);
 </script>
 
 <style>
 body { background:#f8fafc; }
-.modal {
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-}
 </style>
 </head>
 
 <body>
 
-<!-- ================= NAVBAR ================= -->
-<nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
-  <a href="index.html" class="font-black text-xl">
-    Booter<span class="text-blue-600">Space</span>
-  </a>
+<!-- NAVBAR -->
+<nav class="bg-white border-b shadow-sm px-6 py-3 flex justify-between items-center">
+  <a href="index.html" class="text-xl font-bold text-blue-600">BooterSpace</a>
   <div class="space-x-4">
-    <a href="index.html" class="font-semibold">Home</a>
-    <a href="login.html" class="font-semibold text-blue-600">Login</a>
-    <a href="signup.html" class="font-semibold">Signup</a>
+    <a href="index.html" class="text-gray-600 hover:text-blue-600">Home</a>
+    <a href="login.html" class="text-gray-600 hover:text-blue-600">Login</a>
+    <a href="signup.html"
+       class="bg-blue-600 text-white px-4 py-1.5 rounded-md hover:bg-blue-700">
+      Signup
+    </a>
   </div>
 </nav>
 
-<!-- ================= JOB DETAILS ================= -->
-<main class="max-w-4xl mx-auto p-6">
-  <div id="jobBox" class="bg-white rounded-2xl shadow p-8">
+<!-- JOB DETAILS -->
+<main id="jobContainer"
+      class="max-w-3xl mx-auto mt-10 bg-white p-6 rounded-xl shadow">
 
-    <h1 id="title" class="text-3xl font-black mb-2"></h1>
-    <p id="company" class="text-blue-600 font-bold mb-4"></p>
+  <h1 id="jobTitle" class="text-2xl font-bold text-gray-800 mb-2">
+    Loading...
+  </h1>
 
-    <div class="flex gap-4 text-sm mb-6 text-gray-600">
-      <span><i class="fa fa-location-dot"></i> <span id="location"></span></span>
-      <span><i class="fa fa-sack-dollar"></i> <span id="salary"></span></span>
-    </div>
+  <p class="text-gray-600"><strong>Company:</strong> <span id="company"></span></p>
+  <p class="text-gray-600"><strong>Location:</strong> <span id="location"></span></p>
+  <p class="text-gray-600 mb-4"><strong>Salary:</strong> <span id="salary"></span></p>
 
-    <p id="about" class="text-gray-700 whitespace-pre-line mb-8"></p>
+  <hr class="my-4" />
 
-    <button onclick="applyJob()"
-      class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold">
-      Apply Now
-    </button>
+  <h2 class="text-lg font-semibold mb-2">Job Description</h2>
+  <p id="description" class="text-gray-700 whitespace-pre-line"></p>
 
-  </div>
+  <button id="applyBtn"
+    class="mt-6 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700">
+    Apply Now
+  </button>
+
 </main>
-
-<!-- ================= LOGIN REQUIRED MODAL ================= -->
-<div id="authModal" class="modal">
-  <div class="bg-white p-6 rounded-xl text-center w-80">
-    <h3 class="font-bold text-lg mb-2">Login Required</h3>
-    <p class="text-sm text-gray-600 mb-4">
-      Please login or signup to apply for this job.
-    </p>
-    <a href="login.html" class="block bg-blue-600 text-white py-2 rounded mb-2">
-      Login
-    </a>
-    <a href="signup.html" class="block border py-2 rounded">
-      Signup
-    </a>
-    <button onclick="authModal.style.display='none'"
-      class="text-xs text-gray-400 mt-3">Close</button>
-  </div>
-</div>
 
 </body>
 </html>
