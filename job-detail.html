@@ -8,16 +8,6 @@
 <!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
 
-<!-- 🔔 Adcash Library -->
-<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-
-<!-- 🔔 Adcash AutoTag -->
-<script type="text/javascript">
-    aclib.runAutoTag({
-        zoneId: 'bp9eaek95x',
-    });
-</script>
-
 <!-- Firebase v10 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -81,11 +71,30 @@
         }
       };
 
+      // 🔔 After job details are loaded, load ads
+      loadAds();
+
     } catch (error) {
       console.error(error);
       document.getElementById("jobContainer").innerHTML =
         "<p class='text-red-500'>Failed to load job</p>";
     }
+  }
+
+  // ===================== LOAD ADS =====================
+  function loadAds() {
+    // Adcash Library
+    const script = document.createElement("script");
+    script.id = "aclib";
+    script.type = "text/javascript";
+    script.src = "//acscdn.com/script/aclib.js";
+    script.onload = () => {
+      // AutoTag
+      aclib.runAutoTag({
+        zoneId: 'bp9eaek95x',
+      });
+    };
+    document.head.appendChild(script);
   }
 
   window.addEventListener("DOMContentLoaded", loadJob);
@@ -132,6 +141,11 @@ body { background:#f8fafc; }
     class="mt-6 w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700">
     Apply Now
   </button>
+
+  <!-- Ad placeholder -->
+  <div id="adContainer" class="mt-6">
+    <!-- Ads will load here via Adcash -->
+  </div>
 
 </main>
 
