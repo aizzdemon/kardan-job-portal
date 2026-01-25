@@ -1,23 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<!-- ================= AD CASH (STEP 1) ================= -->
-<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-
-<!-- ================= AD CASH (STEP 2) ================= -->
-<script type="text/javascript">
-  aclib.runAutoTag({
-    zoneId: '7ulkdkwm54',
-  });
-</script>
-
 <meta charset="UTF-8" />
 <title>Job Details – BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<!-- CSS -->
+<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
 <!-- Google Analytics -->
@@ -49,47 +40,59 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentUser = null;
-onAuthStateChanged(auth, user => currentUser = user);
+let applyLink = "";
 
-// ================= LOAD JOB =================
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+});
+
 const jobId = new URLSearchParams(window.location.search).get("id");
 
-if (!jobId) {
-  document.getElementById("jobBox")?.innerHTML = "Invalid Job ID";
-}
+async function loadJob() {
+  if (!jobId) {
+    document.getElementById("jobBox").innerHTML =
+      "<p class='text-red-500 font-bold'>Invalid Job ID</p>";
+    return;
+  }
 
-const jobRef = doc(db, "jobs", jobId);
-const snap = await getDoc(jobRef);
+  const snap = await getDoc(doc(db, "jobs", jobId));
 
-if (snap.exists()) {
+  if (!snap.exists()) {
+    document.getElementById("jobBox").innerHTML =
+      "<p class='text-red-500 font-bold'>Job not found</p>";
+    return;
+  }
+
   const job = snap.data();
   document.getElementById("title").innerText = job.title;
   document.getElementById("company").innerText = job.company;
   document.getElementById("location").innerText = job.location || "Remote";
   document.getElementById("salary").innerText = job.salary || "Not disclosed";
   document.getElementById("about").innerText = job.about || "";
-  window.applyLink = job.applyLink;
-} else {
-  document.getElementById("jobBox").innerHTML =
-    "<p class='text-red-500 font-bold'>Job not found</p>";
+  applyLink = job.applyLink || "#";
 }
 
-// ================= APPLY =================
 window.applyJob = () => {
   if (!currentUser) {
     document.getElementById("authModal").style.display = "flex";
     return;
   }
-  window.open(window.applyLink, "_blank");
+  window.open(applyLink, "_blank");
 };
+
+loadJob();
 </script>
 
 <style>
 body { background:#f8fafc; }
 .modal {
-  display:none; position:fixed; inset:0;
+  display:none;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.5);
-  align-items:center; justify-content:center;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
 }
 </style>
 </head>
@@ -113,9 +116,9 @@ body { background:#f8fafc; }
   <div id="jobBox" class="bg-white rounded-2xl shadow p-8">
 
     <h1 id="title" class="text-3xl font-black mb-2"></h1>
-    <p class="text-blue-600 font-bold mb-4" id="company"></p>
+    <p id="company" class="text-blue-600 font-bold mb-4"></p>
 
-    <div class="flex gap-4 text-sm mb-6">
+    <div class="flex gap-4 text-sm mb-6 text-gray-600">
       <span><i class="fa fa-location-dot"></i> <span id="location"></span></span>
       <span><i class="fa fa-sack-dollar"></i> <span id="salary"></span></span>
     </div>
@@ -123,22 +126,26 @@ body { background:#f8fafc; }
     <p id="about" class="text-gray-700 whitespace-pre-line mb-8"></p>
 
     <button onclick="applyJob()"
-      class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold">
+      class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold">
       Apply Now
     </button>
 
   </div>
 </main>
 
-<!-- ================= LOGIN MODAL ================= -->
+<!-- ================= LOGIN REQUIRED MODAL ================= -->
 <div id="authModal" class="modal">
   <div class="bg-white p-6 rounded-xl text-center w-80">
     <h3 class="font-bold text-lg mb-2">Login Required</h3>
     <p class="text-sm text-gray-600 mb-4">
       Please login or signup to apply for this job.
     </p>
-    <a href="login.html" class="block bg-blue-600 text-white py-2 rounded mb-2">Login</a>
-    <a href="signup.html" class="block border py-2 rounded">Signup</a>
+    <a href="login.html" class="block bg-blue-600 text-white py-2 rounded mb-2">
+      Login
+    </a>
+    <a href="signup.html" class="block border py-2 rounded">
+      Signup
+    </a>
     <button onclick="authModal.style.display='none'"
       class="text-xs text-gray-400 mt-3">Close</button>
   </div>
