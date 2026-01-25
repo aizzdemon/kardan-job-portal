@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 
-<!-- 🔔 Adcash Library -->
+<!-- ================= AD CASH (STEP 1) ================= -->
 <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 
-<!-- 🔔 Adcash Auto Tag -->
+<!-- ================= AD CASH (STEP 2) ================= -->
 <script type="text/javascript">
   aclib.runAutoTag({
     zoneId: '7ulkdkwm54',
@@ -16,8 +16,9 @@
 <title>Job Details – BooterSpace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+<!-- CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-RRC3X485KQ"></script>
@@ -32,10 +33,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc,
-  setDoc, deleteDoc, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -51,125 +49,100 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let currentUser = null;
-let currentJobId = null;
+onAuthStateChanged(auth, user => currentUser = user);
 
-onAuthStateChanged(auth, u => currentUser = u);
+// ================= LOAD JOB =================
+const jobId = new URLSearchParams(window.location.search).get("id");
 
-/* ================= LOAD JOB ================= */
-
-function getJobId() {
-  return new URLSearchParams(window.location.search).get("id");
+if (!jobId) {
+  document.getElementById("jobBox")?.innerHTML = "Invalid Job ID";
 }
 
-window.addEventListener("DOMContentLoaded", async () => {
-  currentJobId = getJobId();
-  if (!currentJobId) return renderError("Invalid Job ID");
+const jobRef = doc(db, "jobs", jobId);
+const snap = await getDoc(jobRef);
 
-  const snap = await getDoc(doc(db, "jobs", currentJobId));
-  if (!snap.exists()) return renderError("Job not found");
-
-  renderJob(snap.data());
-});
-
-function renderJob(job) {
-  document.getElementById("jobDetailsContent").innerHTML = `
-    <h1 class="text-3xl font-black mb-2">${job.title}</h1>
-    <p class="text-blue-600 font-bold mb-6">${job.company}</p>
-
-    <div class="flex flex-wrap gap-4 mb-6">
-      <span class="bg-blue-50 px-4 py-2 rounded-xl">
-        📍 ${job.location || "Remote"}
-      </span>
-      <span class="bg-green-50 px-4 py-2 rounded-xl">
-        💰 ${job.salary || "Not disclosed"}
-      </span>
-    </div>
-
-    <div class="text-gray-700 whitespace-pre-line mb-8">
-      ${job.about || ""}
-    </div>
-
-    <div class="flex gap-3">
-      <button onclick="applyJob('${job.applyLink || "#"}')"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold">
-        Apply Now
-      </button>
-
-      <button onclick="toggleSaveJob()"
-        class="border px-6 py-3 rounded-xl font-bold">
-        Save
-      </button>
-    </div>
-  `;
+if (snap.exists()) {
+  const job = snap.data();
+  document.getElementById("title").innerText = job.title;
+  document.getElementById("company").innerText = job.company;
+  document.getElementById("location").innerText = job.location || "Remote";
+  document.getElementById("salary").innerText = job.salary || "Not disclosed";
+  document.getElementById("about").innerText = job.about || "";
+  window.applyLink = job.applyLink;
+} else {
+  document.getElementById("jobBox").innerHTML =
+    "<p class='text-red-500 font-bold'>Job not found</p>";
 }
 
-/* ================= ACTIONS ================= */
-
-window.applyJob = (link) => {
-  if (!currentUser) return alert("Please login to apply");
-  window.open(link, "_blank");
-};
-
-window.toggleSaveJob = async () => {
-  if (!currentUser) return alert("Please login to save jobs");
-
-  const ref = doc(db, "users", currentUser.uid, "savedJobs", currentJobId);
-  const snap = await getDoc(ref);
-
-  if (snap.exists()) {
-    await deleteDoc(ref);
-    alert("Removed from saved jobs");
-  } else {
-    await setDoc(ref, { savedAt: serverTimestamp() });
-    alert("Job saved ❤️");
+// ================= APPLY =================
+window.applyJob = () => {
+  if (!currentUser) {
+    document.getElementById("authModal").style.display = "flex";
+    return;
   }
+  window.open(window.applyLink, "_blank");
 };
-
-function renderError(msg) {
-  document.getElementById("jobDetailsContent").innerHTML = `
-    <div class="text-center py-20 text-red-600 font-bold">
-      ${msg}
-    </div>
-  `;
-}
 </script>
 
 <style>
-body { background:#f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
-.job-card {
-  background:#fff;
-  border-radius:24px;
-  box-shadow:0 10px 25px -5px rgba(0,0,0,0.05);
+body { background:#f8fafc; }
+.modal {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.5);
+  align-items:center; justify-content:center;
 }
 </style>
 </head>
 
-<body class="min-h-screen">
+<body>
 
-<!-- ================= IN-PAGE NAVBAR ================= -->
-<nav class="bg-white border-b sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-    <a href="index.html" class="text-2xl font-black">
-      Booter<span class="text-blue-600">Space</span>
-    </a>
-    <div class="flex gap-4">
-      <a href="index.html" class="font-semibold text-gray-600 hover:text-blue-600">Home</a>
-      <a href="login.html" class="font-semibold text-gray-600 hover:text-blue-600">Login</a>
-      <a href="signup.html" class="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700">
-        Sign Up
-      </a>
-    </div>
+<!-- ================= NAVBAR ================= -->
+<nav class="bg-white border-b px-6 py-4 flex justify-between items-center">
+  <a href="index.html" class="font-black text-xl">
+    Booter<span class="text-blue-600">Space</span>
+  </a>
+  <div class="space-x-4">
+    <a href="index.html" class="font-semibold">Home</a>
+    <a href="login.html" class="font-semibold text-blue-600">Login</a>
+    <a href="signup.html" class="font-semibold">Signup</a>
   </div>
 </nav>
 
-<!-- ================= MAIN ================= -->
-<main class="max-w-5xl mx-auto px-4 py-10">
-  <div id="jobDetailsContent" class="job-card p-8">
-    <div class="h-6 w-1/2 bg-gray-200 animate-pulse rounded mb-3"></div>
-    <div class="h-4 w-1/3 bg-gray-200 animate-pulse rounded mb-6"></div>
-    <div class="h-32 bg-gray-200 animate-pulse rounded"></div>
+<!-- ================= JOB DETAILS ================= -->
+<main class="max-w-4xl mx-auto p-6">
+  <div id="jobBox" class="bg-white rounded-2xl shadow p-8">
+
+    <h1 id="title" class="text-3xl font-black mb-2"></h1>
+    <p class="text-blue-600 font-bold mb-4" id="company"></p>
+
+    <div class="flex gap-4 text-sm mb-6">
+      <span><i class="fa fa-location-dot"></i> <span id="location"></span></span>
+      <span><i class="fa fa-sack-dollar"></i> <span id="salary"></span></span>
+    </div>
+
+    <p id="about" class="text-gray-700 whitespace-pre-line mb-8"></p>
+
+    <button onclick="applyJob()"
+      class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold">
+      Apply Now
+    </button>
+
   </div>
 </main>
+
+<!-- ================= LOGIN MODAL ================= -->
+<div id="authModal" class="modal">
+  <div class="bg-white p-6 rounded-xl text-center w-80">
+    <h3 class="font-bold text-lg mb-2">Login Required</h3>
+    <p class="text-sm text-gray-600 mb-4">
+      Please login or signup to apply for this job.
+    </p>
+    <a href="login.html" class="block bg-blue-600 text-white py-2 rounded mb-2">Login</a>
+    <a href="signup.html" class="block border py-2 rounded">Signup</a>
+    <button onclick="authModal.style.display='none'"
+      class="text-xs text-gray-400 mt-3">Close</button>
+  </div>
+</div>
 
 </body>
 </html>
