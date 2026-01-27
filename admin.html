@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BooterSpace Admin Control</title>
+  <title>KARDAN Admin Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .nav-btn.active { border-color: #4f46e5; background-color: #f5f3ff; color: #4f46e5; }
@@ -13,6 +13,10 @@
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .calendar-day.has-data { background-color: #eef2ff; border-color: #c7d2fe; cursor: pointer; }
+    .calendar-day.has-data:hover { background-color: #e0e7ff; }
+    .calendar-day.selected { background-color: #4f46e5 !important; color: white !important; border-color: #4f46e5 !important; }
   </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-900">
@@ -102,6 +106,7 @@
 
   let activeTab = 'users';
   let filterRecentUsers = false;
+  let selectedDateFilter = null;
 
   // State Management
   const tabs = [
@@ -217,56 +222,134 @@
   async function loadUsers() {
     const snap = await getDocs(collection(db, "users"));
     let users = [];
-    snap.forEach(d => users.push({id: d.id, ...d.data()}));
+    const registrationCounts = {};
+    
+    snap.forEach(d => {
+      const data = d.data();
+      users.push({id: d.id, ...data});
+      
+      if (data.createdAt?.seconds) {
+        const dateKey = new Date(data.createdAt.seconds * 1000).toDateString();
+        registrationCounts[dateKey] = (registrationCounts[dateKey] || 0) + 1;
+      }
+    });
 
-    if (filterRecentUsers) {
+    // Handle filtering
+    let filteredUsers = users;
+    if (selectedDateFilter) {
+      filteredUsers = users.filter(u => u.createdAt?.seconds && new Date(u.createdAt.seconds * 1000).toDateString() === selectedDateFilter);
+    } else if (filterRecentUsers) {
       const fiveDaysAgo = Date.now() - (5 * 24 * 60 * 60 * 1000);
-      users = users.filter(u => {
+      filteredUsers = users.filter(u => {
         const joinDate = u.createdAt?.seconds ? u.createdAt.seconds * 1000 : 0;
         return joinDate >= fiveDaysAgo;
       });
     }
 
     let html = `
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b pb-6 gap-4">
-        <div>
-          <h2 class="text-2xl font-black text-slate-800">User Registry</h2>
-          <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">${filterRecentUsers ? 'Filter: Last 5 Days' : 'Showing All Records'}</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="recentToggle" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterRecentUsers ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
-            ${filterRecentUsers ? '✓ New Users' : 'Filter New (5d)'}
-          </button>
-          <span class="bg-slate-100 text-slate-500 text-xs font-black px-4 py-2 rounded-full uppercase">${users.length} Result${users.length !== 1 ? 's' : ''}</span>
-        </div>
-      </div>
-      <div class="space-y-3">
-    `;
-    
-    if (users.length === 0) {
-      html += `<div class="py-20 text-center opacity-20 font-bold italic">No records found for this period.</div>`;
-    }
-
-    users.forEach(u => {
-      html += `<div class="p-4 border border-slate-100 bg-slate-50/30 rounded-2xl flex justify-between items-center hover:bg-white transition-all">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-indigo-600">${(u.name || '?').charAt(0)}</div>
-          <div>
-            <p class="font-bold text-sm">${u.name || 'Anonymous'}</p>
-            <p class="text-[10px] text-slate-400 font-bold uppercase">${u.role || 'candidate'} ${u.createdAt ? '• Join: ' + new Date(u.createdAt.seconds * 1000).toLocaleDateString() : ''}</p>
+      <div class="mb-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-6 gap-4">
+            <div>
+              <h2 class="text-2xl font-black text-slate-800">User Registry</h2>
+              <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
+                ${selectedDateFilter ? `Showing registrations for ${selectedDateFilter}` : (filterRecentUsers ? 'Filter: Last 5 Days' : 'Showing All Records')}
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="clearDateFilter" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all ${selectedDateFilter ? '' : 'hidden'}">Clear Date</button>
+              <button id="recentToggle" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterRecentUsers ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
+                ${filterRecentUsers ? '✓ New Users' : 'Filter New (5d)'}
+              </button>
+              <span class="bg-slate-100 text-slate-500 text-xs font-black px-4 py-2 rounded-full uppercase">${filteredUsers.length} Result${filteredUsers.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <div class="space-y-3">
+            ${filteredUsers.length === 0 ? '<div class="py-20 text-center opacity-20 font-bold italic">No records found.</div>' : ''}
+            ${filteredUsers.map(u => `
+              <div class="p-4 border border-slate-100 bg-slate-50/30 rounded-2xl flex justify-between items-center hover:bg-white transition-all">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-indigo-600">${(u.name || '?').charAt(0)}</div>
+                  <div>
+                    <p class="font-bold text-sm">${u.name || 'Anonymous'}</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase">${u.role || 'candidate'} ${u.createdAt ? '• Join: ' + new Date(u.createdAt.seconds * 1000).toLocaleDateString() : ''}</p>
+                  </div>
+                </div>
+                <button onclick="inspectRecord('users', '${u.id}')" class="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-50 hover:bg-indigo-600 hover:text-white transition-all">Inspect</button>
+              </div>
+            `).join('')}
           </div>
         </div>
-        <button onclick="inspectRecord('users', '${u.id}')" class="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-50 hover:bg-indigo-600 hover:text-white transition-all">Inspect</button>
-      </div>`;
-    });
 
-    document.getElementById("content").innerHTML = html + "</div>";
+        <div class="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 h-fit">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="font-black text-slate-800 text-sm uppercase tracking-widest">Growth Calendar</h3>
+            <div class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+          </div>
+          <div id="calendarContainer" class="grid grid-cols-7 gap-1 text-center">
+            <!-- Calendar injected via JS -->
+          </div>
+          <div class="mt-6 pt-6 border-t border-slate-200">
+             <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+               <div class="w-3 h-3 bg-indigo-100 border border-indigo-200 rounded"></div>
+               <span>Days with registrations</span>
+             </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("content").innerHTML = html;
     
+    // Bind buttons
     document.getElementById("recentToggle").onclick = () => {
       filterRecentUsers = !filterRecentUsers;
+      selectedDateFilter = null;
       loadUsers();
     };
+    if(document.getElementById("clearDateFilter")) {
+      document.getElementById("clearDateFilter").onclick = () => {
+        selectedDateFilter = null;
+        loadUsers();
+      };
+    }
+
+    renderCalendar(registrationCounts);
   }
+
+  function renderCalendar(counts) {
+    const container = document.getElementById("calendarContainer");
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    let calHtml = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="text-[9px] font-black text-slate-400 uppercase mb-2">${d}</div>`).join('');
+    
+    // Empty spots for first week
+    for (let i = 0; i < start.getDay(); i++) calHtml += `<div></div>`;
+    
+    for (let d = 1; d <= end.getDate(); d++) {
+      const date = new Date(today.getFullYear(), today.getMonth(), d);
+      const dateKey = date.toDateString();
+      const count = counts[dateKey] || 0;
+      const isSelected = selectedDateFilter === dateKey;
+      
+      calHtml += `
+        <div onclick="filterByDate('${dateKey}')" 
+             class="calendar-day aspect-square flex flex-col items-center justify-center rounded-xl border text-xs font-bold transition-all ${count > 0 ? 'has-data' : 'text-slate-300 border-transparent'} ${isSelected ? 'selected' : ''}">
+          ${d}
+          ${count > 0 ? `<span class="text-[8px] mt-0.5 opacity-60">${count}</span>` : ''}
+        </div>
+      `;
+    }
+    container.innerHTML = calHtml;
+  }
+
+  window.filterByDate = (dateKey) => {
+    selectedDateFilter = dateKey;
+    filterRecentUsers = false;
+    loadUsers();
+  };
 
   async function loadVerifiedProviders() {
     const [uSnap, jSnap] = await Promise.all([
