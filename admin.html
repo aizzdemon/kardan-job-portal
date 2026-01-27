@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KARDAN Admin Control</title>
+  <title>BooterSpace Admin Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .nav-btn.active { border-color: #4f46e5; background-color: #f5f3ff; color: #4f46e5; }
@@ -84,7 +84,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+  import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBeGZBE1u1-y1hDWbRouchgwkgp89D973I",
@@ -101,6 +101,7 @@
   const ADMIN_UID = "nkXAUBb7ffZQ5CtyShWl6YcQ39t2";
 
   let activeTab = 'users';
+  let filterRecentUsers = false;
 
   // State Management
   const tabs = [
@@ -215,22 +216,56 @@
 
   async function loadUsers() {
     const snap = await getDocs(collection(db, "users"));
-    let html = `<div class="flex justify-between items-center mb-8 border-b pb-6">
-      <h2 class="text-2xl font-black text-slate-800">User Registry</h2>
-      <span class="bg-slate-100 text-slate-500 text-xs font-black px-4 py-2 rounded-full uppercase">${snap.size} Total</span>
-    </div><div class="space-y-3">`;
+    let users = [];
+    snap.forEach(d => users.push({id: d.id, ...d.data()}));
+
+    if (filterRecentUsers) {
+      const fiveDaysAgo = Date.now() - (5 * 24 * 60 * 60 * 1000);
+      users = users.filter(u => {
+        const joinDate = u.createdAt?.seconds ? u.createdAt.seconds * 1000 : 0;
+        return joinDate >= fiveDaysAgo;
+      });
+    }
+
+    let html = `
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b pb-6 gap-4">
+        <div>
+          <h2 class="text-2xl font-black text-slate-800">User Registry</h2>
+          <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">${filterRecentUsers ? 'Filter: Last 5 Days' : 'Showing All Records'}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="recentToggle" class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filterRecentUsers ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}">
+            ${filterRecentUsers ? '✓ New Users' : 'Filter New (5d)'}
+          </button>
+          <span class="bg-slate-100 text-slate-500 text-xs font-black px-4 py-2 rounded-full uppercase">${users.length} Result${users.length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+      <div class="space-y-3">
+    `;
     
-    snap.forEach(docSnap => {
-      const u = docSnap.data();
+    if (users.length === 0) {
+      html += `<div class="py-20 text-center opacity-20 font-bold italic">No records found for this period.</div>`;
+    }
+
+    users.forEach(u => {
       html += `<div class="p-4 border border-slate-100 bg-slate-50/30 rounded-2xl flex justify-between items-center hover:bg-white transition-all">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-indigo-600">${(u.name || '?').charAt(0)}</div>
-          <div><p class="font-bold text-sm">${u.name || 'Anonymous'}</p><p class="text-[10px] text-slate-400 font-bold uppercase">${u.role || 'candidate'}</p></div>
+          <div>
+            <p class="font-bold text-sm">${u.name || 'Anonymous'}</p>
+            <p class="text-[10px] text-slate-400 font-bold uppercase">${u.role || 'candidate'} ${u.createdAt ? '• Join: ' + new Date(u.createdAt.seconds * 1000).toLocaleDateString() : ''}</p>
+          </div>
         </div>
-        <button onclick="inspectRecord('users', '${docSnap.id}')" class="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-50 hover:bg-indigo-600 hover:text-white transition-all">Inspect</button>
+        <button onclick="inspectRecord('users', '${u.id}')" class="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-white px-4 py-2 rounded-lg shadow-sm border border-indigo-50 hover:bg-indigo-600 hover:text-white transition-all">Inspect</button>
       </div>`;
     });
+
     document.getElementById("content").innerHTML = html + "</div>";
+    
+    document.getElementById("recentToggle").onclick = () => {
+      filterRecentUsers = !filterRecentUsers;
+      loadUsers();
+    };
   }
 
   async function loadVerifiedProviders() {
@@ -274,23 +309,53 @@
     const snap = await getDocs(query(collection(db, "jobs"), where("status", "==", status)));
     let html = `<div class="flex justify-between items-center mb-8">
       <h2 class="text-2xl font-black text-${color}-600 capitalize">${status} Jobs</h2>
-    </div><div class="space-y-4">`;
+    </div><div class="space-y-6">`;
 
     if(snap.empty) html += `<div class="text-center py-20 opacity-20 font-bold">No items found in this queue.</div>`;
 
     snap.forEach(docSnap => {
       const j = docSnap.data();
-      html += `<div class="p-5 border border-slate-100 rounded-[1.5rem] bg-slate-50/30 flex justify-between items-start">
-        <div>
-          <h4 class="font-black text-slate-800">${j.title}</h4>
-          <p class="text-xs text-slate-400 font-bold mt-1 uppercase tracking-tight">${j.company} &bull; ${j.location || 'Remote'}</p>
-        </div>
-        <div class="flex gap-2">
-          ${status === 'pending' ? 
-            `<button onclick="updateStatus('jobs', '${docSnap.id}', 'approved')" class="bg-green-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-100">Approve</button>` : ''}
-          <button onclick="handleDelete('jobs', '${docSnap.id}')" class="bg-white text-red-500 border border-red-50 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">Delete</button>
-        </div>
-      </div>`;
+      const dateStr = j.createdAt?.seconds 
+        ? new Date(j.createdAt.seconds * 1000).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+        : 'Date Unavailable';
+
+      html += `
+        <div class="p-6 border border-slate-100 rounded-[2rem] bg-slate-50/20 hover:bg-white transition-all shadow-sm">
+          <div class="flex flex-col md:flex-row justify-between gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <h4 class="font-black text-xl text-slate-800">${j.title}</h4>
+                <span class="bg-${color}-100 text-${color}-700 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">${status}</span>
+              </div>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+                <div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Company & Location</p>
+                  <p class="font-bold text-slate-700">${j.company || 'N/A'} • ${j.location || 'Remote'}</p>
+                </div>
+                <div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Posted On</p>
+                  <p class="font-bold text-slate-700">${dateStr}</p>
+                </div>
+                <div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Category & Salary</p>
+                  <p class="font-bold text-slate-700">${j.category || 'General'} • ${j.salary || 'Not specified'}</p>
+                </div>
+                <div>
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Contact Information</p>
+                  <p class="font-bold text-slate-700">${j.email || j.phone || 'No direct contact info'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2 min-w-[120px]">
+              <button onclick="inspectRecord('jobs', '${docSnap.id}')" class="bg-indigo-50 text-indigo-600 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">Inspect Details</button>
+              ${status === 'pending' ? 
+                `<button onclick="updateStatus('jobs', '${docSnap.id}', 'approved')" class="bg-green-600 text-white px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-100 active:scale-95">Approve Post</button>` : ''}
+              <button onclick="handleDelete('jobs', '${docSnap.id}')" class="bg-white text-red-500 border border-red-50 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">Delete</button>
+            </div>
+          </div>
+        </div>`;
     });
     document.getElementById("content").innerHTML = html + "</div>";
   }
@@ -310,6 +375,38 @@
           <button onclick="inspectRecord('users', '${docSnap.id}')" class="text-[10px] font-black px-4 py-2 bg-white border border-rose-100 rounded-xl uppercase">Profile</button>
           <button onclick="promoteToProvider('${docSnap.id}')" class="bg-rose-600 text-white px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-200">Grant Access</button>
         </div>
+      </div>`;
+    });
+    document.getElementById("content").innerHTML = html;
+  }
+
+  async function loadPosts() {
+    const snap = await getDocs(collection(db, "posts"));
+    let html = `<h2 class="text-2xl font-black mb-8 text-blue-600">Community Posts</h2><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+    snap.forEach(docSnap => {
+      const p = docSnap.data();
+      html += `<div class="p-5 border border-slate-100 rounded-3xl bg-slate-50/30">
+        <p class="text-sm font-bold text-slate-800 mb-2">${p.text || 'No content'}</p>
+        <div class="flex justify-between items-center border-t pt-4">
+          <span class="text-[10px] font-black text-slate-400 uppercase">By: ${p.authorName || 'User'}</span>
+          <button onclick="handleDelete('posts', '${docSnap.id}')" class="text-red-500 text-[10px] font-black uppercase">Remove</button>
+        </div>
+      </div>`;
+    });
+    document.getElementById("content").innerHTML = html + "</div>";
+  }
+
+  async function loadReports() {
+    const snap = await getDocs(collection(db, "reports"));
+    let html = `<h2 class="text-2xl font-black mb-8 text-red-600">Incident Reports</h2>`;
+    snap.forEach(docSnap => {
+      const r = docSnap.data();
+      html += `<div class="p-5 border border-red-50 bg-red-50/10 rounded-3xl mb-4 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-black text-red-600 uppercase mb-1">Reason: ${r.reason || 'Not specified'}</p>
+          <p class="text-sm font-bold text-slate-700">Target ID: ${r.targetId}</p>
+        </div>
+        <button onclick="handleDelete('reports', '${docSnap.id}')" class="bg-white border border-red-100 text-red-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Dismiss</button>
       </div>`;
     });
     document.getElementById("content").innerHTML = html;
@@ -346,24 +443,38 @@
     </div>`;
 
     const snap = await getDocs(query(collection(db, coll))); 
-    // Optimization: we could use getDoc but getDocs is more reliable in some wrapper envs
     const target = snap.docs.find(d => d.id === id);
     const data = target.data();
 
     container.innerHTML = "";
-    Object.keys(data).forEach(k => {
-      if(typeof data[k] === 'object') return;
+    Object.keys(data).sort().forEach(k => {
+      let val = data[k];
+      let inputType = "text";
+      
+      if (val && val.seconds) {
+        val = new Date(val.seconds * 1000).toISOString().split('T')[0];
+        inputType = "date";
+      }
+
+      if(typeof val === 'object' && !val?.seconds) return;
+
       container.innerHTML += `
         <div>
           <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">${k}</label>
-          <input type="text" data-field="${k}" value="${data[k]}" class="w-full p-3 bg-slate-50 border-none rounded-xl text-sm font-bold mt-1 focus:ring-2 focus:ring-indigo-500 transition-all">
+          <input type="${inputType}" data-field="${k}" data-type="${inputType}" value="${val}" class="w-full p-3 bg-slate-50 border-none rounded-xl text-sm font-bold mt-1 focus:ring-2 focus:ring-indigo-500 transition-all">
         </div>
       `;
     });
 
     document.getElementById("modalSaveBtn").onclick = async () => {
       const updates = {};
-      container.querySelectorAll('input').forEach(i => updates[i.dataset.field] = i.value);
+      container.querySelectorAll('input').forEach(i => {
+        if (i.dataset.type === 'date') {
+          updates[i.dataset.field] = Timestamp.fromDate(new Date(i.value));
+        } else {
+          updates[i.dataset.field] = i.value;
+        }
+      });
       await updateDoc(doc(db, coll, id), updates);
       closeModal();
       switchTab(activeTab);
